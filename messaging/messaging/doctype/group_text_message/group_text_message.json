@@ -1,13 +1,17 @@
 {
  "actions": [],
  "allow_rename": 1,
+ "autoname": "field:message_title",
  "creation": "2023-11-29 12:27:55.683096",
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
+  "group_text_message_section",
   "messaging_group",
+  "message_title",
   "message",
-  "scheduled_delivery"
+  "scheduled_delivery",
+  "status"
  ],
  "fields": [
   {
@@ -29,14 +33,39 @@
    "fieldname": "scheduled_delivery",
    "fieldtype": "Datetime",
    "label": "Scheduled Delivery"
+  },
+  {
+   "fieldname": "group_text_message_section",
+   "fieldtype": "Section Break",
+   "label": "Group Text Message"
+  },
+  {
+   "fieldname": "message_title",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Message Title",
+   "reqd": 1,
+   "unique": 1
+  },
+  {
+   "default": "Draft",
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "hidden": 1,
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Status",
+   "options": "Draft\nSent",
+   "read_only": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2023-11-29 12:38:40.203234",
+ "modified": "2023-11-30 17:35:32.840067",
  "modified_by": "Administrator",
  "module": "Messaging",
  "name": "Group Text Message",
+ "naming_rule": "By fieldname",
  "owner": "Administrator",
  "permissions": [
   {
@@ -54,5 +83,14 @@
  ],
  "sort_field": "modified",
  "sort_order": "DESC",
- "states": []
+ "states": [
+  {
+   "color": "Light Blue",
+   "title": "Draft"
+  },
+  {
+   "color": "Green",
+   "title": "Sent"
+  }
+ ]
 }

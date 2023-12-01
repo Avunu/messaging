@@ -33,17 +33,37 @@
   {
    "hidden": 0,
    "is_query_report": 0,
-   "label": "Setup",
-   "link_count": 1,
+   "label": "Contact Management",
+   "link_count": 3,
    "onboard": 0,
    "type": "Card Break"
   },
   {
    "hidden": 0,
    "is_query_report": 0,
-   "label": "SMS Settings",
+   "label": "Contacts",
    "link_count": 0,
-   "link_to": "SMS Settings",
+   "link_to": "Contact",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Email Groups",
+   "link_count": 0,
+   "link_to": "Email Group",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Messaging Groups",
+   "link_count": 0,
+   "link_to": "Messaging Group",
    "link_type": "DocType",
    "onboard": 0,
    "type": "Link"
@@ -52,7 +72,7 @@
    "hidden": 0,
    "is_query_report": 0,
    "label": "Broadcasts",
-   "link_count": 3,
+   "link_count": 4,
    "onboard": 0,
    "type": "Card Break"
   },
@@ -89,43 +109,33 @@
   {
    "hidden": 0,
    "is_query_report": 0,
-   "label": "Contact Management",
-   "link_count": 3,
+   "label": "Group Text Messages",
+   "link_count": 0,
+   "link_to": "Group Text Message",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Setup",
+   "link_count": 1,
    "onboard": 0,
    "type": "Card Break"
   },
   {
    "hidden": 0,
    "is_query_report": 0,
-   "label": "Contacts",
+   "label": "SMS Settings",
    "link_count": 0,
-   "link_to": "Contact",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Email Groups",
-   "link_count": 0,
-   "link_to": "Email Group",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Messaging Groups",
-   "link_count": 0,
-   "link_to": "Messaging Group",
+   "link_to": "SMS Settings",
    "link_type": "DocType",
    "onboard": 0,
    "type": "Link"
   }
  ],
- "modified": "2023-11-29 11:56:55.862724",
+ "modified": "2023-11-30 17:25:35.493833",
  "modified_by": "wengersc@gmail.com",
  "module": "Messaging",
  "name": "Messaging",

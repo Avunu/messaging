@@ -1,16 +1,23 @@
 {
  "actions": [],
  "allow_rename": 1,
+ "autoname": "hash",
  "creation": "2023-11-29 11:21:37.423252",
  "doctype": "DocType",
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
-  "name1"
+  "member_section",
+  "contact"
  ],
  "fields": [
   {
-   "fieldname": "name1",
+   "fieldname": "member_section",
+   "fieldtype": "Section Break",
+   "label": "Member"
+  },
+  {
+   "fieldname": "contact",
    "fieldtype": "Link",
    "in_list_view": 1,
    "label": "Contact",
@@ -21,10 +28,11 @@
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2023-11-29 12:36:05.160889",
+ "modified": "2023-11-30 16:49:52.498792",
  "modified_by": "Administrator",
  "module": "Messaging",
  "name": "Messaging Group Member",
+ "naming_rule": "Random",
  "owner": "Administrator",
  "permissions": [],
  "sort_field": "modified",
