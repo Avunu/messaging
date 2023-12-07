@@ -133,23 +133,23 @@ app_license = "mit"
 # Scheduled Tasks
 # ---------------
 
-# scheduler_events = {
-#	"all": [
-#		"messaging.tasks.all"
-#	],
-#	"daily": [
-#		"messaging.tasks.daily"
-#	],
-#	"hourly": [
-#		"messaging.tasks.hourly"
-#	],
-#	"weekly": [
-#		"messaging.tasks.weekly"
-#	],
-#	"monthly": [
-#		"messaging.tasks.monthly"
-#	],
-# }
+scheduler_events = {
+	"all": [
+		"messaging.tasks.all"
+	],
+	# "daily": [
+	# 	"messaging.tasks.daily"
+	# ],
+	# "hourly": [
+	# 	"messaging.tasks.hourly"
+	# ],
+	# "weekly": [
+	# 	"messaging.tasks.weekly"
+	# ],
+	# "monthly": [
+	# 	"messaging.tasks.monthly"
+	# ],
+}
 
 # Testing
 # -------

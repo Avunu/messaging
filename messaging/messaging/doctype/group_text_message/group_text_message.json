@@ -32,7 +32,8 @@
   {
    "fieldname": "scheduled_delivery",
    "fieldtype": "Datetime",
-   "label": "Scheduled Delivery"
+   "hidden": 1,
+   "label": "Scheduled Delivery (Optional)"
   },
   {
    "fieldname": "group_text_message_section",
@@ -53,7 +54,6 @@
    "fieldtype": "Select",
    "hidden": 1,
    "in_list_view": 1,
-   "in_standard_filter": 1,
    "label": "Status",
    "options": "Draft\nSent",
    "read_only": 1
@@ -61,7 +61,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2023-11-30 17:35:32.840067",
+ "modified": "2023-12-01 15:37:36.722251",
  "modified_by": "Administrator",
  "module": "Messaging",
  "name": "Group Text Message",
