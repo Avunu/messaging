@@ -29,7 +29,7 @@ function render_send_button(frm) {
 async function send_text_message() {
     // save the message
     if (cur_frm.is_dirty()) {
-        await cur_frm.save();
+        await cur_frm.save(); 
     }
     // call the send_text_message server side function
     frappe.call({
