@@ -135,7 +135,9 @@ app_license = "mit"
 
 scheduler_events = {
 	"all": [
-		"messaging.tasks.all"
+		# "messaging.tasks.all",
+        # check every minute for scheduled messages that need to be sent
+		"messaging.messaging.doctype.scheduled_message.scheduled_message.check_scheduled_messages",
 	],
 	# "daily": [
 	# 	"messaging.tasks.daily"
