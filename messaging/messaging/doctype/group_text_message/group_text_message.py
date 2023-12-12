@@ -19,6 +19,16 @@ def send_text_message(name):
 	# get the group text message
 	group_text_message = frappe.get_doc("Group Text Message", name)
 
+	# handle scheduled delivery
+	if group_text_message.scheduled_delivery:
+		# set the status of the group text message to scheduled if it isn't already
+		if group_text_message.status != "Scheduled":
+			group_text_message.status = "Scheduled"
+			group_text_message.save()
+		# if the scheduled_delivery datetime is in the future, return success and don't send the text message
+		if group_text_message.scheduled_delivery > frappe.utils.now_datetime():
+			return "success"
+
 	# get the messaging group
 	messaging_group = frappe.get_doc("Messaging Group", group_text_message.messaging_group)
 
@@ -42,4 +52,18 @@ def send_text_message(name):
 	group_text_message.status = "Sent"
 	group_text_message.save()
 
+	# submit the group text message
+	group_text_message.submit()
+
 	return "success"
+
+def send_scheduled_messages():
+	# get all of the group text messages that are scheduled to be sent where the scheduled_delivery datetime is past or equal to now
+	group_text_messages = frappe.db.sql(f"""
+		SELECT name FROM `tabGroup Text Message` 
+		WHERE scheduled_delivery <= '{frappe.utils.now_datetime()}'
+		AND status = 'Scheduled'
+	""", as_dict=True)
+	for group_text_message in group_text_messages:
+		# send the text message
+		send_text_message(group_text_message.name)

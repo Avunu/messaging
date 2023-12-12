@@ -10,8 +10,10 @@
   "messaging_group",
   "message_title",
   "message",
+  "schedule_delivery",
   "scheduled_delivery",
-  "status"
+  "status",
+  "amended_from"
  ],
  "fields": [
   {
@@ -32,8 +34,7 @@
   {
    "fieldname": "scheduled_delivery",
    "fieldtype": "Datetime",
-   "hidden": 1,
-   "label": "Scheduled Delivery (Optional)"
+   "label": "Scheduled Delivery (Leave Blank to Send Immediately)"
   },
   {
    "fieldname": "group_text_message_section",
@@ -55,13 +56,30 @@
    "hidden": 1,
    "in_list_view": 1,
    "label": "Status",
-   "options": "Draft\nSent",
+   "options": "Draft\nSent\nScheduled",
    "read_only": 1
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "no_copy": 1,
+   "options": "Group Text Message",
+   "print_hide": 1,
+   "read_only": 1,
+   "search_index": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "schedule_delivery",
+   "fieldtype": "Check",
+   "label": "Schedule Delivery"
   }
  ],
  "index_web_pages_for_search": 1,
+ "is_submittable": 1,
  "links": [],
- "modified": "2023-12-01 15:37:36.722251",
+ "modified": "2023-12-12 09:14:38.130730",
  "modified_by": "Administrator",
  "module": "Messaging",
  "name": "Group Text Message",
@@ -91,6 +109,10 @@
   {
    "color": "Green",
    "title": "Sent"
+  },
+  {
+   "color": "Blue",
+   "title": "Scheduled"
   }
  ]
 }

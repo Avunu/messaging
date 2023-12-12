@@ -4,14 +4,8 @@
 frappe.ui.form.on("Group Text Message", {
     onload: function(frm) {
         // check if there is not already a send button and if the form is not already 'sent'
-        if (!document.getElementById("send") && frm.doc.status !== "Sent") {
+        if (!document.getElementById("send") && frm.doc.status !== "Sent" && frm.doc.status !== "Scheduled") {
             render_send_button(frm);
-        }
-        else if (frm.doc.status == "Sent") {
-            // add a menu item to resend the message
-            // cur_frm.add_menu_item("Resend", function() {
-            //     send_text_message();
-            // });
         }
     },
 });
