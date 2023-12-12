@@ -6,12 +6,14 @@
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
-  "group_text_message_section",
-  "messaging_group",
+  "group_text_message_section_1",
   "message_title",
-  "message",
-  "schedule_delivery",
+  "column_break_nozk",
+  "messaging_group",
+  "column_break_jtlt",
   "scheduled_delivery",
+  "group_text_message_section_2",
+  "message",
   "status",
   "amended_from"
  ],
@@ -35,11 +37,6 @@
    "fieldname": "scheduled_delivery",
    "fieldtype": "Datetime",
    "label": "Scheduled Delivery (Leave Blank to Send Immediately)"
-  },
-  {
-   "fieldname": "group_text_message_section",
-   "fieldtype": "Section Break",
-   "label": "Group Text Message"
   },
   {
    "fieldname": "message_title",
@@ -70,16 +67,28 @@
    "search_index": 1
   },
   {
-   "default": "0",
-   "fieldname": "schedule_delivery",
-   "fieldtype": "Check",
-   "label": "Schedule Delivery"
+   "fieldname": "column_break_nozk",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "column_break_jtlt",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "group_text_message_section_1",
+   "fieldtype": "Section Break",
+   "hide_border": 1
+  },
+  {
+   "fieldname": "group_text_message_section_2",
+   "fieldtype": "Section Break",
+   "hide_border": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2023-12-12 09:14:38.130730",
+ "modified": "2023-12-12 09:39:33.101170",
  "modified_by": "Administrator",
  "module": "Messaging",
  "name": "Group Text Message",
