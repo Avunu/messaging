@@ -139,7 +139,7 @@ scheduler_events = {
 	"all": [
 		# "messaging.tasks.all",
         # check every minute for scheduled messages that need to be sent
-		"messaging.messaging.doctype.group_text_message.group_text_message.send_scheduled_messages",
+		"messaging.messaging.doctype.group_text_message.send_scheduled_messages",
 	],
 	# "daily": [
 	# 	"messaging.tasks.daily"
