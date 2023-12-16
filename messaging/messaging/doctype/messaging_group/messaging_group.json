@@ -6,9 +6,11 @@
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
+  "section_break_tvih",
   "title",
   "email_group",
-  "members"
+  "members",
+  "connections_tab"
  ],
  "fields": [
   {
@@ -29,11 +31,27 @@
    "label": "Email Group",
    "options": "Email Group",
    "unique": 1
+  },
+  {
+   "fieldname": "section_break_tvih",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "connections_tab",
+   "fieldtype": "Tab Break",
+   "label": "Connections",
+   "show_dashboard": 1
   }
  ],
  "index_web_pages_for_search": 1,
- "links": [],
- "modified": "2023-11-30 16:49:44.055132",
+ "links": [
+  {
+   "link_doctype": "Group Text Message",
+   "link_fieldname": "messaging_group",
+   "table_fieldname": "messaging_group"
+  }
+ ],
+ "modified": "2023-12-15 17:04:26.108588",
  "modified_by": "Administrator",
  "module": "Messaging",
  "name": "Messaging Group",

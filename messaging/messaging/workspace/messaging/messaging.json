@@ -1,6 +1,6 @@
 {
  "charts": [],
- "content": "[{\"id\":\"U3vGigzTls\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">Communication</span>\",\"col\":12}},{\"id\":\"LqcbPH_Ijy\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Email Inbox\",\"col\":3}},{\"id\":\"YI_0X0tS48\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Notifications\",\"col\":3}},{\"id\":\"FypNF-1Lu3\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"Sw-K3RF4bL\",\"type\":\"card\",\"data\":{\"card_name\":\"Contact Management\",\"col\":4}},{\"id\":\"cZV_ge-roG\",\"type\":\"card\",\"data\":{\"card_name\":\"Broadcasts\",\"col\":4}},{\"id\":\"TvNSlyeTTh\",\"type\":\"card\",\"data\":{\"card_name\":\"Notifications\",\"col\":4}},{\"id\":\"vOSXH9Xfdc\",\"type\":\"card\",\"data\":{\"card_name\":\"Setup\",\"col\":4}}]",
+ "content": "[{\"id\":\"U3vGigzTls\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">Communication</span>\",\"col\":12}},{\"id\":\"LWtEU9DoWu\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"New Group Text\",\"col\":3}},{\"id\":\"I3YcTO8eAd\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"New Newsletter\",\"col\":3}},{\"id\":\"LqcbPH_Ijy\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Email Inbox\",\"col\":3}},{\"id\":\"YI_0X0tS48\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Notifications\",\"col\":3}},{\"id\":\"FypNF-1Lu3\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"Sw-K3RF4bL\",\"type\":\"card\",\"data\":{\"card_name\":\"Contact Management\",\"col\":4}},{\"id\":\"cZV_ge-roG\",\"type\":\"card\",\"data\":{\"card_name\":\"Broadcasts\",\"col\":4}},{\"id\":\"TvNSlyeTTh\",\"type\":\"card\",\"data\":{\"card_name\":\"Notifications\",\"col\":4}},{\"id\":\"vOSXH9Xfdc\",\"type\":\"card\",\"data\":{\"card_name\":\"Setup\",\"col\":4}}]",
  "creation": "2023-08-04 09:07:45.599484",
  "custom_blocks": [],
  "docstatus": 0,
@@ -33,8 +33,26 @@
   {
    "hidden": 0,
    "is_query_report": 0,
+   "label": "Setup",
+   "link_count": 1,
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "SMS Settings",
+   "link_count": 0,
+   "link_to": "SMS Settings",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
    "label": "Contact Management",
-   "link_count": 3,
+   "link_count": 4,
    "onboard": 0,
    "type": "Card Break"
   },
@@ -71,40 +89,20 @@
   {
    "hidden": 0,
    "is_query_report": 0,
+   "label": "Contact Spreadsheet",
+   "link_count": 0,
+   "link_to": "Contact Spreadsheet",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
    "label": "Broadcasts",
-   "link_count": 4,
+   "link_count": 3,
    "onboard": 0,
    "type": "Card Break"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Newsletters",
-   "link_count": 0,
-   "link_to": "Newsletter",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Email Campaigns",
-   "link_count": 0,
-   "link_to": "Marketing Campaign",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Email Queue",
-   "link_count": 0,
-   "link_to": "Email Queue",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
   },
   {
    "hidden": 0,
@@ -119,24 +117,26 @@
   {
    "hidden": 0,
    "is_query_report": 0,
-   "label": "Setup",
-   "link_count": 1,
+   "label": "Email Newsletters",
+   "link_count": 0,
+   "link_to": "Newsletter",
+   "link_type": "DocType",
    "onboard": 0,
-   "type": "Card Break"
+   "type": "Link"
   },
   {
    "hidden": 0,
    "is_query_report": 0,
-   "label": "SMS Settings",
+   "label": "Email Queue",
    "link_count": 0,
-   "link_to": "SMS Settings",
+   "link_to": "Email Queue",
    "link_type": "DocType",
    "onboard": 0,
    "type": "Link"
   }
  ],
- "modified": "2023-11-30 17:25:35.493833",
- "modified_by": "wengersc@gmail.com",
+ "modified": "2023-12-13 22:41:45.580907",
+ "modified_by": "Administrator",
  "module": "Messaging",
  "name": "Messaging",
  "number_cards": [],
@@ -145,7 +145,7 @@
  "public": 1,
  "quick_lists": [],
  "roles": [],
- "sequence_id": 1.0,
+ "sequence_id": 2.0,
  "shortcuts": [
   {
    "color": "Grey",
@@ -159,6 +159,22 @@
    "doc_view": "List",
    "label": "Email Inbox",
    "link_to": "Communication",
+   "type": "DocType"
+  },
+  {
+   "color": "Grey",
+   "doc_view": "New",
+   "label": "New Newsletter",
+   "link_to": "Newsletter",
+   "stats_filter": "[]",
+   "type": "DocType"
+  },
+  {
+   "color": "Grey",
+   "doc_view": "New",
+   "label": "New Group Text",
+   "link_to": "Group Text Message",
+   "stats_filter": "[]",
    "type": "DocType"
   }
  ],
