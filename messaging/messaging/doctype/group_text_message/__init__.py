@@ -18,14 +18,8 @@ def send_scheduled_messages():
         .where(GroupTextMessage.status == "Scheduled")
     ).run(as_list=True)[0]
 
-    # debug
-    frappe.log_error(
-        "Group Text Message",
-        f"Group Text Messages to send: {group_text_messages}",
-    )
-
     for group_text_name in group_text_messages:
         # send the text message
         frappe.get_doc(
-            "Group Text Message", group_text_name["name"]
+            "Group Text Message", group_text_name
         ).send_text_message()
