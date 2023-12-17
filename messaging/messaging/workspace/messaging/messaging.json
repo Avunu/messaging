@@ -135,7 +135,7 @@
    "type": "Link"
   }
  ],
- "modified": "2023-12-13 22:41:45.580907",
+ "modified": "2023-12-16 16:56:19.424197",
  "modified_by": "Administrator",
  "module": "Messaging",
  "name": "Messaging",
@@ -159,6 +159,7 @@
    "doc_view": "List",
    "label": "Email Inbox",
    "link_to": "Communication",
+   "stats_filter": "[[\"Communication\",\"sent_or_received\",\"=\",\"Received\",false],[\"Communication\",\"status\",\"!=\",\"Closed\",false]]",
    "type": "DocType"
   },
   {
