@@ -12,7 +12,7 @@
   "messaging_group",
   "column_break_nozk",
   "schedule",
-  "delivery_datetime,
+  "delivery_datetime",
   "group_text_message_section_2",
   "message",
   "status",
@@ -28,7 +28,7 @@
   },
   {
    "fieldname": "message_title",
-   "fieldtype": "delivery_datetime
+   "fieldtype": "Data",
    "in_list_view": 1,
    "label": "Message Title",
    "reqd": 1,
