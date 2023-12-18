@@ -10,11 +10,11 @@ GroupTextMessage = DocType("Group Text Message")
 
 
 def send_scheduled_messages():
-    # get all of the group text messages that are scheduled to be sent where the scheduled_delivery datetime is past or equal to now
+    # get all of the group text messages that are scheduled to be sent where the delivery_datetime datetime is past or equal to now
     group_text_messages = (
         frappe.qb.from_(GroupTextMessage)
         .select(GroupTextMessage.name)
-        .where(GroupTextMessage.scheduled_delivery <= Now())
+        .where(GroupTextMessage.delivery_datetime <= Now())
         .where(GroupTextMessage.status == "Scheduled")
     ).run(as_list=True)[0]
 

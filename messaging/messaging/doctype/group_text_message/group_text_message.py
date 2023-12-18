@@ -15,10 +15,10 @@ MessagingGroupMember = DocType("Messaging Group Member")
 
 class GroupTextMessage(Document):
     def validate(self):
-        # if the scheduled_delivery is in the past, throw an error
+        # if the delivery_datetime is in the past, throw an error
         if (
-            self.scheduled_delivery
-            and get_datetime(self.scheduled_delivery) < now_datetime()
+            self.delivery_datetime
+            and get_datetime(self.delivery_datetime) < now_datetime()
         ):
             frappe.throw("Scheduled delivery must be in the future.")
             self.status = "Scheduled"
@@ -62,5 +62,6 @@ class GroupTextMessage(Document):
         send_sms(contact_phone_numbers, self.message)
 
         # set the status of the group text message to sent
+        self.delivery_datetime = now_datetime()
         self.status = "Sent"
         self.save()

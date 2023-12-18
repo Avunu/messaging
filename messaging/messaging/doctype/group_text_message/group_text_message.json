@@ -12,7 +12,7 @@
   "messaging_group",
   "column_break_nozk",
   "schedule",
-  "scheduled_delivery",
+  "delivery_datetime,
   "group_text_message_section_2",
   "message",
   "status",
@@ -27,15 +27,8 @@
    "reqd": 1
   },
   {
-   "depends_on": "eval:doc.schedule",
-   "fieldname": "scheduled_delivery",
-   "fieldtype": "Datetime",
-   "label": "Delivery Date/Time",
-   "mandatory_depends_on": "eval:doc.schedule"
-  },
-  {
    "fieldname": "message_title",
-   "fieldtype": "Data",
+   "fieldtype": "delivery_datetime
    "in_list_view": 1,
    "label": "Message Title",
    "reqd": 1,
@@ -88,13 +81,20 @@
    "label": "Messaging Group",
    "options": "Group Text Messaging Group",
    "reqd": 1
+  },
+  {
+   "depends_on": "eval:doc.schedule",
+   "fieldname": "delivery_datetime",
+   "fieldtype": "Datetime",
+   "label": "Delivery Date/Time",
+   "mandatory_depends_on": "eval:doc.schedule"
   }
  ],
  "hide_toolbar": 1,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2023-12-16 15:13:25.152480",
+ "modified": "2023-12-18 11:06:19.883532",
  "modified_by": "Administrator",
  "module": "Messaging",
  "name": "Group Text Message",
@@ -142,5 +142,6 @@
    "color": "Blue",
    "title": "Scheduled"
   }
- ]
+ ],
+ "track_changes": 1
 }

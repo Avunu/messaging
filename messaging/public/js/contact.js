@@ -21,10 +21,11 @@ frappe.ui.form.on("Contact", {
                         },
                         freeze: true,
                     }).done((r) => {
-                        frappe.show_alert(r.message).then(() => {
-                            frm.reload_doc();
-                        }
-                        );
+                        frm.reload_doc();
+                        // frappe.show_alert(r.message).then(() => {
+                        //     frm.reload_doc();
+                        // }
+                        // );
                     });
                 });
             }
