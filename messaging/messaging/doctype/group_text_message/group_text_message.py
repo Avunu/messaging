@@ -42,6 +42,7 @@ class GroupTextMessage(Document):
     def send_text_message(self):
         # get the messaging group
         messaging_groups = [group.messaging_group for group in self.messaging_group]
+        excluded_groups = [group.messaging_group for group in self.excluded_groups]
 
         # use query builder to get the primary mobile number for every contact in the messaging group
         contact_phone_numbers = (
@@ -51,15 +52,20 @@ class GroupTextMessage(Document):
                 ContactPhone.parent.isin(
                     frappe.qb.from_(MessagingGroupMember)
                     .select(MessagingGroupMember.contact)
-                    .where(MessagingGroupMember.parent.isin(messaging_groups))
-                    .where(MessagingGroupMember.parenttype == "Messaging Group")
+                    .where(
+                        MessagingGroupMember.parent.isin(messaging_groups)
+                        & ~MessagingGroupMember.parent.isin(excluded_groups)
+                        & MessagingGroupMember.parenttype == "Messaging Group")
                 )
             )
             .where(ContactPhone.is_primary_mobile_no == 1)
         ).run(as_list=True)[0]
 
+        # debug
+        frappe.log_error(contact_phone_numbers)
+
         # send the text message to the contact phone numbers
-        send_sms(contact_phone_numbers, self.message)
+        # send_sms(contact_phone_numbers, self.message)
 
         # set the status of the group text message to sent
         self.delivery_datetime = now_datetime()

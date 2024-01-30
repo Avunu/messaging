@@ -10,6 +10,7 @@
   "group_text_message_section_1",
   "message_title",
   "messaging_group",
+  "exclude_groups",
   "column_break_nozk",
   "schedule",
   "delivery_datetime",
@@ -78,7 +79,7 @@
   {
    "fieldname": "messaging_group",
    "fieldtype": "Table MultiSelect",
-   "label": "Messaging Group",
+   "label": "Target Groups",
    "options": "Group Text Messaging Group",
    "reqd": 1
   },
@@ -88,13 +89,19 @@
    "fieldtype": "Datetime",
    "label": "Delivery Date/Time",
    "mandatory_depends_on": "eval:doc.schedule"
+  },
+  {
+   "fieldname": "exclude_groups",
+   "fieldtype": "Table MultiSelect",
+   "label": "Exclude Groups",
+   "options": "Group Text Messaging Group"
   }
  ],
  "hide_toolbar": 1,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2023-12-18 11:06:19.883532",
+ "modified": "2024-01-30 14:32:58.486887",
  "modified_by": "Administrator",
  "module": "Messaging",
  "name": "Group Text Message",
