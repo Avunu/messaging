@@ -17,7 +17,8 @@ class GroupTextMessage(Document):
     def validate(self):
         # if the delivery_datetime is in the past, throw an error
         if (
-            self.delivery_datetime
+            self.schedule
+            and self.delivery_datetime
             and get_datetime(self.delivery_datetime) < now_datetime()
         ):
             frappe.throw("Scheduled delivery must be in the future.")
