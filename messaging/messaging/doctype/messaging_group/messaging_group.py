@@ -46,7 +46,7 @@ class MessagingGroup(Document):
                 frappe.get_doc("Contact", messaging_group_member.contact).append(
                     "links",
                     {"link_doctype": "Messaging Group", "link_name": self.name},
-                ).save()
+                ).save(ignore_permissions=True)
 
         # check if the messaging group has a linked email group
         if self.email_group:
@@ -72,18 +72,18 @@ class MessagingGroup(Document):
                 ]:
                     frappe.delete_doc("Email Group Member", email_group_member.name)
             # if the messaging group member is not in the email group, add it
-            for messaging_group_member in self.members_contacts:
-                if messaging_group_member.email_id not in [
+            for contact in self.members_contacts:
+                if contact.email_id and contact.email_id not in [
                     email_group_member.email
                     for email_group_member in email_group_members
                 ]:
                     email_group_member = frappe.new_doc("Email Group Member")
                     email_group_member.email_group = self.email_group
-                    email_group_member.email = messaging_group_member.email_id
+                    email_group_member.email = contact.email_id
                     email_group_member.unsubscribed = (
-                        messaging_group_member.unsubscribed
+                        contact.unsubscribed
                     )
-                    email_group_member.save()
+                    email_group_member.save(ignore_permissions=True)
 
     # on trash, remove the link to the messaging group from the associated contacts
     def on_trash(self):
@@ -113,7 +113,7 @@ class MessagingGroup(Document):
             },
         ):
             self.append("members", {"contact": contact_name})
-            self.save()
+            self.save(ignore_permissions=True)
 
     # action function to remove contact from "Messaging Group"
     def remove_contact(self, contact_name):
