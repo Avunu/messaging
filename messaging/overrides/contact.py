@@ -22,3 +22,8 @@ def bulk_add_to_group(doc_names, group_name):
         "status": "Success",
         "message": frappe._("Added contacts to group"),
     }
+
+def add_to_all_contacts_group(doc, method=None):
+    all_contacts_group = frappe.db.get_single_value("Messaging Settings", "all_contacts_group")
+    if all_contacts_group:
+        doc.add_to_group(all_contacts_group)

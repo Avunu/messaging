@@ -43,30 +43,45 @@ class GroupTextMessage(Document):
     def send_text_message(self):
         # get the messaging group
         messaging_groups = [group.messaging_group for group in self.messaging_group]
-        excluded_groups = [group.messaging_group for group in self.excluded_groups]
+        excluded_groups = [group.messaging_group for group in self.exclude_groups]
 
-        # use query builder to get the primary mobile number for every contact in the messaging group
-        contact_phone_numbers = (
+        # Base contact query
+        contact_query = (
+            frappe.qb.from_(MessagingGroupMember)
+            .select(MessagingGroupMember.contact)
+            .where(MessagingGroupMember.parent.isin(messaging_groups))
+            .where(MessagingGroupMember.parenttype == "Messaging Group")
+        )
+
+        # Conditionally add exclusion
+        if excluded_groups:
+            contacts_in_excluded_groups_query = (
+                frappe.qb.from_(MessagingGroupMember)
+                .select(MessagingGroupMember.contact)
+                .where(MessagingGroupMember.parent.isin(excluded_groups))
+                .where(MessagingGroupMember.parenttype == "Messaging Group")
+            )
+            contact_query = contact_query.where(
+                MessagingGroupMember.contact.notin(contacts_in_excluded_groups_query)
+            )
+
+        # Finalize the phone number query
+        contact_phone_numbers_query = (
             frappe.qb.from_(ContactPhone)
             .select(ContactPhone.phone)
-            .where(
-                ContactPhone.parent.isin(
-                    frappe.qb.from_(MessagingGroupMember)
-                    .select(MessagingGroupMember.contact)
-                    .where(
-                        MessagingGroupMember.parent.isin(messaging_groups)
-                        & ~MessagingGroupMember.parent.isin(excluded_groups)
-                        & MessagingGroupMember.parenttype == "Messaging Group")
-                )
-            )
+            .where(ContactPhone.parent.isin(contact_query))
             .where(ContactPhone.is_primary_mobile_no == 1)
-        ).run(as_list=True)[0]
+        )
 
-        # debug
-        frappe.log_error(contact_phone_numbers)
+        contact_phone_numbers = contact_phone_numbers_query.run(pluck="phone")
 
         # send the text message to the contact phone numbers
-        # send_sms(contact_phone_numbers, self.message)
+        send_sms(contact_phone_numbers, self.message)
+
+        comment = (
+            f"Sent to {len(contact_phone_numbers)} contacts: {', '.join(contact_phone_numbers)}"
+        )
+        self.add_comment("Info", comment)
 
         # set the status of the group text message to sent
         self.delivery_datetime = now_datetime()

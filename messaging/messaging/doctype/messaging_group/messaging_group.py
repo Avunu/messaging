@@ -39,7 +39,7 @@ class MessagingGroup(Document):
                     "link_doctype": "Messaging Group",
                     "link_name": self.name,
                     "parenttype": "Contact",
-                    "parent": messaging_group_member.name,
+                    "parent": messaging_group_member.contact,
                 },
             ):
                 # add the link to the contact
