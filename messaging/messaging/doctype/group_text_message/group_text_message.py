@@ -87,3 +87,4 @@ class GroupTextMessage(Document):
         self.delivery_datetime = now_datetime()
         self.status = "Sent"
         self.save()
+        frappe.db.commit()
