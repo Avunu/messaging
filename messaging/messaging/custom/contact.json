@@ -1,0 +1,15 @@
+{
+    "custom_fields": [
+        {
+            "dt": "Contact",
+            "fieldname": "consent_sms",
+            "fieldtype": "Check",
+            "insert_after": "phone_nos",
+            "label": "Consented to recieve SMS",
+            "module": "Messaging"
+        }
+    ],
+    "property_setters": [],
+    "sync_on_migrate": 1,
+    "doctype": "Contact"
+}
