@@ -11,6 +11,7 @@ from frappe.utils.data import get_datetime, now_datetime
 # Define DocTypes for query builder
 ContactPhone = DocType("Contact Phone")
 MessagingGroupMember = DocType("Messaging Group Member")
+Contact = DocType("Contact")
 
 
 class GroupTextMessage(Document):
@@ -46,11 +47,23 @@ class GroupTextMessage(Document):
         excluded_groups = [group.messaging_group for group in self.exclude_groups]
 
         # Base contact query
+        # contact_query = (
+        #     frappe.qb.from_(MessagingGroupMember)
+        #     .select(MessagingGroupMember.contact)
+        #     .where(MessagingGroupMember.parent.isin(messaging_groups))
+        #     .where(MessagingGroupMember.parenttype == "Messaging Group")
+        # )
+
+        # TODO: make sure this new query works before removing the old one ^^^
+        # Base contact query, exclude contacts who do not have sms consent
         contact_query = (
             frappe.qb.from_(MessagingGroupMember)
+            .join(Contact)
+            .on(Contact.name == MessagingGroupMember.contact)
             .select(MessagingGroupMember.contact)
             .where(MessagingGroupMember.parent.isin(messaging_groups))
             .where(MessagingGroupMember.parenttype == "Messaging Group")
+            .where(Contact.consent_sms == 1)
         )
 
         # Conditionally add exclusion
