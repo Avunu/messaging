@@ -70,7 +70,7 @@ class MessagingGroup(Document):
                     messaging_group_member.email_id
                     for messaging_group_member in self.members_contacts
                 ]:
-                    frappe.delete_doc("Email Group Member", email_group_member.name)
+                    frappe.delete_doc("Email Group Member", email_group_member.name, ignore_permissions=True)
             # if the messaging group member is not in the email group, add it
             for contact in self.members_contacts:
                 if contact.email_id and contact.email_id not in [
