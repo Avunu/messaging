@@ -84,6 +84,7 @@ class GroupTextMessage(Document):
             .select(ContactPhone.phone)
             .where(ContactPhone.parent.isin(contact_query))
             .where(ContactPhone.is_primary_mobile_no == 1)
+            .where(ContactPhone.is_valid_mobile == 1)  # Only send to validated numbers (Twilio)
         )
 
         contact_phone_numbers = contact_phone_numbers_query.run(pluck="phone")

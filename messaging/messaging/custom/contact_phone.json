@@ -1,0 +1,25 @@
+{
+    "custom_fields": [
+        {
+            "dt": "Contact Phone",
+            "fieldname": "is_valid_mobile",
+            "fieldtype": "Check",
+            "insert_after": "is_primary_mobile_no",
+            "label": "Valid Mobile Number",
+            "read_only": 1,
+            "module": "Messaging"
+        },
+        {
+            "dt": "Contact Phone",
+            "fieldname": "carrier_type",
+            "fieldtype": "Data",
+            "insert_after": "is_valid_mobile",
+            "label": "Carrier Type",
+            "read_only": 1,
+            "module": "Messaging"
+        }
+    ],
+    "property_setters": [],
+    "sync_on_migrate": 1,
+    "doctype": "Contact Phone"
+}

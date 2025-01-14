@@ -10,7 +10,8 @@
   "twilio_settings_section",
   "twilio_account_sid",
   "twilio_auth_token", 
-  "twilio_phone_no"
+  "twilio_phone_no",
+  "enable_number_validation"
  ],
  "fields": [
   {
@@ -43,6 +44,12 @@
    "fieldname": "twilio_phone_no",
    "fieldtype": "Data", 
    "label": "Twilio Phone Number"
+  },
+  {
+   "fieldname": "enable_number_validation",
+   "fieldtype": "Check",
+   "label": "Enable Phone Number Validation",
+   "default": "0"
   }
  ],
  "index_web_pages_for_search": 1,

@@ -66,4 +66,6 @@ def sms():
 	)
 	communication.insert(ignore_permissions=True)
 
-	return "OK"
+	# Return 204 No Content status code
+	frappe.response.http_status_code = 204
+	return None
