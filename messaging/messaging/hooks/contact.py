@@ -43,4 +43,4 @@ def validate(doc, method=None):
 			
 	# make email addresses lowercase
 	for email_entry in doc.email_ids:
-		email_entry.email_id = email_entry.email_id.lower()
+		email_entry.email_id = email_entry.email_id.lower().strip()
