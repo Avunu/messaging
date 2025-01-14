@@ -29,16 +29,14 @@ def validate(doc, method=None):
             if validate_numbers and phone_entry.is_primary_mobile_no:
                 try:
                     lookup = client.lookups.v2.phone_numbers(phone_entry.phone).fetch(fields=['line_type_intelligence'])
-                    # debug
-                    frappe.log_error("Twilio line_type_intelligence", lookup.line_type_intelligence)
                     phone_entry.is_valid_mobile = lookup.line_type_intelligence.get("type", "") in ['mobile']
                     phone_entry.carrier_type = lookup.line_type_intelligence.get("type", "")
                 except TwilioRestException as e:
                     if e.code == 20404:  # Number not found
                         phone_entry.is_valid_mobile = 0
                     else:
-                        frappe.log_error(f"Twilio Lookup Error: {str(e)}")
+                        frappe.log_error("Twilio Lookup Error", str(e))
                 except Exception as e:
-                    frappe.log_error(f"Phone validation error: {str(e)}")
+                    frappe.log_error("Phone Validation Error", str(e))
         except:
             frappe.throw(_("Invalid phone number: {0}").format(phone_entry.phone))
