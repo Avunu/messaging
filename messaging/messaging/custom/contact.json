@@ -5,7 +5,7 @@
             "fieldname": "consent_sms",
             "fieldtype": "Check",
             "insert_after": "phone_nos",
-            "label": "Consented to recieve SMS",
+            "label": "Consented to receive SMS",
             "module": "Messaging"
         }
     ],

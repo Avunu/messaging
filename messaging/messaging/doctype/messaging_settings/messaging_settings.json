@@ -6,7 +6,11 @@
  "engine": "InnoDB",
  "field_order": [
   "contact_settings_section",
-  "all_contacts_group"
+  "all_contacts_group",
+  "twilio_settings_section",
+  "twilio_account_sid",
+  "twilio_auth_token", 
+  "twilio_phone_no"
  ],
  "fields": [
   {
@@ -19,6 +23,26 @@
    "fieldtype": "Link",
    "label": "Messaging Group for All Contacts",
    "options": "Messaging Group"
+  },
+  {
+   "fieldname": "twilio_settings_section", 
+   "fieldtype": "Section Break",
+   "label": "Twilio Settings"
+  },
+  {
+   "fieldname": "twilio_account_sid",
+   "fieldtype": "Data",
+   "label": "Twilio Account SID"
+  },
+  {
+   "fieldname": "twilio_auth_token",
+   "fieldtype": "Password",
+   "label": "Twilio Auth Token"  
+  },
+  {
+   "fieldname": "twilio_phone_no",
+   "fieldtype": "Data", 
+   "label": "Twilio Phone Number"
   }
  ],
  "index_web_pages_for_search": 1,

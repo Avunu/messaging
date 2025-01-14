@@ -1,0 +1,117 @@
+{
+    "custom_fields": [],
+    "property_setters": [
+        {
+            "doc_type": "Communication",
+            "doctype_or_field": "DocField",
+            "field_name": "subject",
+            "is_system_generated": 1,
+            "module": "Messaging",
+            "name": "Messaging-subject-read_only",
+            "property": "read_only",
+            "property_type": "Check",
+            "value": "1"
+        },
+        {
+            "doc_type": "Communication",
+            "doctype_or_field": "DocField",
+            "field_name": "sender",
+            "is_system_generated": 1,
+            "module": "Messaging",
+            "name": "Messaging-sender-options",
+            "property": "options",
+            "property_type": "Small Text",
+            "value": ""
+        },
+        {
+            "doc_type": "Communication",
+            "doctype_or_field": "DocField",
+            "field_name": "recipients",
+            "is_system_generated": 1,
+            "module": "Messaging",
+            "name": "Messaging-recipients-fieldtype",
+            "property": "fieldtype",
+            "property_type": "Select",
+            "value": "Data"
+        },
+        {
+            "doc_type": "Communication",
+            "doctype_or_field": "DocField",
+            "field_name": "recipients",
+            "is_system_generated": 1,
+            "module": "Messaging",
+            "name": "Messaging-recipients-length",
+            "property": "length",
+            "property_type": "Int",
+            "value": "512"
+        },
+        {
+            "doc_type": "Communication",
+            "doctype_or_field": "DocField",
+            "field_name": "recipients",
+            "is_system_generated": 1,
+            "module": "Messaging",
+            "name": "Messaging-recipients-options",
+            "property": "options",
+            "property_type": "Small Text",
+            "value": ""
+        },
+        {
+            "doc_type": "Communication",
+            "doctype_or_field": "DocField",
+            "field_name": "recipients",
+            "is_system_generated": 1,
+            "module": "Messaging",
+            "name": "Messaging-recipients-read_only",
+            "property": "read_only",
+            "property_type": "Check",
+            "value": "1"
+        },
+        {
+            "doc_type": "Communication",
+            "doctype_or_field": "DocField",
+            "field_name": "cc",
+            "is_system_generated": 1,
+            "module": "Messaging",
+            "name": "Messaging-cc-fieldtype",
+            "property": "fieldtype",
+            "property_type": "Select",
+            "value": "Data"
+        },
+        {
+            "doc_type": "Communication",
+            "doctype_or_field": "DocField",
+            "field_name": "cc",
+            "is_system_generated": 1,
+            "module": "Messaging",
+            "name": "Messaging-cc-read_only",
+            "property": "read_only",
+            "property_type": "Check",
+            "value": "1"
+        },
+        {
+            "doc_type": "Communication",
+            "doctype_or_field": "DocField",
+            "field_name": "bcc",
+            "is_system_generated": 1,
+            "module": "Messaging",
+            "name": "Messaging-bcc-fieldtype",
+            "property": "fieldtype",
+            "property_type": "Select",
+            "value": "Data"
+        },
+        {
+            "doc_type": "Communication",
+            "doctype_or_field": "DocField",
+            "field_name": "bcc",
+            "is_system_generated": 1,
+            "module": "Messaging",
+            "name": "Messaging-bcc-read_only",
+            "property": "read_only",
+            "property_type": "Check",
+            "value": "1"
+        }
+    ],
+    "sync_on_migrate": 1,
+    "doctype": "Communication"
+}

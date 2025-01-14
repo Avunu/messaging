@@ -4,7 +4,7 @@
 frappe.ui.form.on("Contact", {
     refresh: function (frm) {
         // add a "Add to Group" button to add the contact to a messaging group
-        if (cur_frm.doc.creation) {
+        if (frm.doc.creation) {
             frm.add_custom_button(__('Add to Group'), function () {
                 frappe.prompt({
                     fieldname: 'group_name',
