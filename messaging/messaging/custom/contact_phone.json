@@ -2,19 +2,29 @@
     "custom_fields": [
         {
             "dt": "Contact Phone",
-            "fieldname": "is_valid_mobile",
+            "fieldname": "is_valid",
             "fieldtype": "Check",
             "insert_after": "is_primary_mobile_no",
-            "label": "Valid Mobile Number",
+            "label": "Is Valid E164",
             "read_only": 1,
             "module": "Messaging"
         },
         {
             "dt": "Contact Phone",
+            "fieldname": "validated_number",
+            "fieldtype": "Data",
+            "hidden": 1,
+            "insert_after": "is_valid",
+            "label": "Validated Number",
+            "module": "Messaging",
+            "read_only": 1
+        },
+        {
+            "dt": "Contact Phone",
             "fieldname": "carrier_type",
             "fieldtype": "Data",
-            "insert_after": "is_valid_mobile",
-            "label": "Carrier Type",
+            "insert_after": "validated_number",
+            "label": "Validated Carrier Type",
             "read_only": 1,
             "module": "Messaging"
         }
