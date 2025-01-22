@@ -107,10 +107,10 @@ def set_primary_numbers(doc):
 
 	# Handle primary mobile
 	current_mobile = next((p for p in doc.phone_nos if p.is_primary_mobile_no), None)
-	valid_mobiles = [p for p in valid_numbers if p.carrier_type == 'mobile']
-	
+	valid_mobiles = [p for p in valid_numbers if p.carrier_type == "mobile"]
+
 	if current_mobile:
-		if not current_mobile.is_valid or current_mobile.carrier_type != 'mobile':
+		if not current_mobile.is_valid or current_mobile.carrier_type != "mobile":
 			# Reset mobile flags if current primary is invalid/not mobile
 			for phone in doc.phone_nos:
 				phone.is_primary_mobile_no = 0
@@ -166,13 +166,36 @@ def validate_number(e164_number, client):
 		lookup = client.lookups.v2.phone_numbers(e164_number).fetch(
 			fields=["line_type_intelligence"]
 		)
-		carrier_type = str(lookup.get("line_type_intelligence",{}).get("type", ""))
-		is_valid = len(carrier_type) > 0
+
+		# The line_type_intelligence is a PhoneNumberInstance property
+		if hasattr(lookup, "line_type_intelligence"):
+			carrier_type = str(
+				lookup.line_type_intelligence["type"]
+				if "type" in lookup.line_type_intelligence
+				else ""
+			)
+			is_valid = bool(carrier_type)  # Explicitly convert to boolean
+		else:
+			# If we got a response but no line type, consider it valid but unknown type
+			is_valid = True
+			carrier_type = "unknown"
+
 	except TwilioRestException as e:
 		if e.code == 20404:  # Number not found
-			is_valid = 0
+			is_valid = False
+			frappe.logger().info(f"Number not found: {e164_number}")
 		else:
-			frappe.log_error("Twilio Lookup Error", str(e))
+			is_valid = False
+			frappe.log_error(
+				"Twilio Lookup Error", f"Number: {e164_number}, Error: {str(e)}"
+			)
 	except Exception as e:
-		frappe.log_error("Phone Validation Error", str(e))
+		is_valid = False
+		frappe.log_error(
+			"Phone Validation Error", f"Number: {e164_number}, Error: {str(e)}"
+		)
+
+	frappe.logger().debug(
+		f"Validation result for {e164_number}: valid={is_valid}, type={carrier_type}"
+	)
 	return is_valid, carrier_type
