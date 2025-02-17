@@ -8,10 +8,10 @@
   "contact_settings_section",
   "all_contacts_group",
   "twilio_settings_section",
+  "enable_number_validation",
   "twilio_account_sid",
-  "twilio_auth_token", 
-  "twilio_phone_no",
-  "enable_number_validation"
+  "twilio_auth_token",
+  "twilio_phone_no"
  ],
  "fields": [
   {
@@ -26,7 +26,7 @@
    "options": "Messaging Group"
   },
   {
-   "fieldname": "twilio_settings_section", 
+   "fieldname": "twilio_settings_section",
    "fieldtype": "Section Break",
    "label": "Twilio Settings"
   },
@@ -38,24 +38,24 @@
   {
    "fieldname": "twilio_auth_token",
    "fieldtype": "Password",
-   "label": "Twilio Auth Token"  
+   "label": "Twilio Auth Token"
   },
   {
    "fieldname": "twilio_phone_no",
-   "fieldtype": "Data", 
+   "fieldtype": "Data",
    "label": "Twilio Phone Number"
   },
   {
+   "default": "0",
    "fieldname": "enable_number_validation",
    "fieldtype": "Check",
-   "label": "Enable Phone Number Validation",
-   "default": "0"
+   "label": "Enable Phone Number Validation"
   }
  ],
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2024-02-01 09:22:59.737983",
+ "modified": "2025-02-17 09:16:58.696065",
  "modified_by": "Administrator",
  "module": "Messaging",
  "name": "Messaging Settings",

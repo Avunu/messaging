@@ -15,12 +15,34 @@ Contact = DocType("Contact")
 
 
 class GroupTextMessage(Document):
+    # begin: auto-generated types
+    # This code is auto-generated. Do not modify anything in this block.
+
+    from typing import TYPE_CHECKING
+
+    if TYPE_CHECKING:
+        from frappe.types import DF
+        from messaging.messaging.doctype.group_text_messaging_group.group_text_messaging_group import (
+            GroupTextMessagingGroup,
+        )
+
+        amended_from: DF.Link | None
+        delivery_datetime: DF.Datetime | None
+        exclude_groups: DF.TableMultiSelect[GroupTextMessagingGroup]
+        message: DF.LongText
+        message_title: DF.SmallText
+        messaging_group: DF.TableMultiSelect[GroupTextMessagingGroup]
+        schedule: DF.Check
+        status: DF.Literal["Draft", "Sent", "Scheduled"]
+    # end: auto-generated types
+
     def validate(self):
         # if the delivery_datetime is in the past, throw an error
         if (
             self.schedule
             and self.delivery_datetime
-            and get_datetime(self.delivery_datetime) < now_datetime()
+            and (get_datetime(self.delivery_datetime) or now_datetime())
+            < now_datetime()
         ):
             frappe.throw("Scheduled delivery must be in the future.")
             self.status = "Scheduled"
@@ -46,15 +68,6 @@ class GroupTextMessage(Document):
         messaging_groups = [group.messaging_group for group in self.messaging_group]
         excluded_groups = [group.messaging_group for group in self.exclude_groups]
 
-        # Base contact query
-        # contact_query = (
-        #     frappe.qb.from_(MessagingGroupMember)
-        #     .select(MessagingGroupMember.contact)
-        #     .where(MessagingGroupMember.parent.isin(messaging_groups))
-        #     .where(MessagingGroupMember.parenttype == "Messaging Group")
-        # )
-
-        # TODO: make sure this new query works before removing the old one ^^^
         # Base contact query, exclude contacts who do not have sms consent
         contact_query = (
             frappe.qb.from_(MessagingGroupMember)
@@ -84,7 +97,9 @@ class GroupTextMessage(Document):
             .select(ContactPhone.phone)
             .where(ContactPhone.parent.isin(contact_query))
             .where(ContactPhone.is_primary_mobile_no == 1)
-            .where(ContactPhone.is_valid == 1)  # Only send to validated numbers (Twilio)
+            .where(
+                ContactPhone.is_valid == 1
+            )  # Only send to validated numbers (Twilio)
         )
 
         contact_phone_numbers = contact_phone_numbers_query.run(pluck="phone")
@@ -92,9 +107,7 @@ class GroupTextMessage(Document):
         # send the text message to the contact phone numbers
         send_sms(contact_phone_numbers, self.message)
 
-        comment = (
-            f"Sent to {len(contact_phone_numbers)} contacts: {', '.join(contact_phone_numbers)}"
-        )
+        comment = f"Sent to {len(contact_phone_numbers)} contacts: {', '.join(contact_phone_numbers)}"
         self.add_comment("Info", comment)
 
         # set the status of the group text message to sent

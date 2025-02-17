@@ -7,6 +7,7 @@
  "engine": "InnoDB",
  "field_order": [
   "group_text_message_section_1",
+  "column_break_wgqs",
   "message_title",
   "messaging_group",
   "exclude_groups",
@@ -75,6 +76,7 @@
    "label": "Schedule"
   },
   {
+   "description": "Members of this group will be included in the group text, unless they are in an excluded group (below).",
    "fieldname": "messaging_group",
    "fieldtype": "Table MultiSelect",
    "label": "Target Groups",
@@ -91,15 +93,21 @@
    "read_only_depends_on": "eval:doc.docstatus"
   },
   {
+   "description": "Members of this group will be excluded from recieving the message.",
    "fieldname": "exclude_groups",
    "fieldtype": "Table MultiSelect",
    "label": "Exclude Groups",
    "options": "Group Text Messaging Group"
+  },
+  {
+   "fieldname": "column_break_wgqs",
+   "fieldtype": "Column Break",
+   "max_height": "16px"
   }
  ],
  "is_submittable": 1,
  "links": [],
- "modified": "2025-01-21 16:37:42.934586",
+ "modified": "2025-02-17 09:18:54.449064",
  "modified_by": "Administrator",
  "module": "Messaging",
  "name": "Group Text Message",

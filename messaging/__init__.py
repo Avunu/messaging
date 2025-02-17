@@ -1,14 +1,15 @@
-
 __version__ = '0.0.1'
 
 import frappe
 from frappe.query_builder import DocType
 from frappe.query_builder.functions import Count
 from frappe.core.doctype.dynamic_link.dynamic_link import deduplicate_dynamic_links
+from messaging.overrides.contact_phone import ContactPhone
+from messaging.overrides.contact import Contact
+from typing import Optional, Union, List, Dict
 
 
-
-def clean_phone_numbers():
+def clean_phone_numbers() -> None:
     # Fetch all Contact Phone entries
     contact_phones = frappe.get_all('Contact Phone', fields=['name', 'phone'])
 
@@ -23,7 +24,7 @@ def clean_phone_numbers():
     frappe.db.commit()
 
 
-def clean_number(number):
+def clean_number(number: Optional[str]) -> Optional[str]:
     if not number:
         return None
     # Remove spaces, dashes, and parentheses
@@ -34,13 +35,13 @@ def clean_number(number):
     return number
 
 
-def prefix_usa_country_code(number):
+def prefix_usa_country_code(number: str) -> str:
     if number[0] != '+':
         number = f'+1{number}'
     return number
 
 
-def clean_email_addresses():
+def clean_email_addresses() -> None:
     # Fetch all Contact Email entries
     contact_emails = frappe.get_all('Contact Email', fields=['name', 'email_id'])
 
@@ -57,7 +58,7 @@ def clean_email_addresses():
     frappe.db.commit()
 
 # consolidate duplicate contacts
-def consolidate_duplicate_contacts():
+def consolidate_duplicate_contacts() -> None:
     ContactPhone = DocType("Contact Phone")
     duplicate_phone_numbers = (
         frappe.qb.from_(ContactPhone)
@@ -73,7 +74,7 @@ def consolidate_duplicate_contacts():
         contacts = frappe.get_all(
             "Contact Phone",
             filters={"phone": phone_number},
-            fields=["parent"],
+            pluck="parent",
             group_by="parent",
             order_by="modified desc"
         )
@@ -99,7 +100,7 @@ def consolidate_duplicate_contacts():
         contacts = frappe.get_all(
             "Contact Email",
             filters={"email_id": email},
-            fields=["parent"],
+            pluck="parent",
             group_by="parent",
             order_by="modified desc"
         )
@@ -110,12 +111,12 @@ def consolidate_duplicate_contacts():
 
     frappe.db.commit()
 
-def consolidate_contact_data(primary_contact_name, other_contact_entries):
-    primary_contact = frappe.get_doc("Contact", primary_contact_name)
+def consolidate_contact_data(primary_contact_name: str, other_contact_entries: List[str]) -> None:
+    primary_contact = Contact('Contact', primary_contact_name)
     fields_to_update = ['phone_nos', 'email_ids', 'first_name', 'middle_name', 'last_name', 'designation']
 
     for contact_entry in other_contact_entries:
-        other_contact = frappe.get_doc("Contact", contact_entry.parent)
+        other_contact = Contact('Contact', contact_entry)
         for field in fields_to_update:
             # Update primary_contact fields if they are empty and other_contact has data
             if not getattr(primary_contact, field) and getattr(other_contact, field):
@@ -125,10 +126,10 @@ def consolidate_contact_data(primary_contact_name, other_contact_entries):
 
     # Now, merge the contacts
     for contact_entry in other_contact_entries:
-        frappe.rename_doc("Contact", contact_entry.parent, primary_contact_name, merge=True)
+        frappe.rename_doc("Contact", contact_entry, primary_contact_name, merge=True)
 
 
-def deduplicate_contact_links():
+def deduplicate_contact_links() -> None:
     contacts = frappe.get_all('Contact', fields=['name'])
     for contact in contacts:
         contact_doc = frappe.get_doc('Contact', contact.get('name'))
@@ -137,10 +138,10 @@ def deduplicate_contact_links():
 
     frappe.db.commit()
 
-def refresh_primary_contact_fields():
+def refresh_primary_contact_fields() -> None:
     contacts = frappe.get_all('Contact', fields=['name'])
     for contact in contacts:
-        contact_doc = frappe.get_doc('Contact', contact.get('name'))
+        contact_doc = Contact('Contact', contact.get('name'))
         contact_doc.set_primary_email()
         contact_doc.set_primary("phone")
         contact_doc.set_primary("mobile_no")

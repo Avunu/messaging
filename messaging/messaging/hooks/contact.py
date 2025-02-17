@@ -3,10 +3,10 @@ from frappe import _
 import phonenumbers
 from twilio.rest import Client
 from twilio.base.exceptions import TwilioRestException
-
+from messaging.messaging.doctype.messaging_settings.messaging_settings import MessagingSettings
 
 def validate(doc, method=None):
-	settings = frappe.get_doc("Messaging Settings")
+	settings: MessagingSettings = MessagingSettings("Messaging Settings")
 	country_code = get_country_code(doc)
 
 	# Process and deduplicate email addresses
@@ -24,7 +24,7 @@ def validate(doc, method=None):
 
 	if validate_numbers:
 		client = Client(
-			settings.twilio_account_sid, settings.get_password("twilio_auth_token")
+			settings.twilio_account_sid, str(settings.get_password("twilio_auth_token"))
 		)
 		validate_phone_numbers(doc, client)
 
@@ -127,7 +127,7 @@ def get_country_code(doc):
 		country = frappe.get_value("Address", doc.address, "country")
 	if not country:
 		country = frappe.db.get_single_value("System Settings", "country")
-	country_code = frappe.get_value("Country", country, "code").upper()
+	country_code = str(frappe.get_value("Country", country, "code")).upper()
 	return country_code
 
 
