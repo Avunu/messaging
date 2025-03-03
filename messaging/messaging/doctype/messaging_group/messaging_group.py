@@ -1,13 +1,17 @@
 # Copyright (c) 2023, Avunu LLC and contributors
 # For license information, please see license.txt
 
-import frappe
 import datetime
-from frappe.model.document import Document
-from messaging.messaging.doctype.messaging_group_member.messaging_group_member import MessagingGroupMember
-from frappe.email.doctype.email_group_member.email_group_member import EmailGroupMember
-from frappe.contacts.doctype.contact.contact import Contact
 from typing import Dict, List, Optional
+
+import frappe
+from frappe.contacts.doctype.contact.contact import Contact
+from frappe.email.doctype.email_group_member.email_group_member import EmailGroupMember
+from frappe.model.document import Document
+from messaging.messaging.doctype.messaging_group_member.messaging_group_member import (
+    MessagingGroupMember,
+)
+
 
 class MessagingGroup(Document):
     # begin: auto-generated types
@@ -17,7 +21,9 @@ class MessagingGroup(Document):
 
     if TYPE_CHECKING:
         from frappe.types import DF
-        from messaging.messaging.doctype.messaging_group_member.messaging_group_member import MessagingGroupMember
+        from messaging.messaging.doctype.messaging_group_member.messaging_group_member import (
+            MessagingGroupMember,
+        )
 
         email_group: DF.Link | None
         members: DF.TableMultiSelect[MessagingGroupMember]
@@ -76,7 +82,11 @@ class MessagingGroup(Document):
 
             # get the contact for each messaging group member
             self.members_contacts = [
-                Contact("Contact", messaging_group_member.contact, fields=["email_id", "unsubscribed"])
+                Contact(
+                    "Contact",
+                    messaging_group_member.contact,
+                    fields=["email_id", "unsubscribed"],
+                )
                 for messaging_group_member in self.members
             ]
 
@@ -87,20 +97,25 @@ class MessagingGroup(Document):
                     messaging_group_member.email_id
                     for messaging_group_member in self.members_contacts
                 ]:
-                    frappe.delete_doc("Email Group Member", email_group_member.name, ignore_permissions=True)
+                    frappe.delete_doc(
+                        "Email Group Member",
+                        email_group_member.name,
+                        ignore_permissions=True,
+                    )
             # if the messaging group member is not in the email group, add it
             for contact in self.members_contacts:
-                if contact.email_id and contact.email_id not in [
-                    email_group_member.email
+                if contact.email_id and str(contact.email_id).strip().lower() not in [
+                    str(email_group_member.email).strip().lower()
                     for email_group_member in email_group_members
                 ]:
-                    email_group_member: EmailGroupMember = EmailGroupMember("Email Group Member")
-                    email_group_member.email_group = self.email_group
-                    email_group_member.email = contact.email_id
-                    email_group_member.unsubscribed = (
-                        contact.unsubscribed
-                    )
-                    email_group_member.save(ignore_permissions=True)
+                    EmailGroupMember(
+                        {
+                            "doctype": "Email Group Member",
+                            "email_group": self.email_group,
+                            "email": contact.email_id,
+                            "unsubscribed": contact.unsubscribed,
+                        }
+                    ).insert(ignore_permissions=True, ignore_if_duplicate=True)
 
     # on trash, remove the link to the messaging group from the associated contacts
     def on_trash(self):
@@ -131,7 +146,7 @@ class MessagingGroup(Document):
         ):
             self.append("members", {"contact": contact_name})
             self.save(ignore_permissions=True)
-            
+
     def add_contacts(self, contacts):
         # add the contacts to the group
         for contact in contacts:
@@ -148,11 +163,14 @@ class MessagingGroup(Document):
             },
         )
         if mgm_exists:
-            mgm = MessagingGroupMember("Messaging Group Member", mgm_exists)
-            self.remove(mgm)
+            # Find the member in self.members with matching contact
+            for i, member in enumerate(self.members):
+                if member.contact == contact_name:
+                    self.members.pop(i)
+                    break
             self.unlink_contact_from_messaging_group(contact_name)
             self.save()
-            
+
     def remove_contacts(self, contacts):
         # remove the contacts from the group
         for contact in contacts:
@@ -184,8 +202,7 @@ def get_messaging_group(group_name: str) -> MessagingGroup:
         group = MessagingGroup("Messaging Group", group_name)
     else:
         # create the group
-        group = MessagingGroup({
-            "doctype": "Messaging Group",
-            "title": group_name
-        }).insert(ignore_permissions=True)
+        group = MessagingGroup(
+            {"doctype": "Messaging Group", "title": group_name}
+        ).insert(ignore_permissions=True)
     return group

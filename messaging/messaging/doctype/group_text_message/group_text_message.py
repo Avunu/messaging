@@ -7,7 +7,6 @@ from frappe.model.document import Document
 from frappe.query_builder import DocType
 from frappe.utils.data import get_datetime, now_datetime
 
-
 # Define DocTypes for query builder
 ContactPhone = DocType("Contact Phone")
 MessagingGroupMember = DocType("Messaging Group Member")
@@ -46,6 +45,10 @@ class GroupTextMessage(Document):
         ):
             frappe.throw("Scheduled delivery must be in the future.")
             self.status = "Scheduled"
+
+    def after_insert(self):
+        if frappe.flags.in_web_form:
+            self.submit()
 
     def on_submit(self):
         # if the group text message is scheduled, don't send it
