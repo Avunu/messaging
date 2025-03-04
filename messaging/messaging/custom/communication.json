@@ -84,6 +84,17 @@
             "field_name": "cc",
             "is_system_generated": 1,
             "module": "Messaging",
+            "name": "Messaging-cc-length",
+            "property": "length",
+            "property_type": "Int",
+            "value": "512"
+        },
+        {
+            "doc_type": "Communication",
+            "doctype_or_field": "DocField",
+            "field_name": "cc",
+            "is_system_generated": 1,
+            "module": "Messaging",
             "name": "Messaging-cc-read_only",
             "property": "read_only",
             "property_type": "Check",
