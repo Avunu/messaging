@@ -87,7 +87,7 @@
             "name": "Messaging-cc-length",
             "property": "length",
             "property_type": "Int",
-            "value": "512"
+            "value": "1000"
         },
         {
             "doc_type": "Communication",
