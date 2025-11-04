@@ -1,0 +1,42 @@
+{
+    "custom_fields": [
+        {
+            "dt": "Newsletter",
+            "fieldname": "newsletter_content_break",
+            "fieldtype": "Column Break",
+            "insert_after": "content_type",
+            "module": "Messaging"
+        },
+        {
+            "dt": "Newsletter",
+            "fieldname": "merge_tag_help",
+            "fieldtype": "HTML",
+            "insert_after": "newsletter_content_break",
+            "options": "You may include the contact fields below as merge tags in your newsletter content:<br>{{first_name}}<br>{{last_name}}<br>{{full_name}}<br>{{company_name}}<br>{{designation}}<br>{{gender}}<br>{{salutation}}",
+            "module": "Messaging"
+        },
+        {
+            "dt": "Newsletter",
+            "fieldname": "newsletter_content_message",
+            "fieldtype": "Section Break",
+            "insert_after": "merge_tag_help",
+            "hide_border": 0,
+            "module": "Messaging"
+        }
+    ],
+    "property_setters": [
+        {
+            "doc_type": "Communication",
+            "doctype_or_field": "DocField",
+            "field_name": "newsletter_content",
+            "is_system_generated": 1,
+            "module": "Messaging",
+            "name": "Newsletter-newsletter_content-hide_border",
+            "property": "hide_border",
+            "property_type": "Check",
+            "value": "1"
+        }
+    ],
+    "sync_on_migrate": 1,
+    "doctype": "Newsletter"
+}
