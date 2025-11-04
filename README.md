@@ -13,7 +13,7 @@ Lightweight messaging extension for Frappe/ERPNext providing SMS delivery, conta
 
 ## Installation
 1. Fetch app into your bench:
-   bench get-app messaging <repository_url>
+   bench get-app https://github.com/Avunu/messaging
 2. Install:
    bench --site <yoursite> install-app messaging
 3. Migrate:
