@@ -21,9 +21,7 @@ class MessagingGroup(Document):
 
     if TYPE_CHECKING:
         from frappe.types import DF
-        from messaging.messaging.doctype.messaging_group_member.messaging_group_member import (
-            MessagingGroupMember,
-        )
+        from messaging.messaging.doctype.messaging_group_member.messaging_group_member import MessagingGroupMember
 
         email_group: DF.Link | None
         members: DF.TableMultiSelect[MessagingGroupMember]
@@ -202,7 +200,6 @@ def get_messaging_group(group_name: str) -> MessagingGroup:
         group = MessagingGroup("Messaging Group", group_name)
     else:
         # create the group
-        group = MessagingGroup(
-            {"doctype": "Messaging Group", "title": group_name}
-        ).insert(ignore_permissions=True)
+        group = MessagingGroup({"doctype": "Messaging Group", "title": group_name})
+        group.insert(ignore_permissions=True)
     return group
