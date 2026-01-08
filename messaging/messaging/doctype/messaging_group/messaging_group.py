@@ -195,14 +195,14 @@ class MessagingGroup(Document):
 
 def get_messaging_group(group_name: str) -> MessagingGroup:
     # see if the group already exists, where the messaging group id is the group name
-    group_exists: Optional[str] = str(frappe.db.exists("Messaging Group", group_name))
+    group_exists: Optional[bool] = bool(frappe.db.exists("Messaging Group", group_name))
     group: MessagingGroup
     if group_exists:
         # get the group
         group = MessagingGroup("Messaging Group", group_name)
     else:
         # create the group
-        group = MessagingGroup(
-            {"doctype": "Messaging Group", "title": group_name}
-        ).insert(ignore_permissions=True)
+        group = MessagingGroup({"doctype": "Messaging Group", "title": group_name})
+        group.insert(ignore_permissions=True)
+        frappe.db.commit()
     return group
