@@ -43,16 +43,19 @@
    "show_dashboard": 1
   }
  ],
+ "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [
   {
-   "link_doctype": "Group Text Message",
+   "is_child_table": 1,
+   "link_doctype": "Group Text Messaging Group",
    "link_fieldname": "messaging_group",
+   "parent_doctype": "Group Text Message",
    "table_fieldname": "messaging_group"
   }
  ],
- "modified": "2025-02-17 09:22:41.449940",
- "modified_by": "Administrator",
+ "modified": "2025-11-05 08:38:45.967186",
+ "modified_by": "kevin@avu.nu",
  "module": "Messaging",
  "name": "Messaging Group",
  "naming_rule": "By fieldname",
@@ -71,6 +74,7 @@
    "write": 1
   }
  ],
+ "row_format": "Dynamic",
  "sort_field": "modified",
  "sort_order": "DESC",
  "states": []
