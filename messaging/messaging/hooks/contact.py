@@ -1,9 +1,13 @@
 import frappe
-from frappe import _
 import phonenumbers
-from twilio.rest import Client
+from frappe import _
 from twilio.base.exceptions import TwilioRestException
-from messaging.messaging.doctype.messaging_settings.messaging_settings import MessagingSettings
+from twilio.rest import Client
+
+from messaging.messaging.doctype.messaging_settings.messaging_settings import (
+	MessagingSettings,
+)
+
 
 def validate(doc, method=None):
 	settings: MessagingSettings = MessagingSettings("Messaging Settings")
@@ -17,15 +21,11 @@ def validate(doc, method=None):
 
 	# Only proceed with Twilio validation if enabled in settings
 	validate_numbers = (
-		settings.enable_number_validation
-		and settings.twilio_account_sid
-		and settings.twilio_auth_token
+		settings.enable_number_validation and settings.twilio_account_sid and settings.twilio_auth_token
 	)
 
 	if validate_numbers:
-		client = Client(
-			settings.twilio_account_sid, str(settings.get_password("twilio_auth_token"))
-		)
+		client = Client(settings.twilio_account_sid, str(settings.get_password("twilio_auth_token")))
 		validate_phone_numbers(doc, client)
 
 		set_primary_numbers(doc)
@@ -71,20 +71,11 @@ def deduplicate_phone_numbers(doc, country_code):
 def validate_phone_numbers(doc, client):
 	for phone_entry in doc.phone_nos:
 		# Only validate if number changed or not yet validated
-		if (
-			not phone_entry.validated_number
-			or phone_entry.validated_number != phone_entry.phone
-		):
-
-			phone_entry.is_valid, phone_entry.carrier_type = validate_number(
-				phone_entry.phone, client
-			)
+		if not phone_entry.validated_number or phone_entry.validated_number != phone_entry.phone:
+			phone_entry.is_valid, phone_entry.carrier_type = validate_number(phone_entry.phone, client)
 			if phone_entry.is_valid:
 				phone_entry.validated_number = phone_entry.phone
-				if (
-					phone_entry.is_primary_mobile_no
-					and phone_entry.carrier_type != "mobile"
-				):
+				if phone_entry.is_primary_mobile_no and phone_entry.carrier_type != "mobile":
 					phone_entry.is_primary_mobile_no = 0
 			else:
 				phone_entry.validated_number = None
@@ -137,13 +128,10 @@ def is_valid_E164_number(number):
 		return False
 	try:
 		numobj = phonenumbers.parse(number, "")
-	except:
+	except Exception as _e:
 		return False
 	if phonenumbers.is_valid_number(numobj):
-		return (
-			phonenumbers.format_number(numobj, phonenumbers.PhoneNumberFormat.E164)
-			== number
-		)
+		return phonenumbers.format_number(numobj, phonenumbers.PhoneNumberFormat.E164) == number
 	return False
 
 
@@ -152,7 +140,7 @@ def convert_to_e164(number, country_code):
 		return None
 	try:
 		numobj = phonenumbers.parse(number, country_code)
-	except:
+	except Exception as _e:
 		return None
 	if phonenumbers.is_valid_number(numobj):
 		return phonenumbers.format_number(numobj, phonenumbers.PhoneNumberFormat.E164)
@@ -163,20 +151,19 @@ def validate_number(e164_number, client):
 	is_valid = False
 	carrier_type = ""
 	try:
-		lookup = client.lookups.v2.phone_numbers(e164_number).fetch(
-			fields=["line_type_intelligence"]
-		)
+		lookup = client.lookups.v2.phone_numbers(e164_number).fetch(fields=["line_type_intelligence"])
 
 		# The line_type_intelligence is a PhoneNumberInstance property
-		if hasattr(lookup, "line_type_intelligence"):
-			carrier_type = str(
-				lookup.line_type_intelligence["type"]
-				if "type" in lookup.line_type_intelligence
-				else ""
-			)
+		line_type_info = getattr(lookup, "line_type_intelligence", None)
+		if line_type_info and isinstance(line_type_info, dict):
+			carrier_type = str(line_type_info.get("type", ""))
 			is_valid = bool(carrier_type)  # Explicitly convert to boolean
+		elif line_type_info is not None:
+			# If we got a response but no line type dict, consider it valid but unknown type
+			is_valid = True
+			carrier_type = "unknown"
 		else:
-			# If we got a response but no line type, consider it valid but unknown type
+			# No line type intelligence available
 			is_valid = True
 			carrier_type = "unknown"
 
@@ -186,16 +173,10 @@ def validate_number(e164_number, client):
 			frappe.logger().info(f"Number not found: {e164_number}")
 		else:
 			is_valid = False
-			frappe.log_error(
-				"Twilio Lookup Error", f"Number: {e164_number}, Error: {str(e)}"
-			)
+			frappe.log_error("Twilio Lookup Error", f"Number: {e164_number}, Error: {e!s}")
 	except Exception as e:
 		is_valid = False
-		frappe.log_error(
-			"Phone Validation Error", f"Number: {e164_number}, Error: {str(e)}"
-		)
+		frappe.log_error("Phone Validation Error", f"Number: {e164_number}, Error: {e!s}")
 
-	frappe.logger().debug(
-		f"Validation result for {e164_number}: valid={is_valid}, type={carrier_type}"
-	)
+	frappe.logger().debug(f"Validation result for {e164_number}: valid={is_valid}, type={carrier_type}")
 	return is_valid, carrier_type

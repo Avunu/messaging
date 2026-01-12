@@ -1,8 +1,9 @@
+import json
+from urllib.parse import urlparse
+
 import frappe
 from frappe import _
 from twilio.request_validator import RequestValidator
-from urllib.parse import urlparse
-import json
 
 
 @frappe.whitelist(allow_guest=True)
@@ -34,7 +35,7 @@ def sms():
 
 	if not request_valid:
 		frappe.throw(_("Invalid request signature"), frappe.ValidationError)
-	
+
 	sender_full_name = ""
 	sender_user = ""
 	sender_number = frappe.request.form.get("From")
