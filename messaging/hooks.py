@@ -18,8 +18,10 @@ doctype_list_js = {"Contact": "public/js/contact_list.js"}
 export_python_type_annotations = True
 override_doctype_class = {
 	"Contact": "messaging.overrides.contact.Contact",
+	"Contact Phone": "messaging.overrides.contact_phone.ContactPhone",
 	"Newsletter": "messaging.overrides.newsletter.Newsletter",
 }
+required_apps = ["newsletter"]
 scheduler_events = {
 	"all": [
 		"messaging.messaging.doctype.group_text_message.send_scheduled_messages",

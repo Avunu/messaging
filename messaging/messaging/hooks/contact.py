@@ -154,13 +154,16 @@ def validate_number(e164_number, client):
 		lookup = client.lookups.v2.phone_numbers(e164_number).fetch(fields=["line_type_intelligence"])
 
 		# The line_type_intelligence is a PhoneNumberInstance property
-		if hasattr(lookup, "line_type_intelligence"):
-			carrier_type = str(
-				lookup.line_type_intelligence["type"] if "type" in lookup.line_type_intelligence else ""
-			)
+		line_type_info = getattr(lookup, "line_type_intelligence", None)
+		if line_type_info and isinstance(line_type_info, dict):
+			carrier_type = str(line_type_info.get("type", ""))
 			is_valid = bool(carrier_type)  # Explicitly convert to boolean
+		elif line_type_info is not None:
+			# If we got a response but no line type dict, consider it valid but unknown type
+			is_valid = True
+			carrier_type = "unknown"
 		else:
-			# If we got a response but no line type, consider it valid but unknown type
+			# No line type intelligence available
 			is_valid = True
 			carrier_type = "unknown"
 

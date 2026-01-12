@@ -1,6 +1,8 @@
 import frappe
-from frappe.email.doctype.newsletter.newsletter import Newsletter as BaseNewsletter
 from frappe.utils import get_formatted_email, md_to_html
+from newsletter.newsletter.doctype.newsletter.newsletter import (
+	Newsletter as BaseNewsletter,
+)
 
 
 class Newsletter(BaseNewsletter):
@@ -26,15 +28,9 @@ class Newsletter(BaseNewsletter):
 		if test_email:
 			email_read_tracker_url = None
 		else:
-			installed_apps = set(frappe.get_installed_apps())
-			if "newsletter" in installed_apps:
-				email_read_tracker_url = (
-					"/api/method/newsletter.newsletter.doctype.newsletter.newsletter.newsletter_email_read"
-				)
-			else:
-				email_read_tracker_url = (
-					"/api/method/frappe.email.doctype.newsletter.newsletter.newsletter_email_read"
-				)
+			email_read_tracker_url = (
+				"/api/method/newsletter.newsletter.doctype.newsletter.newsletter.newsletter_email_read"
+			)
 
 		for email in emails:
 			# Get contact-specific context
