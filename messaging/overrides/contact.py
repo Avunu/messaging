@@ -3,6 +3,7 @@ from typing import TypedDict
 
 import frappe
 from frappe.contacts.doctype.contact.contact import Contact as BaseContact
+from frappe.query_builder import DocType
 from frappe.types import DF
 
 from messaging.messaging.doctype.messaging_group.messaging_group import MessagingGroup
@@ -35,6 +36,14 @@ class Contact(BaseContact):
 		"""Remove contact from messaging group"""
 		mg: MessagingGroup = MessagingGroup("Messaging Group", group_name)
 		mg.remove_contact(self.name)
+
+	def on_trash(self):
+		"""Remove contact from all messaging groups on deletion"""
+		# remove the contact from the group
+		MessagingGroupMembers = DocType("Messaging Group Member")
+		frappe.qb.from_(MessagingGroupMembers).delete().where(
+			MessagingGroupMembers.contact == self.name
+		).run()
 
 
 @frappe.whitelist()
