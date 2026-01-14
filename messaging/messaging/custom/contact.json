@@ -9,6 +9,7 @@
 			"module": "Messaging"
 		}
 	],
+	"doctype": "Contact",
 	"links": [
 		{
 			"custom": 1,
@@ -18,12 +19,12 @@
 			"link_fieldname": "contact",
 			"name": "contact_links_messaging_group_member",
 			"parent": "Contact",
+			"parent_doctype": "Messaging Group",
 			"parentfield": "links",
 			"parenttype": "Customize Form",
-			"table_fieldname": null
+			"table_fieldname": "members"
 		}
 	],
 	"property_setters": [],
-	"sync_on_migrate": 1,
-	"doctype": "Contact"
+	"sync_on_migrate": 1
 }
