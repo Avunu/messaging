@@ -19,6 +19,11 @@ from messaging.messaging.doctype.messaging_group.messaging_group import Messagin
 class TestContactPhoneUtils(IntegrationTestCase):
 	"""Test cases for phone number utility functions."""
 
+	@classmethod
+	def tearDownClass(cls) -> None:
+		frappe.db.rollback()
+		super().tearDownClass()
+
 	def test_is_valid_e164_number_valid(self) -> None:
 		"""Test that valid E.164 numbers are recognized."""
 		valid_numbers = [
@@ -95,6 +100,11 @@ class TestContactExtension(IntegrationTestCase):
 		)
 		cls._all_contacts_group_patcher.start()
 		cls.addClassCleanup(cls._all_contacts_group_patcher.stop)
+
+	@classmethod
+	def tearDownClass(cls) -> None:
+		frappe.db.rollback()
+		super().tearDownClass()
 
 	def _create_test_contact(self, **kwargs: Any) -> Contact:
 		"""Helper to create a test contact."""
