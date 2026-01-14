@@ -7,7 +7,7 @@ from frappe.core.doctype.dynamic_link.dynamic_link import deduplicate_dynamic_li
 from frappe.query_builder import DocType
 from frappe.query_builder.functions import Count
 
-from messaging.overrides.contact import Contact
+from messaging.messaging.custom.contact import Contact
 
 
 def clean_phone_numbers() -> None:

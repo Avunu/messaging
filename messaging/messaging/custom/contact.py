@@ -12,11 +12,11 @@ from twilio.base.exceptions import TwilioRestException
 from twilio.rest import Client
 
 if TYPE_CHECKING:
+	from messaging.messaging.custom.contact_phone import ContactPhone
 	from messaging.messaging.doctype.messaging_group.messaging_group import MessagingGroup
 	from messaging.messaging.doctype.messaging_settings.messaging_settings import (
 		MessagingSettings,
 	)
-	from messaging.overrides.contact_phone import ContactPhone
 
 
 class Contact(BaseContact):
