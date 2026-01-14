@@ -1,15 +1,29 @@
 {
-    "custom_fields": [
-        {
-            "dt": "Contact",
-            "fieldname": "consent_sms",
-            "fieldtype": "Check",
-            "insert_after": "phone_nos",
-            "label": "Consented to receive SMS",
-            "module": "Messaging"
-        }
-    ],
-    "property_setters": [],
-    "sync_on_migrate": 1,
-    "doctype": "Contact"
+	"custom_fields": [
+		{
+			"dt": "Contact",
+			"fieldname": "consent_sms",
+			"fieldtype": "Check",
+			"insert_after": "phone_nos",
+			"label": "Consented to receive SMS",
+			"module": "Messaging"
+		}
+	],
+	"links": [
+		{
+			"custom": 1,
+			"group": "Messaging",
+			"is_child_table": 1,
+			"link_doctype": "Messaging Group Member",
+			"link_fieldname": "contact",
+			"name": "contact_links_messaging_group_member",
+			"parent": "Contact",
+			"parentfield": "links",
+			"parenttype": "Customize Form",
+			"table_fieldname": null
+		}
+	],
+	"property_setters": [],
+	"sync_on_migrate": 1,
+	"doctype": "Contact"
 }
