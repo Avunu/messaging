@@ -4,22 +4,16 @@ app_license = "mit"
 app_name = "messaging"
 app_publisher = "Avunu LLC"
 app_title = "Messaging"
-doc_events = {
-	"Contact": {
-		"on_update": "messaging.overrides.contact.add_to_all_contacts_group",
-		"validate": "messaging.messaging.hooks.contact.validate",
-	}
-}
 doctype_js = {
 	"Contact": "public/js/contact.js",
 	"Communication": "public/js/communication.js",
 }
 doctype_list_js = {"Contact": "public/js/contact_list.js"}
 export_python_type_annotations = True
-override_doctype_class = {
-	"Contact": "messaging.overrides.contact.Contact",
-	"Contact Phone": "messaging.overrides.contact_phone.ContactPhone",
-	"Newsletter": "messaging.overrides.newsletter.Newsletter",
+extend_doctype_class = {
+	"Contact": "messaging.messaging.custom.contact.Contact",
+	"Contact Phone": "messaging.messaging.custom.contact_phone.ContactPhone",
+	"Newsletter": "messaging.messaging.custom.newsletter.Newsletter",
 }
 required_apps = ["newsletter"]
 scheduler_events = {
