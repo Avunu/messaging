@@ -1,8 +1,9 @@
 # Messaging App
 
-Lightweight messaging extension for Frappe/ERPNext providing SMS delivery, contact enrichment, and mail-merge capable newsletters.
+Lightweight messaging extension for Frappe/ERPNext providing SMS delivery, contact enrichment, mail-merge capable newsletters, and a **modern chat-like messaging interface**.
 
 ## Features
+- **Chat Interface**: Modern, real-time chat view for all Communications (Email & SMS) powered by vue-advanced-chat
 - Twilio SMS inbound webhook (creates Communication records).
 - Group Text Message doctype (broadcast to validated primary mobile numbers with SMS consent).
 - Automatic phone number normalization (E.164), deduplication, and optional Twilio carrier/type validation.
@@ -11,12 +12,31 @@ Lightweight messaging extension for Frappe/ERPNext providing SMS delivery, conta
 - Newsletter override supporting merge tags: {{first_name}}, {{last_name}}, {{full_name}}, {{company_name}}, {{designation}}, {{gender}}, {{salutation}}.
 - Workspace shortcuts for rapid access.
 
+## Chat Interface
+
+The messaging app includes a modern chat-like interface for viewing and responding to all Communications:
+
+- Unified inbox for Email and SMS messages
+- Real-time message updates
+- Dark mode support
+- Contact integration
+- File attachments
+- Search and filtering
+
+See [docs/chat.md](docs/chat.md) for detailed documentation.
+
+### Quick Start
+
+After installation, navigate to **Communication** in Frappe desk. The default view is now the Chat interface. Use the medium filter to show Email, SMS, or all messages.
+
 ## Installation
 1. Fetch app into your bench:
    bench get-app https://github.com/Avunu/messaging
 2. Install:
    bench --site <yoursite> install-app messaging
-3. Migrate:
+3. Build frontend:
+   bench build --app messaging
+4. Migrate:
    bench migrate
 
 ## Configuration

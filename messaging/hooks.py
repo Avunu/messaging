@@ -4,17 +4,28 @@ app_license = "mit"
 app_name = "messaging"
 app_publisher = "Avunu LLC"
 app_title = "Messaging"
+
+# App includes
+app_include_js = "/assets/messaging/js/chat.bundle.js"
+app_include_css = "/assets/messaging/css/chat.css"
+
 doc_events = {
 	"Contact": {
 		"on_update": "messaging.overrides.contact.add_to_all_contacts_group",
 		"validate": "messaging.messaging.hooks.contact.validate",
-	}
+	},
+	"Communication": {
+		"after_insert": "messaging.messaging.api.chat.api.notify_new_communication",
+	},
 }
 doctype_js = {
 	"Contact": "public/js/contact.js",
 	"Communication": "public/js/communication.js",
 }
-doctype_list_js = {"Contact": "public/js/contact_list.js"}
+doctype_list_js = {
+	"Contact": "public/js/contact_list.js",
+	"Communication": "public/js/chat.bundle.js",
+}
 export_python_type_annotations = True
 override_doctype_class = {
 	"Contact": "messaging.overrides.contact.Contact",
