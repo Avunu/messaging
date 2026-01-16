@@ -202,7 +202,14 @@ def _build_room_from_thread(thread: dict[str, Any], current_user_id: str) -> Roo
 	    Room dict matching vue-advanced-chat format
 	"""
 	medium = thread.get("communication_medium", "Email")
-	identifier = thread.get("phone_no") or thread.get("sender") or thread.get("recipients") or ""
+
+	# Choose identifier based on communication medium
+	if medium in ("Phone", "SMS"):
+		identifier = thread.get("phone_no") or ""
+	else:
+		# Email or other mediums - use sender/recipients
+		identifier = thread.get("sender") or thread.get("recipients") or ""
+
 	ref_dt = thread.get("reference_doctype")
 	ref_name = thread.get("reference_name")
 
@@ -567,11 +574,15 @@ def get_messages(
 	messages: list[Message] = []
 
 	for idx, comm in enumerate(all_messages):
-		# Determine sender ID (ensure it's always a string)
+		# Determine sender ID based on medium (ensure it's always a string)
 		if comm.get("sent_or_received") == "Sent":
 			sender_id: str = current_user_id or ""
 		else:
-			sender_id = str(comm.get("phone_no") or comm.get("sender") or identifier or "")
+			# Use phone_no for SMS/Phone, sender email for Email
+			if medium in ("SMS", "Phone"):
+				sender_id = str(comm.get("phone_no") or identifier or "")
+			else:
+				sender_id = str(comm.get("sender") or identifier or "")
 
 		# Get attachments
 		files: list[MessageFile] = []

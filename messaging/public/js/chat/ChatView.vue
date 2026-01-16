@@ -17,8 +17,9 @@
 		</div>
 
 		<!-- Main chat component -->
-		<!-- Note: vue-advanced-chat is a Web Component, so object props need JSON stringification -->
+		<!-- Note: vue-advanced-chat is a Web Component, so events come via CustomEvent with data in detail[0] -->
 		<vue-advanced-chat
+			ref="chatWindowRef"
 			:height="chatHeight"
 			:current-user-id="currentUserId"
 			:rooms="roomsJson"
@@ -41,96 +42,17 @@
 			:message-actions="messageActionsJson"
 			:theme="theme"
 			:styles="customStylesJson"
-			@fetch-room="onFetchRoom"
-			@fetch-messages="onFetchMessages"
-			@send-message="onSendMessage"
-			@room-info="onRoomInfo"
-			@menu-action-handler="onMenuAction"
-			@message-action-handler="onMessageAction"
-			@search-room="onSearchRoom"
+			@fetch-messages="onFetchMessagesRaw"
+			@send-message="onSendMessage($event.detail[0])"
+			@room-info="onRoomInfo($event.detail[0])"
+			@menu-action-handler="onMenuAction($event.detail[0])"
+			@message-action-handler="onMessageAction($event.detail[0])"
+			@search-room="onSearchRoom($event.detail[0])"
 			@fetch-more-rooms="onFetchMoreRooms"
-			@open-file="onOpenFile"
-			@typing-message="onTypingMessage"
+			@open-file="onOpenFile($event.detail[0])"
+			@typing-message="onTypingMessage($event.detail[0])"
 		>
-			<!-- Custom room header slot -->
-			<template #room-header="{ room }">
-				<div class="custom-room-header">
-					<div class="room-header-info">
-						<span class="room-name">{{ room.roomName }}</span>
-						<span
-							class="room-medium"
-							:class="`medium-${room.communicationMedium?.toLowerCase()}`"
-						>
-							{{ room.communicationMedium }}
-						</span>
-					</div>
-					<div v-if="room.referenceDoctype" class="room-reference">
-						<a
-							:href="`/app/${encodeDoctype(room.referenceDoctype)}/${
-								room.referenceName
-							}`"
-							class="reference-link"
-							target="_blank"
-						>
-							{{ room.referenceDoctype }}: {{ room.referenceName }}
-						</a>
-					</div>
-				</div>
-			</template>
-
-			<!-- Custom message slot for additional info -->
-			<template #message="{ message }">
-				<div class="custom-message" :class="{ 'message-failure': message.failure }">
-					<div v-if="message.subject" class="message-subject">
-						<strong>{{ __("Subject") }}:</strong> {{ message.subject }}
-					</div>
-					<div
-						class="message-content"
-						v-html="formatMessageContent(message.content)"
-					></div>
-					<div v-if="message.referenceDoctype" class="message-reference">
-						<a
-							:href="`/app/${encodeDoctype(message.referenceDoctype)}/${
-								message.referenceName
-							}`"
-							class="reference-link"
-						>
-							{{ message.referenceDoctype }}: {{ message.referenceName }}
-						</a>
-					</div>
-				</div>
-			</template>
-
-			<!-- Custom room list item slot -->
-			<template #room-list-item="{ room }">
-				<div class="custom-room-item">
-					<div class="room-item-avatar">
-						<img :src="room.avatar" :alt="room.roomName" />
-						<span
-							class="online-indicator"
-							:class="{ 'is-online': isUserOnline(room) }"
-						></span>
-					</div>
-					<div class="room-item-content">
-						<div class="room-item-header">
-							<span class="room-item-name">{{ room.roomName }}</span>
-							<span class="room-item-time">{{ room.lastMessage?.timestamp }}</span>
-						</div>
-						<div class="room-item-footer">
-							<span
-								class="room-item-medium"
-								:class="`medium-${room.communicationMedium?.toLowerCase()}`"
-							>
-								{{ getMediumIcon(room.communicationMedium) }}
-							</span>
-							<span class="room-item-preview">{{ room.lastMessage?.content }}</span>
-							<span v-if="room.unreadCount" class="room-item-unread">
-								{{ room.unreadCount }}
-							</span>
-						</div>
-					</div>
-				</div>
-			</template>
+			<!-- Note: Slots don't work well with Web Components, using default rendering -->
 		</vue-advanced-chat>
 
 		<!-- Side panel for Communication details -->
@@ -388,31 +310,34 @@ export default defineComponent({
 		const messageActionsJson = computed(() => JSON.stringify(messageActions));
 		const customStylesJson = computed(() => JSON.stringify(customStyles.value));
 
+		// Ref for the chat window element
+		const chatWindowRef = ref<HTMLElement | null>(null);
+
 		// Event handlers
-		function onFetchRoom(event: { room: Room }): void {
-			// When a room is clicked, select it and load its messages
-			selectRoom(event.room);
-			fetchMessages({ room: event.room, options: { reset: true } });
+		// Note: When used as Web Component, events are CustomEvents with data in detail[0]
+		function onFetchMessagesRaw(event: Event): void {
+			if (event instanceof CustomEvent) {
+				const data = event.detail?.[0] as FetchMessagesEvent;
+				if (data?.room) {
+					fetchMessages(data);
+				}
+			}
 		}
 
-		function onFetchMessages(event: FetchMessagesEvent): void {
-			fetchMessages(event);
-		}
-
-		function onSendMessage(event: SendMessageEvent): void {
-			handleSendMessage(event);
+		function onSendMessage(data: SendMessageEvent): void {
+			handleSendMessage(data);
 		}
 
 		function onRoomInfo(room: Room): void {
 			// Open contact or create new contact
-			if (room.contactName) {
+			if (room?.contactName) {
 				frappe.set_route("Form", "Contact", room.contactName);
-			} else if (room.phoneNo) {
+			} else if (room?.phoneNo) {
 				frappe.show_alert({
 					message: __("No contact found for this number"),
 					indicator: "yellow",
 				});
-			} else if (room.emailId) {
+			} else if (room?.emailId) {
 				frappe.show_alert({
 					message: __("No contact found for this email"),
 					indicator: "yellow",
@@ -420,11 +345,11 @@ export default defineComponent({
 			}
 		}
 
-		function onMenuAction(event: { roomId: string; action: CustomAction }): void {
-			const room = rooms.value.find((r) => r.roomId === event.roomId);
-			if (!room) return;
+		function onMenuAction(data: { roomId: string; action: CustomAction }): void {
+			const room = rooms.value.find((r) => r.roomId === data?.roomId);
+			if (!room || !data?.action) return;
 
-			switch (event.action.name) {
+			switch (data.action.name) {
 				case "openContact":
 					onRoomInfo(room);
 					break;
@@ -437,20 +362,22 @@ export default defineComponent({
 			}
 		}
 
-		function onMessageAction(event: {
+		function onMessageAction(data: {
 			roomId: string;
 			action: MessageAction;
 			message: Message;
 		}): void {
-			switch (event.action.name) {
+			if (!data?.action) return;
+
+			switch (data.action.name) {
 				case "viewDetails":
-					selectedMessage.value = event.message;
+					selectedMessage.value = data.message;
 					showCommPanel.value = true;
 					break;
 				case "openCommunication":
-					if (event.message.communicationName) {
+					if (data.message?.communicationName) {
 						window.open(
-							`/app/communication/${event.message.communicationName}`,
+							`/app/communication/${data.message.communicationName}`,
 							"_blank"
 						);
 					}
@@ -461,8 +388,10 @@ export default defineComponent({
 			}
 		}
 
-		function onSearchRoom(event: { value: string }): void {
-			setSearchQuery(event.value);
+		function onSearchRoom(data: { value: string; roomId?: string }): void {
+			if (data?.value !== undefined) {
+				setSearchQuery(data.value);
+			}
 		}
 
 		function onFetchMoreRooms(): void {
@@ -471,11 +400,13 @@ export default defineComponent({
 			}
 		}
 
-		function onOpenFile(event: { message: Message; file: { url: string } }): void {
-			window.open(event.file.url, "_blank");
+		function onOpenFile(data: { message: Message; file: { url: string; action?: string } }): void {
+			if (data?.file?.url) {
+				window.open(data.file.url, "_blank");
+			}
 		}
 
-		function onTypingMessage(_event: { roomId: string; message: string }): void {
+		function onTypingMessage(_data: { roomId: string; message: string }): void {
 			// Could implement typing indicators here
 		}
 
@@ -545,6 +476,31 @@ export default defineComponent({
 
 			// Initialize chat
 			await initialize();
+			
+			// Debug: Add native event listener as backup to see all events
+			// Use nextTick to ensure the DOM is ready
+			setTimeout(() => {
+				const chatEl = chatWindowRef.value;
+				console.log('[ChatView] Chat element ref:', chatEl);
+				if (chatEl) {
+					console.log('[ChatView] Adding native event listeners to:', chatEl);
+					
+					// Listen for ALL custom events to debug
+					const allEvents = ['fetch-messages', 'fetch-room', 'send-message', 'room-info', 
+						'menu-action-handler', 'message-action-handler', 'search-room', 
+						'fetch-more-rooms', 'open-file', 'typing-message', 'toggle-rooms-list'];
+					allEvents.forEach(eventName => {
+						chatEl.addEventListener(eventName, (e: Event) => {
+							console.log(`[ChatView] Native ${eventName} event caught:`, e);
+							if (e instanceof CustomEvent) {
+								console.log(`[ChatView] ${eventName} detail:`, e.detail);
+							}
+						});
+					});
+				} else {
+					console.warn('[ChatView] chatWindowRef.value is null!');
+				}
+			}, 100);
 
 			// Open initial room if provided
 			if (props.initialRoomId) {
@@ -589,9 +545,11 @@ export default defineComponent({
 			messageActionsJson,
 			customStylesJson,
 
+			// Refs
+			chatWindowRef,
+
 			// Methods
-			onFetchRoom,
-			onFetchMessages,
+			onFetchMessagesRaw,
 			onSendMessage,
 			onRoomInfo,
 			onMenuAction,
