@@ -4,11 +4,24 @@ app_license = "mit"
 app_name = "messaging"
 app_publisher = "Avunu LLC"
 app_title = "Messaging"
+
+# App includes - Vite-built assets (like frappe_editor pattern)
+# Direct /assets/ path bypasses assets.json lookup, cache-busting via build_version query param
+app_include_js = "/assets/messaging/dist/chat.bundle.js"
+app_include_css = "/assets/messaging/dist/chat.bundle.css"
+
+doc_events = {
+	"Communication": {
+		"after_insert": "messaging.messaging.api.chat.api.notify_new_communication",
+	},
+}
 doctype_js = {
 	"Contact": "public/js/contact.js",
 	"Communication": "public/js/communication.js",
 }
-doctype_list_js = {"Contact": "public/js/contact_list.js"}
+doctype_list_js = {
+	"Contact": "public/js/contact_list.js",
+}
 export_python_type_annotations = True
 extend_doctype_class = {
 	"Contact": "messaging.messaging.custom.contact.Contact",

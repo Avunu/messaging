@@ -1,0 +1,32 @@
+{
+  "name": "messaging",
+  "version": "1.0.0",
+  "description": "Messaging app for Frappe with chat-like interface for Communications",
+  "author": "Avunu LLC",
+  "license": "MIT",
+  "private": false,
+  "type": "module",
+  "scripts": {
+    "build": "vite build",
+    "watch": "vite build --watch",
+    "dev": "vite build --watch",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint messaging/public/js --ext .ts,.vue"
+  },
+  "dependencies": {
+    "vue": "^3.5.26",
+    "vue-advanced-chat": "^2.1.2"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "@typescript-eslint/eslint-plugin": "^8.53.0",
+    "@typescript-eslint/parser": "^8.53.0",
+    "@vitejs/plugin-vue": "^5.2.0",
+    "@vue/compiler-sfc": "^3.5.26",
+    "eslint": "^9.39.2",
+    "eslint-plugin-vue": "^10.6.2",
+    "typescript": "^5.7.2",
+    "vite": "^6.0.0"
+  },
+  "packageManager": "yarn@1.22.22"
+}
