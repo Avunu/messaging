@@ -27,6 +27,8 @@ export default defineConfig({
     minify: true,
     target: 'es2020',
     sourcemap: false,
+    // Extract CSS into separate file (don't inline into JS)
+    cssCodeSplit: false,
   },
   resolve: {
     alias: {

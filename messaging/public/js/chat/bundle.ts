@@ -66,9 +66,21 @@ interface ListViewBase {
 
 type ListViewConstructor = new (opts: { doctype: string; parent: unknown }) => ListViewBase;
 
+// ListViewSelect base interface
+interface ListViewSelectBase {
+  doctype: string;
+  setup_views(): void;
+  add_view_to_menu(label: string, callback: () => void): void;
+  set_route(view: string): void;
+}
+
+type ListViewSelectConstructor = new (opts: { doctype: string; parent: unknown }) => ListViewSelectBase;
+
 interface FrappeViews {
   ListView: ListViewConstructor;
+  ListViewSelect?: ListViewSelectConstructor;
   ChatView?: ListViewConstructor;
+  ChatViewSelect?: ListViewSelectConstructor;
   CommunicationComposer?: new () => unknown;
   [key: string]: unknown;
 }
@@ -98,7 +110,33 @@ declare const __: (text: string) => string;
 // Namespaces
 // ============================================================================
 
+// Ensure frappe namespaces exist
 frappe.provide('frappe.views');
+frappe.provide('frappe.router');
+
+// ============================================================================
+// ListViewSelect Extension - Adds Chat view to view switcher
+// ============================================================================
+
+/**
+ * Extended ListViewSelect that adds Chat view option for Communications
+ */
+class ChatViewSelect extends (frappe.views.ListViewSelect as ListViewSelectConstructor) {
+  setup_views(): void {
+    // Call parent setup
+    super.setup_views();
+
+    // Add Chat view for Communication doctype
+    if (this.doctype === 'Communication') {
+      this.add_view_to_menu('Chat', () => {
+        this.set_route('chat');
+      });
+    }
+  }
+}
+
+// Register the extended view select
+frappe.views.ChatViewSelect = ChatViewSelect as unknown as ListViewSelectConstructor;
 
 // ============================================================================
 // Chat View - Extends ListView to render Vue chat component
@@ -215,6 +253,9 @@ if (!frappe.router.list_views.includes('chat')) {
   frappe.router.list_views.push('chat');
 }
 frappe.router.list_views_route['chat'] = 'Chat';
+
+// Override ListViewSelect with our ChatViewSelect
+frappe.views.ListViewSelect = frappe.views.ChatViewSelect;
 
 // ============================================================================
 // Exports
