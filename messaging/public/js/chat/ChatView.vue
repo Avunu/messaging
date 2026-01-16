@@ -400,7 +400,10 @@ export default defineComponent({
 			}
 		}
 
-		function onOpenFile(data: { message: Message; file: { url: string; action?: string } }): void {
+		function onOpenFile(data: {
+			message: Message;
+			file: { url: string; action?: string };
+		}): void {
 			if (data?.file?.url) {
 				window.open(data.file.url, "_blank");
 			}
@@ -476,20 +479,30 @@ export default defineComponent({
 
 			// Initialize chat
 			await initialize();
-			
+
 			// Debug: Add native event listener as backup to see all events
 			// Use nextTick to ensure the DOM is ready
 			setTimeout(() => {
 				const chatEl = chatWindowRef.value;
-				console.log('[ChatView] Chat element ref:', chatEl);
+				console.log("[ChatView] Chat element ref:", chatEl);
 				if (chatEl) {
-					console.log('[ChatView] Adding native event listeners to:', chatEl);
-					
+					console.log("[ChatView] Adding native event listeners to:", chatEl);
+
 					// Listen for ALL custom events to debug
-					const allEvents = ['fetch-messages', 'fetch-room', 'send-message', 'room-info', 
-						'menu-action-handler', 'message-action-handler', 'search-room', 
-						'fetch-more-rooms', 'open-file', 'typing-message', 'toggle-rooms-list'];
-					allEvents.forEach(eventName => {
+					const allEvents = [
+						"fetch-messages",
+						"fetch-room",
+						"send-message",
+						"room-info",
+						"menu-action-handler",
+						"message-action-handler",
+						"search-room",
+						"fetch-more-rooms",
+						"open-file",
+						"typing-message",
+						"toggle-rooms-list",
+					];
+					allEvents.forEach((eventName) => {
 						chatEl.addEventListener(eventName, (e: Event) => {
 							console.log(`[ChatView] Native ${eventName} event caught:`, e);
 							if (e instanceof CustomEvent) {
@@ -498,7 +511,7 @@ export default defineComponent({
 						});
 					});
 				} else {
-					console.warn('[ChatView] chatWindowRef.value is null!');
+					console.warn("[ChatView] chatWindowRef.value is null!");
 				}
 			}, 100);
 
