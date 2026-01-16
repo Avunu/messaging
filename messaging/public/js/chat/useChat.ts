@@ -218,7 +218,8 @@ export function useChat(): UseChatReturn {
   }
 
   async function handleSendMessage(event: SendMessageEvent): Promise<void> {
-    if (!currentRoom.value || !event.content.trim()) return;
+    // Use roomId from event (more reliable than currentRoom with Web Components)
+    if (!event.roomId || !event.content?.trim()) return;
 
     try {
       error.value = null;
