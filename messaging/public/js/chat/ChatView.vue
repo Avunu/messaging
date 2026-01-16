@@ -41,6 +41,7 @@
 			:message-actions="messageActionsJson"
 			:theme="theme"
 			:styles="customStylesJson"
+			@fetch-room="onFetchRoom"
 			@fetch-messages="onFetchMessages"
 			@send-message="onSendMessage"
 			@room-info="onRoomInfo"
@@ -388,6 +389,12 @@ export default defineComponent({
 		const customStylesJson = computed(() => JSON.stringify(customStyles.value));
 
 		// Event handlers
+		function onFetchRoom(event: { room: Room }): void {
+			// When a room is clicked, select it and load its messages
+			selectRoom(event.room);
+			fetchMessages({ room: event.room, options: { reset: true } });
+		}
+
 		function onFetchMessages(event: FetchMessagesEvent): void {
 			fetchMessages(event);
 		}
@@ -583,6 +590,7 @@ export default defineComponent({
 			customStylesJson,
 
 			// Methods
+			onFetchRoom,
 			onFetchMessages,
 			onSendMessage,
 			onRoomInfo,
