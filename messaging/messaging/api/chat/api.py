@@ -263,8 +263,20 @@ def _build_room_from_thread(thread: dict[str, Any], current_user_id: str) -> Roo
 		)
 
 	# Build last message
+	# For emails, show subject; for SMS show content preview
+	if medium == "Email":
+		last_message_content = thread.get("subject", "") or "(No subject)"
+	else:
+		# For SMS/Phone, show content preview
+		raw_content = thread.get("text_content") or thread.get("content", "")
+		if "<" in raw_content and ">" in raw_content:
+			from frappe.utils import strip_html_tags
+
+			raw_content = strip_html_tags(raw_content)
+		last_message_content = raw_content[:100] if raw_content else "(No content)"
+
 	last_message: LastMessage = {
-		"content": thread.get("content", "")[:100] or thread.get("subject", ""),
+		"content": last_message_content,
 		"senderId": thread.get("sender", identifier)
 		if thread.get("sent_or_received") == "Received"
 		else current_user_id,
@@ -621,12 +633,19 @@ def get_messages(
 		time_str = comm_date.strftime("%H:%M") if comm_date else ""
 
 		# Build message content
-		content = comm.get("text_content") or comm.get("content") or ""
+		raw_content = comm.get("text_content") or comm.get("content") or ""
 		# Strip HTML for cleaner display
-		if "<" in content and ">" in content:
+		if "<" in raw_content and ">" in raw_content:
 			from frappe.utils import strip_html_tags
 
-			content = strip_html_tags(content)
+			raw_content = strip_html_tags(raw_content)
+
+		# For emails, prepend subject as a header
+		subject = comm.get("subject", "")
+		if medium == "Email" and subject:
+			content = f"**{subject}**\n\n{raw_content}"
+		else:
+			content = raw_content
 
 		# Handle reply
 		reply_message = None
@@ -758,23 +777,54 @@ def send_message(
 	try:
 		# Get in_reply_to message_id if replying
 		in_reply_to = None
+		original_subject = None
 		if reply_message_id:
 			Communication = DocType("Communication")
 			reply_comm = (
 				frappe.qb.from_(Communication)
-				.select(Communication.message_id)
+				.select(Communication.message_id, Communication.subject)
 				.where(Communication.name == reply_message_id)
 				.limit(1)
 				.run(as_dict=True)
 			)
 			if reply_comm:
 				in_reply_to = reply_comm[0].get("message_id")
+				original_subject = reply_comm[0].get("subject")
 
 		# Auto-generate subject if not provided
 		if not subject:
-			if ref_dt and ref_name:
-				subject = f"Re: {ref_dt} {ref_name}"
+			if medium == "Email":
+				# For email replies, use the original subject with Re: prefix
+				if original_subject:
+					# Don't double-add Re: if already present
+					if original_subject.lower().startswith("re:"):
+						subject = original_subject
+					else:
+						subject = f"Re: {original_subject}"
+				else:
+					# No original subject, try to get from the thread
+					latest_comm = (
+						frappe.qb.from_(Communication)
+						.select(Communication.subject)
+						.where(Communication.communication_medium == "Email")
+						.where(
+							(Communication.sender == identifier)
+							| (Communication.recipients.like(f"%{identifier}%"))
+						)
+						.orderby(Communication.communication_date, order=Order.desc)
+						.limit(1)
+						.run(as_dict=True)
+					)
+					if latest_comm and latest_comm[0].get("subject"):
+						orig = latest_comm[0]["subject"]
+						if orig.lower().startswith("re:"):
+							subject = orig
+						else:
+							subject = f"Re: {orig}"
+					else:
+						subject = f"Message to {identifier}"
 			else:
+				# SMS doesn't need subject threading
 				subject = f"Message to {identifier}"
 
 		# Create communication based on medium
