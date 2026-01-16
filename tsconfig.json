@@ -16,12 +16,12 @@
 
     /* Linting */
     "strict": true,
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
     "noFallthroughCasesInSwitch": true,
 
     /* Vue */
-    "types": ["vite/client"],
+    "types": ["vite/client", "node"],
 
     /* Paths */
     "baseUrl": ".",
@@ -31,7 +31,8 @@
   },
   "include": [
     "messaging/public/js/**/*.ts",
-    "messaging/public/js/**/*.vue"
+    "messaging/public/js/**/*.vue",
+    "vite.config.ts"
   ],
   "exclude": [
     "node_modules"

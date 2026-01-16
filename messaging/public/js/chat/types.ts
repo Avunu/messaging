@@ -87,6 +87,8 @@ export interface Room {
   contactName?: string | null;
   phoneNo?: string | null;
   emailId?: string | null;
+  referenceDoctype?: string | null;
+  referenceName?: string | null;
 }
 
 /**

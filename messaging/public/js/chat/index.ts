@@ -3,7 +3,7 @@
 
 /**
  * Chat module exports.
- * 
+ *
  * This module provides a chat-like messaging interface for Frappe Communications,
  * built with vue-advanced-chat.
  */

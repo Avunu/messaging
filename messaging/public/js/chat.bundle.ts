@@ -9,59 +9,107 @@
  * Communications that replaces the default list view.
  */
 
-import { createApp, h } from 'vue';
-import ChatView from './chat/ChatView.vue';
+import { createApp, h, type Component } from 'vue';
+import ChatViewComponent from './chat/ChatView.vue';
 
-// Frappe global declarations
-declare const frappe: {
-  provide: (namespace: string) => void;
-  views: {
-    ListView: new () => FrappeListView;
-    ListViewSelect: new () => FrappeListViewSelect;
-    [key: string]: unknown;
-  };
-  router: {
-    list_views: string[];
-    list_views_route: Record<string, string>;
-  };
-  call: <T>(options: {
-    method: string;
-    args?: Record<string, unknown>;
-    async?: boolean;
-    callback?: (response: { message: T }) => void;
-  }) => Promise<{ message: T }>;
-  _: (text: string) => string;
-  new_doc: (doctype: string) => void;
-};
+// JQuery interface (minimal for our needs)
+interface JQueryElement {
+  find(selector: string): JQueryElement;
+  remove(): JQueryElement;
+  empty(): JQueryElement;
+  append(element: HTMLElement | string): JQueryElement;
+}
 
-declare const __: (text: string) => string;
+// Frappe Dialog interface
+interface FrappeDialog {
+  show(): void;
+  hide(): void;
+}
 
-interface FrappeListView {
+interface FrappeDialogOptions {
+  title: string;
+  fields: Array<{
+    fieldtype: string;
+    fieldname: string;
+    label: string;
+    options?: string;
+    reqd?: number;
+    default?: string;
+  }>;
+  primary_action_label: string;
+  primary_action: (values: Record<string, string>) => void;
+}
+
+// Frappe Page interface
+interface FrappePage {
+  set_primary_action(label: string, callback: () => void): void;
+  add_menu_item(label: string, callback: () => void): void;
+}
+
+// Base class interfaces - use function signatures to allow override
+interface FrappeListViewBase {
   doctype: string;
   page_title: string;
   page_name: string;
   method: string;
   data: unknown[];
-  $result: JQuery;
-  page: {
-    set_primary_action: (label: string, callback: () => void) => void;
-    add_menu_item: (label: string, callback: () => void) => void;
-  };
-  setup_defaults: () => void;
-  setup_page: () => void;
-  render_header: (refresh?: boolean) => void;
-  render_list: () => void;
-  prepare_data: (r: { message: unknown[] }) => void;
-  show_skeleton: () => void;
-  hide_skeleton: () => void;
+  $result: JQueryElement;
+  page: FrappePage;
 }
 
-interface FrappeListViewSelect {
+interface FrappeListViewSelectBase {
   doctype: string;
-  setup_views: () => void;
-  add_view_to_menu: (name: string, callback: () => void) => void;
-  set_route: (view: string) => void;
 }
+
+// Constructor types for Frappe classes
+type FrappeListViewConstructor = new () => FrappeListViewBase & {
+  setup_defaults(): void;
+  setup_page(): void;
+  render_header(refresh?: boolean): void;
+  render_list(): void;
+  prepare_data(r: { message: unknown[] }): void;
+  show_skeleton(): void;
+  hide_skeleton(): void;
+};
+
+type FrappeListViewSelectConstructor = new () => FrappeListViewSelectBase & {
+  setup_views(): void;
+  add_view_to_menu(name: string, callback: () => void): void;
+  set_route(view: string): void;
+};
+
+interface FrappeViews {
+  ListView: FrappeListViewConstructor;
+  ListViewSelect: FrappeListViewSelectConstructor;
+  ChatView?: FrappeListViewConstructor;
+  ChatViewSelect?: FrappeListViewSelectConstructor;
+  CommunicationComposer?: new () => unknown;
+  [key: string]: unknown;
+}
+
+// Frappe global declarations
+declare const frappe: {
+  provide(namespace: string): void;
+  views: FrappeViews;
+  router: {
+    list_views: string[];
+    list_views_route: Record<string, string>;
+  };
+  call<T>(options: {
+    method: string;
+    args?: Record<string, unknown>;
+    async?: boolean;
+    callback?: (response: { message: T }) => void;
+  }): Promise<{ message: T }>;
+  _: (text: string) => string;
+  new_doc(doctype: string): void;
+  show_alert(opts: { message: string; indicator: string }): void;
+  ui: {
+    Dialog: new (options: FrappeDialogOptions) => FrappeDialog;
+  };
+};
+
+declare const __: (text: string) => string;
 
 // Ensure frappe namespaces exist
 frappe.provide('frappe.views');
@@ -70,7 +118,7 @@ frappe.provide('frappe.router');
 /**
  * Extended ListViewSelect that adds Chat view option for Communications
  */
-frappe.views.ChatViewSelect = class ChatViewSelect extends frappe.views.ListViewSelect {
+class ChatViewSelect extends frappe.views.ListViewSelect {
   setup_views(): void {
     // Call parent setup
     super.setup_views();
@@ -87,7 +135,10 @@ frappe.views.ChatViewSelect = class ChatViewSelect extends frappe.views.ListView
       this.set_route('List');
     });
   }
-};
+}
+
+// Register the ChatViewSelect class
+frappe.views.ChatViewSelect = ChatViewSelect as unknown as FrappeListViewSelectConstructor;
 
 // Register chat view in router
 frappe.router.list_views.push('chat');
@@ -96,8 +147,8 @@ frappe.router.list_views_route['chat'] = 'Chat';
 /**
  * Chat View - Vue-based messaging interface for Communications
  */
-frappe.views.ChatView = class ChatView extends frappe.views.ListView {
-  data: unknown[] = [];
+class ChatView extends frappe.views.ListView {
+  declare data: unknown[];
 
   prepare_data(r: { message: unknown[] }): void {
     // Chat view manages its own data loading
@@ -122,7 +173,9 @@ frappe.views.ChatView = class ChatView extends frappe.views.ListView {
 
     // Menu items
     this.page.add_menu_item(__('New Email'), () => {
-      new (frappe.views as unknown as { CommunicationComposer: new () => unknown }).CommunicationComposer();
+      if (frappe.views.CommunicationComposer) {
+        new frappe.views.CommunicationComposer();
+      }
     });
 
     this.page.add_menu_item(__('Refresh'), () => {
@@ -154,7 +207,7 @@ frappe.views.ChatView = class ChatView extends frappe.views.ListView {
 
     // Mount Vue chat application
     const app = createApp({
-      render: () => h(ChatView as unknown as Parameters<typeof h>[0]),
+      render: () => h(ChatViewComponent as Component),
     });
 
     app.mount(container);
@@ -162,23 +215,7 @@ frappe.views.ChatView = class ChatView extends frappe.views.ListView {
 
   show_compose_dialog(): void {
     // Show a dialog to choose communication type
-    const dialog = new (frappe as unknown as { 
-      ui: { 
-        Dialog: new (options: {
-          title: string;
-          fields: Array<{
-            fieldtype: string;
-            fieldname: string;
-            label: string;
-            options?: string;
-            reqd?: number;
-            default?: string;
-          }>;
-          primary_action_label: string;
-          primary_action: (values: Record<string, string>) => void;
-        }) => { show: () => void };
-      };
-    }).ui.Dialog({
+    const dialog = new frappe.ui.Dialog({
       title: __('New Message'),
       fields: [
         {
@@ -208,7 +245,7 @@ frappe.views.ChatView = class ChatView extends frappe.views.ListView {
         },
       ],
       primary_action_label: __('Send'),
-      primary_action: (values) => {
+      primary_action: (values: Record<string, string>) => {
         this.send_new_message(values);
         dialog.hide();
       },
@@ -221,7 +258,7 @@ frappe.views.ChatView = class ChatView extends frappe.views.ListView {
     // Create room ID for new conversation
     const roomId = `${values.medium}:${values.recipient}`;
 
-    frappe.call({
+    frappe.call<{ success: boolean }>({
       method: 'messaging.messaging.api.chat.api.send_message',
       args: {
         room_id: roomId,
@@ -230,9 +267,7 @@ frappe.views.ChatView = class ChatView extends frappe.views.ListView {
       },
       callback: (r) => {
         if (r.message && r.message.success) {
-          (frappe as unknown as { 
-            show_alert: (opts: { message: string; indicator: string }) => void;
-          }).show_alert({
+          frappe.show_alert({
             message: __('Message sent successfully'),
             indicator: 'green',
           });
@@ -242,13 +277,14 @@ frappe.views.ChatView = class ChatView extends frappe.views.ListView {
       },
     });
   }
-};
+}
+
+// Register the ChatView class
+frappe.views.ChatView = ChatView as unknown as FrappeListViewConstructor;
 
 // Override ListViewSelect for Communication doctype
-frappe.views.ListViewSelect = frappe.views.ChatViewSelect;
+frappe.views.ListViewSelect = ChatViewSelect as unknown as FrappeListViewSelectConstructor;
 
 // Export for module usage
-export default {
-  ChatView: frappe.views.ChatView,
-  ChatViewSelect: frappe.views.ChatViewSelect,
-};
+export { ChatView, ChatViewSelect };
+export default { ChatView, ChatViewSelect };

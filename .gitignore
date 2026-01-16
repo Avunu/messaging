@@ -4,5 +4,6 @@ __pycache__
 *.egg-info
 *.pyc
 *.swp
+dist
 node_modules
 tags
