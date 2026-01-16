@@ -125,16 +125,15 @@ def _parse_room_id(room_id: str) -> dict[str, str | None]:
 
 	Args:
 	    room_id: The room identifier string
+	    Format: medium:identifier
 
 	Returns:
-	    Dict with medium, identifier, reference_doctype, reference_name
+	    Dict with medium, identifier
 	"""
 	parts = room_id.split(":")
 	result: dict[str, str | None] = {
 		"medium": parts[0] if len(parts) > 0 else None,
 		"identifier": parts[1] if len(parts) > 1 else None,
-		"reference_doctype": parts[2] if len(parts) > 2 else None,
-		"reference_name": parts[3] if len(parts) > 3 else None,
 	}
 	return result
 
@@ -203,34 +202,26 @@ def _build_room_from_thread(thread: dict[str, Any], current_user_id: str) -> Roo
 	"""
 	medium = thread.get("communication_medium", "Email")
 
-	# Choose identifier based on communication medium
-	if medium in ("Phone", "SMS"):
-		identifier = thread.get("phone_no") or ""
-	else:
-		# Email or other mediums - use sender/recipients
-		identifier = thread.get("sender") or thread.get("recipients") or ""
+	# Get the external party identifier from the thread data
+	# This was set during room grouping
+	identifier = thread.get("_external_identifier") or ""
 
-	ref_dt = thread.get("reference_doctype")
-	ref_name = thread.get("reference_name")
+	# Build simple room ID: just medium:identifier
+	room_id = f"{medium}:{identifier}"
 
-	room_id = _format_room_id(medium, identifier, ref_dt, ref_name)
-
-	# Get contact info
+	# Get contact info for the external party
 	contact = _get_contact_from_identifier(medium, identifier)
 
-	# Build room name
+	# Build room name - prefer contact name, then sender_full_name, then identifier
 	if contact:
-		room_name = contact.get("full_name", identifier)
+		room_name = contact.get("name") or contact.get("full_name") or identifier
 		avatar = _get_user_avatar(contact.get("user"))
 		contact_name = contact.get("name")
 	else:
-		room_name = thread.get("sender_full_name") or identifier
+		# Use sender_full_name from any received message in the thread
+		room_name = thread.get("_external_name") or thread.get("sender_full_name") or identifier or "Unknown"
 		avatar = _get_user_avatar(None)
 		contact_name = None
-
-	# Add reference to room name if exists
-	if ref_dt and ref_name:
-		room_name = f"{room_name} ({ref_dt}: {ref_name})"
 
 	# Build users list - current user and the contact
 	users: list[RoomUser] = [
@@ -275,11 +266,16 @@ def _build_room_from_thread(thread: dict[str, Any], current_user_id: str) -> Roo
 			raw_content = strip_html_tags(raw_content)
 		last_message_content = raw_content[:100] if raw_content else "(No content)"
 
+	# Determine sender ID from actual data, not assuming current user
+	if thread.get("sent_or_received") == "Received":
+		last_message_sender = thread.get("sender", identifier)
+	else:
+		# For sent messages, use the 'user' field which is the actual Frappe user
+		last_message_sender = thread.get("user") or thread.get("sender") or current_user_id
+
 	last_message: LastMessage = {
 		"content": last_message_content,
-		"senderId": thread.get("sender", identifier)
-		if thread.get("sent_or_received") == "Received"
-		else current_user_id,
+		"senderId": last_message_sender,
 		"timestamp": thread.get("communication_date", "").strftime("%H:%M")
 		if thread.get("communication_date")
 		else "",
@@ -299,9 +295,9 @@ def _build_room_from_thread(thread: dict[str, Any], current_user_id: str) -> Roo
 		"communicationMedium": medium,
 		"contactName": contact_name,
 		"phoneNo": thread.get("phone_no"),
-		"emailId": thread.get("sender") if "@" in (thread.get("sender") or "") else None,
-		"referenceDoctype": ref_dt,
-		"referenceName": ref_name,
+		"emailId": identifier if "@" in identifier else None,
+		"referenceDoctype": None,
+		"referenceName": None,
 	}
 
 	return room
@@ -396,6 +392,7 @@ def get_rooms(
 			Communication.reference_doctype,
 			Communication.reference_name,
 			Communication.status,
+			Communication.user,
 		)
 		.where(Communication.communication_type == "Communication")
 		.orderby(Communication.communication_date, order=Order.desc)
@@ -420,32 +417,41 @@ def get_rooms(
 	# Get all matching communications
 	all_comms = base_query.run(as_dict=True)
 
-	# Group into rooms (by identifier + reference)
+	# Group into rooms by external party identifier
 	room_map: dict[str, dict[str, Any]] = {}
 
 	for comm in all_comms:
 		medium_type = comm.get("communication_medium", "Email")
+
+		# Determine the external party's identifier
 		if medium_type in ("SMS", "Phone"):
-			identifier = comm.get("phone_no") or comm.get("sender") or ""
+			identifier = comm.get("phone_no") or ""
+			external_name = None
 		else:
-			# For email, use the external party's email
+			# For email, find the external party
 			if comm.get("sent_or_received") == "Received":
 				identifier = comm.get("sender") or ""
+				external_name = comm.get("sender_full_name")
 			else:
-				identifier = (
-					comm.get("recipients", "").split(",")[0].strip() if comm.get("recipients") else ""
-				)
+				recipients = comm.get("recipients") or ""
+				identifier = recipients.split(",")[0].strip() if recipients else ""
+				external_name = None
 
-		ref_dt = comm.get("reference_doctype")
-		ref_name = comm.get("reference_name")
-		room_id = _format_room_id(medium_type, identifier, ref_dt, ref_name)
+		# Simple room ID: just medium:identifier
+		room_id = f"{medium_type}:{identifier}"
 
 		# Track the most recent communication per room
 		if room_id not in room_map:
 			room_map[room_id] = {
 				**comm,
 				"unread_count": 0,
+				"_external_identifier": identifier,
+				"_external_name": external_name,
 			}
+		else:
+			# Update external_name if we found one from a received message
+			if external_name and not room_map[room_id].get("_external_name"):
+				room_map[room_id]["_external_name"] = external_name
 
 		# Count unread for received messages
 		if comm.get("sent_or_received") == "Received" and not comm.get("seen"):
@@ -483,7 +489,7 @@ def get_messages(
 	Get messages for a specific room (conversation thread).
 
 	Args:
-	    room_id: The room identifier (format: medium:identifier[:ref_dt:ref_name])
+	    room_id: The room identifier (format: medium:identifier)
 	    page: Page number for pagination (1-indexed)
 	    limit: Number of messages per page
 	    before_id: Get messages before this message ID (for infinite scroll)
@@ -495,12 +501,10 @@ def get_messages(
 	limit = cint(limit) or 50
 	current_user_id: str = str(frappe.session.user or "")
 
-	# Parse room ID
+	# Parse room ID (format: medium:identifier)
 	room_parts = _parse_room_id(room_id)
 	medium = room_parts.get("medium")
 	identifier = room_parts.get("identifier")
-	ref_dt = room_parts.get("reference_doctype")
-	ref_name = room_parts.get("reference_name")
 
 	if not medium or not identifier:
 		return {
@@ -513,7 +517,7 @@ def get_messages(
 	Communication = DocType("Communication")
 	File = DocType("File")
 
-	# Build query for this conversation thread
+	# Build query for all messages with this external party
 	query = (
 		frappe.qb.from_(Communication)
 		.select(
@@ -535,12 +539,13 @@ def get_messages(
 			Communication.reference_name,
 			Communication.has_attachment,
 			Communication.in_reply_to,
+			Communication.user,
 		)
 		.where(Communication.communication_type == "Communication")
 		.where(Communication.communication_medium == medium)
 	)
 
-	# Filter by identifier (phone or email)
+	# Filter by identifier (phone or email) - get ALL messages with this party
 	if medium in ("SMS", "Phone"):
 		query = query.where(Communication.phone_no == identifier)
 	else:
@@ -549,15 +554,10 @@ def get_messages(
 			(Communication.sender == identifier) | (Communication.recipients.like(f"%{identifier}%"))
 		)
 
-	# Filter by reference if provided
-	if ref_dt and ref_name:
-		query = query.where(Communication.reference_doctype == ref_dt)
-		query = query.where(Communication.reference_name == ref_name)
-
 	# Order by date (oldest first for chat display)
 	query = query.orderby(Communication.communication_date, order=Order.asc)
 
-	# Get total count
+	# Get total count - same filters as main query
 	count_query = (
 		frappe.qb.from_(Communication)
 		.select(Count(Communication.name))
@@ -572,10 +572,6 @@ def get_messages(
 			(Communication.sender == identifier) | (Communication.recipients.like(f"%{identifier}%"))
 		)
 
-	if ref_dt and ref_name:
-		count_query = count_query.where(Communication.reference_doctype == ref_dt)
-		count_query = count_query.where(Communication.reference_name == ref_name)
-
 	total_result = count_query.run()
 	total = total_result[0][0] if total_result else 0
 
@@ -585,12 +581,29 @@ def get_messages(
 	# Build message objects
 	messages: list[Message] = []
 
+	# Cache for user full names to avoid repeated lookups
+	user_name_cache: dict[str, str] = {}
+
+	def get_user_display_name(user_email: str) -> str:
+		"""Get display name for a user, with caching."""
+		if not user_email:
+			return ""
+		if user_email in user_name_cache:
+			return user_name_cache[user_email]
+		# Look up Frappe user's full name
+		full_name = frappe.db.get_value("User", user_email, "full_name")
+		display_name = str(full_name) if full_name else user_email
+		user_name_cache[user_email] = display_name
+		return display_name
+
 	for idx, comm in enumerate(all_messages):
-		# Determine sender ID based on medium (ensure it's always a string)
+		# Determine sender ID from actual Communication data
 		if comm.get("sent_or_received") == "Sent":
-			sender_id: str = current_user_id or ""
+			# For sent messages, use the 'user' field which is the actual Frappe user
+			# The 'sender' field is just the email account used to send
+			sender_id: str = str(comm.get("user") or comm.get("sender") or current_user_id or "")
 		else:
-			# Use phone_no for SMS/Phone, sender email for Email
+			# For received messages: use phone_no for SMS/Phone, sender email for Email
 			if medium in ("SMS", "Phone"):
 				sender_id = str(comm.get("phone_no") or identifier or "")
 			else:
@@ -671,17 +684,34 @@ def get_messages(
 
 					reply_content = strip_html_tags(reply_content)
 
+				# Use actual sender from the reply Communication
+				reply_sender = str(reply_comm[0].get("sender") or "")
+				if not reply_sender:
+					# Fall back based on sent/received
+					if reply_comm[0].get("sent_or_received") == "Received":
+						reply_sender = identifier or ""
+					else:
+						reply_sender = current_user_id
+
 				reply_message = {
 					"_id": reply_comm[0]["name"],
 					"content": reply_content[:200],
-					"senderId": current_user_id
-					if reply_comm[0].get("sent_or_received") == "Sent"
-					else identifier,
+					"senderId": reply_sender,
 				}
 
 		# Extract values with proper types
 		comm_name = str(comm.get("name", ""))
-		username = str(comm.get("sender_full_name") or sender_id)
+
+		# Get display name for the sender
+		# For sent messages from Frappe users, look up their full name
+		# For received messages, use sender_full_name from the Communication
+		if comm.get("sent_or_received") == "Sent":
+			# Look up the Frappe user's full name
+			username = get_user_display_name(sender_id)
+		else:
+			# Use sender_full_name from Communication, or fall back to sender_id
+			username = str(comm.get("sender_full_name") or sender_id)
+
 		comm_medium_raw = str(comm.get("communication_medium", "Email"))
 		sent_or_recv_raw = str(comm.get("sent_or_received", "Received"))
 
