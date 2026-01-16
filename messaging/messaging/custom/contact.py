@@ -32,8 +32,9 @@ class Contact(BaseContact):
 		"""Add contact to the all contacts messaging group on update."""
 		add_to_all_contacts_group(self)
 
-	def validate(self, method: str | None = None) -> None:
+	def validate(self) -> None:
 		"""Validate and normalize contact data including email and phone deduplication."""
+		super().validate()
 		settings = cast("MessagingSettings", frappe.get_doc("Messaging Settings"))
 		country_code: str = self.get_country_code()
 

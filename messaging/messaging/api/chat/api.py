@@ -12,6 +12,7 @@ from datetime import datetime, timedelta
 from typing import Any, Literal, cast
 
 import frappe
+from email_reply_parser import EmailReplyParser
 from frappe import _
 from frappe.query_builder import DocType, Order
 from frappe.query_builder.functions import Count
@@ -212,9 +213,9 @@ def _build_room_from_thread(thread: dict[str, Any], current_user_id: str) -> Roo
 	# Get contact info for the external party
 	contact = _get_contact_from_identifier(medium, identifier)
 
-	# Build room name - prefer contact name, then sender_full_name, then identifier
+	# Build room name - prefer contact full_name, then contact name, then sender_full_name, then identifier
 	if contact:
-		room_name = contact.get("name") or contact.get("full_name") or identifier
+		room_name = contact.get("full_name") or contact.get("name") or identifier
 		avatar = _get_user_avatar(contact.get("user"))
 		contact_name = contact.get("name")
 	else:
@@ -653,6 +654,14 @@ def get_messages(
 
 			raw_content = strip_html_tags(raw_content)
 
+		# Strip quoted reply text for cleaner chat display
+		try:
+			parsed_reply = EmailReplyParser.parse_reply(raw_content)
+			if parsed_reply and parsed_reply.strip():
+				raw_content = parsed_reply.strip()
+		except Exception:
+			pass  # Keep original content if parsing fails
+
 		# For emails, prepend subject as a header
 		subject = comm.get("subject", "")
 		if medium == "Email" and subject:
@@ -824,6 +833,11 @@ def send_message(
 				Communication.message_id,
 				Communication.subject,
 				Communication.sent_or_received,
+				Communication.content,
+				Communication.text_content,
+				Communication.sender,
+				Communication.sender_full_name,
+				Communication.communication_date,
 			)
 			.where(Communication.communication_type == "Communication")
 			.where(Communication.communication_medium == medium)
@@ -850,6 +864,9 @@ def send_message(
 		in_reply_to = None
 		original_subject = None
 		latest_received_name = None
+		reply_content_for_quote = None
+		reply_sender_for_quote = None
+		reply_date_for_quote = None
 
 		if reply_message_id:
 			# Explicit reply to a specific message
@@ -860,6 +877,11 @@ def send_message(
 					Communication.message_id,
 					Communication.subject,
 					Communication.sent_or_received,
+					Communication.content,
+					Communication.text_content,
+					Communication.sender,
+					Communication.sender_full_name,
+					Communication.communication_date,
 				)
 				.where(Communication.name == reply_message_id)
 				.limit(1)
@@ -868,6 +890,9 @@ def send_message(
 			if reply_comm:
 				in_reply_to = reply_comm[0].get("message_id")
 				original_subject = reply_comm[0].get("subject")
+				reply_content_for_quote = reply_comm[0].get("text_content") or reply_comm[0].get("content")
+				reply_sender_for_quote = reply_comm[0].get("sender_full_name") or reply_comm[0].get("sender")
+				reply_date_for_quote = reply_comm[0].get("communication_date")
 				# Track if it's a received message we're replying to
 				if reply_comm[0].get("sent_or_received") == "Received":
 					latest_received_name = reply_comm[0].get("name")
@@ -875,6 +900,13 @@ def send_message(
 			# Use the latest message in thread for proper email threading
 			in_reply_to = latest_in_thread[0].get("message_id")
 			original_subject = latest_in_thread[0].get("subject")
+			reply_content_for_quote = latest_in_thread[0].get("text_content") or latest_in_thread[0].get(
+				"content"
+			)
+			reply_sender_for_quote = latest_in_thread[0].get("sender_full_name") or latest_in_thread[0].get(
+				"sender"
+			)
+			reply_date_for_quote = latest_in_thread[0].get("communication_date")
 			# Track if it's a received message we're replying to
 			if latest_in_thread[0].get("sent_or_received") == "Received":
 				latest_received_name = latest_in_thread[0].get("name")
@@ -928,30 +960,82 @@ def send_message(
 				comm_doc.db_set("delivery_status", "Error")
 
 		else:
-			# Use email sending
-			from frappe.core.doctype.communication.email import make
+			# Use email sending - create Communication manually to set in_reply_to before send
+			import re
 
-			result = make(
-				communication_medium="Email",
-				communication_type="Communication",
-				content=content,
-				doctype=ref_dt,
-				name=ref_name,
-				recipients=identifier,
-				send_email=True,
-				sender=current_user_id,
-				sent_or_received="Sent",
-				subject=subject,
+			from frappe.email.email_body import get_message_id
+
+			# Build email content with proper reply quoting if this is a reply
+			email_content = content
+			if reply_content_for_quote and reply_sender_for_quote:
+				# Format the quoted reply text
+				reply_date_str = ""
+				if reply_date_for_quote:
+					if isinstance(reply_date_for_quote, datetime):
+						reply_date_str = reply_date_for_quote.strftime("%B %d, %Y at %I:%M %p")
+					else:
+						try:
+							dt = get_datetime(reply_date_for_quote) or reply_date_for_quote
+							reply_date_str = dt.strftime("%B %d, %Y at %I:%M %p")
+						except Exception:
+							reply_date_str = str(reply_date_for_quote)
+
+				# Strip HTML tags from quoted content for plain text quoting
+				quoted_text = reply_content_for_quote
+				if "<" in quoted_text and ">" in quoted_text:
+					# Simple HTML stripping - replace <br> with newlines, remove other tags
+					quoted_text = re.sub(r"<br\s*/?>", "\n", quoted_text, flags=re.IGNORECASE)
+					quoted_text = re.sub(r"<[^>]+>", "", quoted_text)
+					quoted_text = quoted_text.strip()
+
+				# Add ">" prefix to each line for email quoting
+				quoted_lines = [f"> {line}" for line in quoted_text.split("\n")]
+				quoted_block = "\n".join(quoted_lines)
+
+				# Build the full email content with reply quote at bottom
+				email_content = (
+					f"{content}\n\nOn {reply_date_str}, {reply_sender_for_quote} wrote:\n{quoted_block}"
+				)
+
+			# Create Communication doc with in_reply_to set BEFORE sending
+			new_message_id = get_message_id().strip("<>")
+			comm_doc = frappe.get_doc(
+				{
+					"doctype": "Communication",
+					"communication_type": "Communication",
+					"communication_medium": "Email",
+					"subject": subject,
+					"content": email_content,
+					"sender": current_user_id,
+					"recipients": identifier,
+					"sent_or_received": "Sent",
+					"reference_doctype": ref_dt,
+					"reference_name": ref_name,
+					"message_id": new_message_id,
+					"in_reply_to": in_reply_to,
+					"status": "Linked",
+				}
 			)
+			comm_doc.insert(ignore_permissions=True)
+			comm_name = str(comm_doc.name)
 
-			comm_doc = frappe.get_doc("Communication", result["name"])
-
-			# Set in_reply_to for proper email threading
-			if in_reply_to:
-				comm_doc.db_set("in_reply_to", in_reply_to)
-
-			# Set status to Linked since this is part of a conversation
-			comm_doc.db_set("status", "Linked")
+			# Send the email using frappe.sendmail directly to include in_reply_to header
+			try:
+				frappe.sendmail(
+					recipients=[identifier],
+					sender=str(current_user_id),
+					subject=subject,
+					content=email_content,
+					reference_doctype=ref_dt,
+					reference_name=ref_name,
+					message_id=new_message_id,
+					in_reply_to=in_reply_to,  # This sets the In-Reply-To email header
+					communication=comm_name,
+					delayed=True,
+				)
+			except Exception as e:
+				frappe.log_error(f"Email send failed: {e}")
+				frappe.db.set_value("Communication", comm_name, "delivery_status", "Error")
 
 		# Update the original received message status to "Replied"
 		if latest_received_name:
