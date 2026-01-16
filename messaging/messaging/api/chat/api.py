@@ -738,7 +738,7 @@ def get_messages(
 def send_message(
 	room_id: str,
 	content: str,
-	files: list[dict] | None = None,
+	files: str | list | None = None,
 	reply_message_id: str = "",
 	subject: str = "",
 ) -> SendMessageResponse:
@@ -750,14 +750,23 @@ def send_message(
 	Args:
 	    room_id: The room identifier
 	    content: Message content
-	    files: List of file attachments
+	    files: List of file attachments (JSON string or list)
 	    reply_message_id: ID of message being replied to
 	    subject: Email subject (optional, auto-generated if empty)
 
 	Returns:
 	    SendMessageResponse with the created message or error
 	"""
+	import json
+
 	current_user_id = frappe.session.user
+
+	# Parse files if it's a JSON string
+	if isinstance(files, str):
+		try:
+			files = json.loads(files) if files else []
+		except json.JSONDecodeError:
+			files = []
 	files = files or []
 
 	# Parse room ID
@@ -775,11 +784,11 @@ def send_message(
 		}
 
 	try:
+		Communication = DocType("Communication")
 		# Get in_reply_to message_id if replying
 		in_reply_to = None
 		original_subject = None
 		if reply_message_id:
-			Communication = DocType("Communication")
 			reply_comm = (
 				frappe.qb.from_(Communication)
 				.select(Communication.message_id, Communication.subject)
@@ -878,19 +887,19 @@ def send_message(
 			comm_doc = frappe.get_doc("Communication", result["name"])
 
 		# Handle file attachments
-		if files:
-			for file_data in files:
-				if file_data.get("name"):
-					frappe.get_doc(
-						{
-							"doctype": "File",
-							"file_name": file_data["name"],
-							"attached_to_doctype": "Communication",
-							"attached_to_name": comm_doc.name,
-							"file_url": file_data.get("url"),
-							"is_private": 1,
-						}
-					).insert(ignore_permissions=True)
+		file_list: list[dict] = files if isinstance(files, list) else []
+		for file_data in file_list:
+			if isinstance(file_data, dict) and file_data.get("name"):
+				frappe.get_doc(
+					{
+						"doctype": "File",
+						"file_name": file_data["name"],
+						"attached_to_doctype": "Communication",
+						"attached_to_name": comm_doc.name,
+						"file_url": file_data.get("url"),
+						"is_private": 1,
+					}
+				).insert(ignore_permissions=True)
 
 		# Build response message
 		comm_name = str(comm_doc.name)
