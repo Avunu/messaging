@@ -6,7 +6,7 @@ app_publisher = "Avunu LLC"
 app_title = "Messaging"
 
 # App includes - using built assets from Vite
-app_include_js = "/assets/messaging/dist/chat.bundle.iife.js"
+app_include_js = "chat.bundle.ts"
 app_include_css = "/assets/messaging/dist/chat.css"
 
 doc_events = {
@@ -24,7 +24,6 @@ doctype_js = {
 }
 doctype_list_js = {
 	"Contact": "public/js/contact_list.js",
-	"Communication": "public/dist/chat.bundle.iife.js",
 }
 export_python_type_annotations = True
 override_doctype_class = {

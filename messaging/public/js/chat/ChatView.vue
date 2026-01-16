@@ -17,13 +17,14 @@
 		</div>
 
 		<!-- Main chat component -->
+		<!-- Note: vue-advanced-chat is a Web Component, so object props need JSON stringification -->
 		<vue-advanced-chat
 			:height="chatHeight"
 			:current-user-id="currentUserId"
-			:rooms="rooms"
+			:rooms="roomsJson"
 			:rooms-loaded="roomsLoaded"
 			:loading-rooms="loadingRooms"
-			:messages="messages"
+			:messages="messagesJson"
 			:messages-loaded="messagesLoaded"
 			:room-id="currentRoomId"
 			:show-search="true"
@@ -34,12 +35,12 @@
 			:show-reaction-emojis="false"
 			:show-new-messages-divider="true"
 			:show-footer="true"
-			:text-messages="textMessages"
+			:text-messages="textMessagesJson"
 			:room-info-enabled="true"
-			:menu-actions="menuActions"
-			:message-actions="messageActions"
+			:menu-actions="menuActionsJson"
+			:message-actions="messageActionsJson"
 			:theme="theme"
-			:styles="customStyles"
+			:styles="customStylesJson"
 			@fetch-messages="onFetchMessages"
 			@send-message="onSendMessage"
 			@room-info="onRoomInfo"
@@ -377,6 +378,15 @@ export default defineComponent({
 			},
 		}));
 
+		// JSON stringified versions for Web Component props
+		// vue-advanced-chat uses defineCustomElement, which requires object props to be JSON strings
+		const roomsJson = computed(() => JSON.stringify(rooms.value));
+		const messagesJson = computed(() => JSON.stringify(messages.value));
+		const textMessagesJson = computed(() => JSON.stringify(textMessages.value));
+		const menuActionsJson = computed(() => JSON.stringify(menuActions));
+		const messageActionsJson = computed(() => JSON.stringify(messageActions));
+		const customStylesJson = computed(() => JSON.stringify(customStyles.value));
+
 		// Event handlers
 		function onFetchMessages(event: FetchMessagesEvent): void {
 			fetchMessages(event);
@@ -563,6 +573,14 @@ export default defineComponent({
 			menuActions,
 			messageActions,
 			customStyles,
+
+			// JSON stringified props for Web Component
+			roomsJson,
+			messagesJson,
+			textMessagesJson,
+			menuActionsJson,
+			messageActionsJson,
+			customStylesJson,
 
 			// Methods
 			onFetchMessages,
