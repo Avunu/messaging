@@ -5,9 +5,10 @@ app_name = "messaging"
 app_publisher = "Avunu LLC"
 app_title = "Messaging"
 
-# App includes - using built assets from Vite
-app_include_js = "chat.bundle.ts"
-app_include_css = "/assets/messaging/dist/chat.css"
+# App includes - Vite-built assets (like frappe_editor pattern)
+# Direct /assets/ path bypasses assets.json lookup, cache-busting via build_version query param
+app_include_js = "/assets/messaging/dist/chat.bundle.js"
+app_include_css = "/assets/messaging/dist/chat.bundle.css"
 
 doc_events = {
 	"Contact": {

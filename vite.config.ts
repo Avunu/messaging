@@ -8,29 +8,24 @@ import path from 'path';
 export default defineConfig({
   plugins: [vue()],
   build: {
-    lib: {
-      entry: path.resolve(__dirname, 'messaging/public/js/chat.bundle.ts'),
-      name: 'MessagingChat',
-      fileName: 'chat.bundle',
-      formats: ['iife'],
+    // Use rollupOptions for more control over output
+    rollupOptions: {
+      input: path.resolve(__dirname, 'messaging/public/js/chat/bundle.ts'),
+      output: {
+        // Fixed filename - use query string for cache busting via Frappe's build_version
+        entryFileNames: 'chat.bundle.js',
+        assetFileNames: 'chat.bundle.css',
+        format: 'iife',
+        name: 'MessagingChat',
+        inlineDynamicImports: true,
+        exports: 'named',
+      },
     },
+    // Output to dist folder (similar to frappe_editor)
     outDir: 'messaging/public/dist',
     emptyOutDir: true,
     minify: true,
     target: 'es2020',
-    rollupOptions: {
-      // Make sure to externalize deps that shouldn't be bundled
-      external: [],
-      output: {
-        // Global variables for externalized deps
-        globals: {},
-        assetFileNames: 'chat.css',
-        // Ensure single file output
-        inlineDynamicImports: true,
-        // Suppress warning about named + default exports
-        exports: 'named',
-      },
-    },
     sourcemap: false,
   },
   resolve: {

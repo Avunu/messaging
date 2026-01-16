@@ -10,7 +10,7 @@
  */
 
 import { createApp, h, type Component, type App } from 'vue';
-import ChatViewComponent from './chat/ChatView.vue';
+import ChatViewComponent from './ChatView.vue';
 
 // ============================================================================
 // Type Declarations
