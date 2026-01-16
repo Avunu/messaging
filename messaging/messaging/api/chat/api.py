@@ -785,13 +785,52 @@ def send_message(
 
 	try:
 		Communication = DocType("Communication")
-		# Get in_reply_to message_id if replying
+
+		# Find the latest message in this thread to properly link the reply
+		latest_in_thread = (
+			frappe.qb.from_(Communication)
+			.select(
+				Communication.name,
+				Communication.message_id,
+				Communication.subject,
+				Communication.sent_or_received,
+			)
+			.where(Communication.communication_type == "Communication")
+			.where(Communication.communication_medium == medium)
+		)
+
+		if medium in ("SMS", "Phone"):
+			latest_in_thread = latest_in_thread.where(Communication.phone_no == identifier)
+		else:
+			latest_in_thread = latest_in_thread.where(
+				(Communication.sender == identifier) | (Communication.recipients.like(f"%{identifier}%"))
+			)
+
+		if ref_dt and ref_name:
+			latest_in_thread = latest_in_thread.where(Communication.reference_doctype == ref_dt)
+			latest_in_thread = latest_in_thread.where(Communication.reference_name == ref_name)
+
+		latest_in_thread = (
+			latest_in_thread.orderby(Communication.communication_date, order=Order.desc)
+			.limit(1)
+			.run(as_dict=True)
+		)
+
+		# Get in_reply_to message_id - either from explicit reply or latest message in thread
 		in_reply_to = None
 		original_subject = None
+		latest_received_name = None
+
 		if reply_message_id:
+			# Explicit reply to a specific message
 			reply_comm = (
 				frappe.qb.from_(Communication)
-				.select(Communication.message_id, Communication.subject)
+				.select(
+					Communication.name,
+					Communication.message_id,
+					Communication.subject,
+					Communication.sent_or_received,
+				)
 				.where(Communication.name == reply_message_id)
 				.limit(1)
 				.run(as_dict=True)
@@ -799,6 +838,16 @@ def send_message(
 			if reply_comm:
 				in_reply_to = reply_comm[0].get("message_id")
 				original_subject = reply_comm[0].get("subject")
+				# Track if it's a received message we're replying to
+				if reply_comm[0].get("sent_or_received") == "Received":
+					latest_received_name = reply_comm[0].get("name")
+		elif latest_in_thread:
+			# Use the latest message in thread for proper email threading
+			in_reply_to = latest_in_thread[0].get("message_id")
+			original_subject = latest_in_thread[0].get("subject")
+			# Track if it's a received message we're replying to
+			if latest_in_thread[0].get("sent_or_received") == "Received":
+				latest_received_name = latest_in_thread[0].get("name")
 
 		# Auto-generate subject if not provided
 		if not subject:
@@ -811,27 +860,7 @@ def send_message(
 					else:
 						subject = f"Re: {original_subject}"
 				else:
-					# No original subject, try to get from the thread
-					latest_comm = (
-						frappe.qb.from_(Communication)
-						.select(Communication.subject)
-						.where(Communication.communication_medium == "Email")
-						.where(
-							(Communication.sender == identifier)
-							| (Communication.recipients.like(f"%{identifier}%"))
-						)
-						.orderby(Communication.communication_date, order=Order.desc)
-						.limit(1)
-						.run(as_dict=True)
-					)
-					if latest_comm and latest_comm[0].get("subject"):
-						orig = latest_comm[0]["subject"]
-						if orig.lower().startswith("re:"):
-							subject = orig
-						else:
-							subject = f"Re: {orig}"
-					else:
-						subject = f"Message to {identifier}"
+					subject = f"Message to {identifier}"
 			else:
 				# SMS doesn't need subject threading
 				subject = f"Message to {identifier}"
@@ -873,18 +902,30 @@ def send_message(
 			from frappe.core.doctype.communication.email import make
 
 			result = make(
+				communication_medium="Email",
+				communication_type="Communication",
+				content=content,
 				doctype=ref_dt,
 				name=ref_name,
-				content=content,
-				subject=subject,
 				recipients=identifier,
 				send_email=True,
 				sender=current_user_id,
-				communication_medium="Email",
 				sent_or_received="Sent",
+				subject=subject,
 			)
 
 			comm_doc = frappe.get_doc("Communication", result["name"])
+
+			# Set in_reply_to for proper email threading
+			if in_reply_to:
+				comm_doc.db_set("in_reply_to", in_reply_to)
+
+			# Set status to Linked since this is part of a conversation
+			comm_doc.db_set("status", "Linked")
+
+		# Update the original received message status to "Replied"
+		if latest_received_name:
+			frappe.db.set_value("Communication", latest_received_name, "status", "Replied")
 
 		# Handle file attachments
 		file_list: list[dict] = files if isinstance(files, list) else []
