@@ -149,7 +149,7 @@
    "type": "Link"
   }
  ],
- "modified": "2025-01-21 16:03:29.255578",
+ "modified": "2026-01-15 16:06:38.644539",
  "modified_by": "kevin@avu.nu",
  "module": "Messaging",
  "name": "Messaging",
@@ -173,7 +173,7 @@
    "doc_view": "List",
    "label": "Email Inbox",
    "link_to": "Communication",
-   "stats_filter": "[[\"Communication\",\"sent_or_received\",\"=\",\"Received\",false],[\"Communication\",\"status\",\"!=\",\"Closed\",false]]",
+   "stats_filter": "[\n    [\"sent_or_received\", \"=\", \"Received\"],\n    [\"status\", \"!=\", \"Closed\"]\n]",
    "type": "DocType"
   },
   {

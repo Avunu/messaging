@@ -6,6 +6,7 @@ import frappe
 from frappe.contacts.doctype.contact.contact import Contact
 from frappe.email.doctype.email_group_member.email_group_member import EmailGroupMember
 from frappe.model.document import Document
+from frappe.query_builder import DocType
 
 from messaging.messaging.doctype.messaging_group_member.messaging_group_member import (
 	MessagingGroupMember,
@@ -153,21 +154,12 @@ class MessagingGroup(Document):
 	# action function to remove contact from "Messaging Group"
 	def remove_contact(self, contact_name):
 		# remove the contact from the group
-		mgm_exists = frappe.db.exists(
-			"Messaging Group Member",
-			{
-				"parent": self.name,
-				"contact": contact_name,
-			},
-		)
-		if mgm_exists:
-			# Find the member in self.members with matching contact
-			for i, member in enumerate(self.members):
-				if member.contact == contact_name:
-					self.members.pop(i)
-					break
-			self.unlink_contact_from_messaging_group(contact_name)
-			self.save()
+		MessagingGroupMembers = DocType("Messaging Group Member")
+		frappe.qb.from_(MessagingGroupMembers).delete().where(
+			(MessagingGroupMembers.parent == self.name) & (MessagingGroupMembers.contact == contact_name)
+		).run()
+		self.notify_update()
+		self.unlink_contact_from_messaging_group(contact_name)
 
 	def remove_contacts(self, contacts):
 		# remove the contacts from the group
@@ -176,18 +168,16 @@ class MessagingGroup(Document):
 
 	def unlink_contact_from_messaging_group(self, contact_name):
 		# check if the contact has a link to the messaging group
-		dl = frappe.db.exists(
-			"Dynamic Link",
-			{
-				"link_doctype": "Messaging Group",
-				"link_name": self.name,
-				"parenttype": "Contact",
-				"parent": contact_name,
-			},
-		)
-		if dl:
-			# delete the link to the contact
-			frappe.delete_doc("Dynamic Link", str(dl))
+		DynamicLinks = DocType("Dynamic Link")
+		frappe.qb.from_(DynamicLinks).delete().where(
+			(DynamicLinks.link_doctype == "Messaging Group")
+			& (DynamicLinks.link_name == self.name)
+			& (DynamicLinks.parenttype == "Contact")
+			& (DynamicLinks.parent == contact_name)
+		).run()
+		doc_exists = frappe.db.exists("Contact", contact_name)
+		if doc_exists:
+			# save the contact to update the links
 			frappe.get_doc("Contact", contact_name).notify_update()
 
 

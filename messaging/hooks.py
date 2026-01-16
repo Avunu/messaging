@@ -11,10 +11,6 @@ app_include_js = "/assets/messaging/dist/chat.bundle.js"
 app_include_css = "/assets/messaging/dist/chat.bundle.css"
 
 doc_events = {
-	"Contact": {
-		"on_update": "messaging.overrides.contact.add_to_all_contacts_group",
-		"validate": "messaging.messaging.hooks.contact.validate",
-	},
 	"Communication": {
 		"after_insert": "messaging.messaging.api.chat.api.notify_new_communication",
 	},
@@ -27,10 +23,10 @@ doctype_list_js = {
 	"Contact": "public/js/contact_list.js",
 }
 export_python_type_annotations = True
-override_doctype_class = {
-	"Contact": "messaging.overrides.contact.Contact",
-	"Contact Phone": "messaging.overrides.contact_phone.ContactPhone",
-	"Newsletter": "messaging.overrides.newsletter.Newsletter",
+extend_doctype_class = {
+	"Contact": "messaging.messaging.custom.contact.Contact",
+	"Contact Phone": "messaging.messaging.custom.contact_phone.ContactPhone",
+	"Newsletter": "messaging.messaging.custom.newsletter.Newsletter",
 }
 required_apps = ["newsletter"]
 scheduler_events = {
