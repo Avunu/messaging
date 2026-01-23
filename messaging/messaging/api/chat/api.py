@@ -340,50 +340,72 @@ def _strip_quoted_replies(content: str) -> str:
 		content = content[: match.start()].strip()
 
 	# Pattern 2: "On [date/time], [sender] wrote:" - handles various date formats
-	# This pattern matches inline occurrences (not just at line start)
-	# Examples:
+	# This is a simplified but robust pattern that catches most common formats:
 	#   "On Jan 4, 2025, at 4:52 PM, Someone wrote:"
 	#   "On 5th January 2025, 07:18 PM, email@example.com wrote:"
 	#   "On Monday, January 5, 2025 at 3:00 PM Someone <email@example.com> wrote:"
+	# The key is to match "On " followed by anything until " wrote:"
 	pattern_on_wrote = re.compile(
-		r"On\s+"
-		r"(?:"
-		# Format: "Jan 4, 2025" or "January 4, 2025" or "5th January 2025"
-		r"(?:(?:Mon|Tue|Wed|Thu|Fri|Sat|Sun)[a-z]*,?\s+)?"  # Optional day name
-		r"(?:"
-		# Date formats
-		r"\d{1,2}(?:st|nd|rd|th)?\s+.+?\s+\d{2,4}"  # "5th January 2025"
+		r"On\s+"  # Start with "On "
+		r"(?:"  # Non-capturing group for date patterns
+		r"(?:Mon|Tue|Wed|Thu|Fri|Sat|Sun)[a-z]*[,]?\s+"  # Optional day name
+		r")?"  # Day name is optional
+		r"(?:"  # Date - either starts with month or day number
+		r"(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\.?\s+\d{1,2}"  # "Jan 4" or "January 4"
 		r"|"
-		r"(?:Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:tember)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)\s+\d{1,2},?\s+\d{2,4}"  # "Jan 4, 2025"
-		r"|"
-		r"(?:January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{1,2},?\s+\d{2,4}"  # "January 4, 2025"
+		r"\d{1,2}(?:st|nd|rd|th)?\s+(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*"  # "4th January"
 		r")"
-		# Time: "at 4:52 PM" or "07:18 PM"
-		r"(?:\s+at\s+.+?|:\d{2}\s*[AP]M?)?"  # Optional time
-		# End with sender info
-		r"\s+wrote:\s*.*",
+		r"[^<]*?"  # Match anything (non-greedy) until we hit < or wrote
+		r"wrote:\s*",
 		re.IGNORECASE | re.DOTALL,
 	)
 	match = pattern_on_wrote.search(content)
 	if match:
 		content = content[: match.start()].strip()
 
-	# Pattern 3: Standard ">" prefix quoting
-	# This handles cases like:
-	# > On Jan 4, 2025, at 4:52 PM, Someone wrote:
-	# > From: Someone <someone@example.com>
-	# > To: Another <another@example.com>
-	# > Subject: Meeting
-	pattern_gt = re.compile(r"^\s*>\s+.+", re.MULTILINE)
-	content = pattern_gt.sub("", content).strip()
-
-	# Pattern 4: Outlook-style headers
-	# This matches lines starting with "From:", "Sent:", "To:", "Subject:"
-	# and removes the entire block up to the next blank line
-	pattern_outlook_headers = re.compile(
-		r"^(From|Sent|To|Subject):.*?(\r?\n\r?\n|\Z)", re.IGNORECASE | re.MULTILINE | re.DOTALL
+	# Pattern 3: Simpler fallback - any "On ... wrote:" pattern
+	# This catches cases the more specific pattern might miss
+	pattern_on_wrote_simple = re.compile(
+		r"On\s+[A-Za-z]{3}[^w]{0,100}wrote:\s*",
+		re.IGNORECASE | re.DOTALL,
 	)
-	content = pattern_outlook_headers.sub("", content).strip()
+	match = pattern_on_wrote_simple.search(content)
+	if match:
+		content = content[: match.start()].strip()
+
+	# Pattern 4: Lines starting with ">" (standard email quoting)
+	# Remove any remaining quoted lines at the end
+	lines = content.split("\n")
+	while lines and lines[-1].strip().startswith(">"):
+		lines.pop()
+	content = "\n".join(lines).strip()
+
+	# Pattern 5: Outlook-style headers - "From: ... Sent: ... To: ..."
+	pattern_outlook = re.compile(
+		r"^\s*From:\s+.+$",
+		re.IGNORECASE | re.MULTILINE,
+	)
+	match = pattern_outlook.search(content)
+	if match:
+		# Check if this looks like a forwarded email header block
+		remaining = content[match.start() :]
+		if re.search(r"^Sent:\s+", remaining, re.IGNORECASE | re.MULTILINE):
+			content = content[: match.start()].strip()
+
+	# Pattern 6: Clean up artifacts
+	# Remove zero-width spaces and other invisible characters
+	content = content.replace("\ufeff", "").replace("\u200b", "")
+
+	# Remove trailing whitespace from each line and collapse multiple blank lines
+	lines = [line.rstrip() for line in content.split("\n")]
+	# Remove trailing empty lines
+	while lines and not lines[-1]:
+		lines.pop()
+	content = "\n".join(lines)
+
+	# Pattern 7: "Leave this conversation" footer (mailing list unsubscribe)
+	pattern_unsubscribe = re.compile(r"\s*Leave this conversation.*$", re.IGNORECASE | re.DOTALL)
+	content = pattern_unsubscribe.sub("", content).strip()
 
 	return content
 
