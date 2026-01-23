@@ -407,6 +407,14 @@ def _strip_quoted_replies(content: str) -> str:
 	pattern_unsubscribe = re.compile(r"\s*Leave this conversation.*$", re.IGNORECASE | re.DOTALL)
 	content = pattern_unsubscribe.sub("", content).strip()
 
+	# Pattern 8: Email signature separator "-- " or "--" at start of line
+	# This prevents markdown from interpreting it as a setext heading underline
+	# Remove everything after the signature separator
+	pattern_signature = re.compile(r"^--\s*$", re.MULTILINE)
+	match = pattern_signature.search(content)
+	if match:
+		content = content[: match.start()].strip()
+
 	return content
 
 
