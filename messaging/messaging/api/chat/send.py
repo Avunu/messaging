@@ -28,6 +28,49 @@ from messaging.messaging.api.chat.types import (
 )
 
 
+def get_user_email_signature(user: str) -> str:
+	"""
+	Get the email signature for a user.
+
+	If the user has an email_signature set, return it.
+	Otherwise, generate a default signature using their full name.
+
+	Args:
+	    user: The user ID (email)
+
+	Returns:
+	    Plain text email signature
+	"""
+	if not user:
+		return ""
+
+	User = DocType("User")
+	result = (
+		frappe.qb.from_(User)
+		.select(User.email_signature, User.full_name)
+		.where(User.name == user)
+		.limit(1)
+		.run(as_dict=True)
+	)
+
+	if not result:
+		return ""
+
+	user_doc = result[0]
+
+	# If user has a custom email signature, use it
+	email_signature = user_doc.get("email_signature")
+	if email_signature:
+		# Strip HTML if present
+		if "<" in email_signature and ">" in email_signature:
+			email_signature = html_to_plain_text(email_signature)
+		return email_signature.strip()
+
+	# Otherwise, generate a default signature with their name
+	full_name = user_doc.get("full_name") or user
+	return f"--\n{full_name}"
+
+
 def send_message(
 	room_id: str,
 	content: str,
@@ -171,6 +214,9 @@ def send_message(
 		if medium == "SMS":
 			comm_doc = _send_sms(content, identifier, subject, ref_dt, ref_name, reply_message_id)
 		else:
+			# Get user's email signature
+			email_signature = get_user_email_signature(str(current_user_id))
+
 			comm_doc = _send_email(
 				content,
 				identifier,
@@ -181,6 +227,7 @@ def send_message(
 				reply_content_for_quote,
 				reply_sender_for_quote,
 				reply_date_for_quote,
+				email_signature,
 			)
 
 		# Update original message status
@@ -292,15 +339,21 @@ def _send_email(
 	reply_content_for_quote: str | None,
 	reply_sender_for_quote: str | None,
 	reply_date_for_quote: Any,
+	email_signature: str = "",
 ) -> Any:
 	"""Send email message and return Communication doc."""
 	from frappe.email.email_body import get_message_id
 
 	current_user_id = frappe.session.user
 
-	# Build email content
+	# Build email content - start with the message
 	email_content = content
 
+	# Append email signature if available
+	if email_signature:
+		email_content = f"{email_content}\n\n{email_signature}"
+
+	# Add quoted reply if this is a reply
 	if reply_content_for_quote and reply_sender_for_quote:
 		reply_date_str = ""
 		if reply_date_for_quote:
@@ -313,9 +366,11 @@ def _send_email(
 				except Exception:
 					reply_date_str = str(reply_date_for_quote)
 
-		email_content = build_quoted_reply(
-			content, reply_content_for_quote, reply_sender_for_quote, reply_date_str
-		)
+		# Build quoted reply and append to content (after signature)
+		quoted_reply = build_quoted_reply("", reply_content_for_quote, reply_sender_for_quote, reply_date_str)
+		# Remove the empty content prefix from build_quoted_reply
+		quoted_reply = quoted_reply.lstrip("\n")
+		email_content = f"{email_content}\n\n{quoted_reply}"
 
 	new_message_id = get_message_id().strip("<>")
 	html_content = plain_text_to_html(email_content)
