@@ -165,6 +165,8 @@ def notify_new_communication(doc: Any, method: str | None = None) -> None:
 	Called after a Communication is inserted to trigger realtime updates
 	in the chat interface.
 
+	Also handles SMS opt-out requests when a user texts "STOP".
+
 	Args:
 	    doc: The Communication document
 	    method: The hook method name (unused)
@@ -172,6 +174,11 @@ def notify_new_communication(doc: Any, method: str | None = None) -> None:
 	if doc.communication_type != "Communication":
 		return
 
+	# Handle SMS opt-out requests
+	if doc.communication_medium == "SMS" and doc.sent_or_received == "Received" and doc.phone_no:
+		_handle_sms_opt_out(doc)
+
+	# Publish realtime event for chat updates
 	frappe.publish_realtime(
 		"new_communication",
 		{
@@ -184,3 +191,98 @@ def notify_new_communication(doc: Any, method: str | None = None) -> None:
 		},
 		after_commit=True,
 	)
+
+
+def _handle_sms_opt_out(doc: Any) -> None:
+	"""
+	Handle SMS opt-out requests.
+
+	If the message content is "STOP" (case-insensitive), unset the consent_sms
+	field for the contact associated with the phone number and send a confirmation.
+
+	Args:
+	    doc: The Communication document
+	"""
+	# Get message content and check if it's a stop request
+	content = (doc.text_content or doc.content or "").strip().lower()
+
+	if content != "stop":
+		return
+
+	phone_no = doc.phone_no
+
+	# Find contacts with this phone number
+	from frappe.query_builder import DocType
+
+	Contact = DocType("Contact")
+	ContactPhone = DocType("Contact Phone")
+
+	contacts = (
+		frappe.qb.from_(Contact)
+		.join(ContactPhone)
+		.on(Contact.name == ContactPhone.parent)
+		.select(Contact.name)
+		.where(ContactPhone.phone == phone_no)
+		.run(as_dict=True)
+	)
+
+	if not contacts:
+		# No contact found, log and return
+		frappe.log_error(
+			f"SMS opt-out received from {phone_no} but no matching contact found",
+			"SMS Opt-Out - No Contact",
+		)
+		return
+
+	# Update consent_sms for all matching contacts
+	for contact in contacts:
+		frappe.db.set_value("Contact", contact["name"], "unsubscribed", 1)
+		frappe.log_error(
+			f"SMS opt-out processed for contact {contact['name']} (phone: {phone_no})",
+			"SMS Opt-Out Processed",
+		)
+
+	frappe.db.commit()
+
+	# Send confirmation SMS
+	_send_opt_out_confirmation(phone_no)
+
+
+def _send_opt_out_confirmation(phone_no: str) -> None:
+	"""
+	Send SMS confirmation that the user has been removed from the broadcast list.
+
+	Args:
+	    phone_no: The phone number to send confirmation to
+	"""
+	confirmation_message = "You have been removed from our broadcast list."
+
+	try:
+		# Create Communication record for the outgoing SMS
+		comm_doc = frappe.get_doc(
+			{
+				"doctype": "Communication",
+				"communication_type": "Communication",
+				"communication_medium": "SMS",
+				"subject": "SMS Opt-Out Confirmation",
+				"content": confirmation_message,
+				"text_content": confirmation_message,
+				"phone_no": phone_no,
+				"sender": frappe.session.user,
+				"recipients": phone_no,
+				"sent_or_received": "Sent",
+			}
+		)
+		comm_doc.insert(ignore_permissions=True)
+
+		# Send SMS via configured provider
+		from frappe.core.doctype.sms_settings.sms_settings import send_sms
+
+		send_sms([phone_no], confirmation_message)
+		comm_doc.db_set("delivery_status", "Sent")
+
+	except Exception as e:
+		frappe.log_error(
+			f"Failed to send SMS opt-out confirmation to {phone_no}: {e}",
+			"SMS Opt-Out Confirmation Failed",
+		)
