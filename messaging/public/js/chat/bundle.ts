@@ -280,7 +280,7 @@ class ChatView {
     // Create Vue container
     this.container = document.createElement('div');
     this.container.id = 'chat-view-container';
-    this.container.style.height = 'calc(100vh - 45px)';
+    this.container.style.height = 'calc(100vh - 46px)';
     this.container.style.minHeight = '500px';
     this.body.append(this.container);
 

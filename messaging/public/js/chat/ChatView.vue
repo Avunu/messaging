@@ -195,7 +195,7 @@ export default defineComponent({
 		const theme = computed(() => (isDarkMode.value ? "dark" : "light"));
 
 		// Chat height (responsive)
-		const chatHeight = ref("calc(100vh - 45px)");
+		const chatHeight = ref("calc(100vh - 46px)");
 
 		// Current user ID
 		const currentUserId = computed(() => currentUser.value?._id ?? "");
