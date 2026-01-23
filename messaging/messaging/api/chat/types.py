@@ -204,3 +204,11 @@ class MarkSeenResponse(TypedDict):
 
 	success: bool
 	count: int
+
+
+class RoomActionResponse(TypedDict):
+	"""Response from room action operations (archive, delete)."""
+
+	success: bool
+	count: int
+	error: str | None

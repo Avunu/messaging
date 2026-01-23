@@ -21,6 +21,8 @@ from messaging.messaging.api.chat.retrieve import get_current_user as _get_curre
 from messaging.messaging.api.chat.retrieve import get_messages as _get_messages
 from messaging.messaging.api.chat.retrieve import get_rooms as _get_rooms
 from messaging.messaging.api.chat.retrieve import get_unread_count as _get_unread_count
+from messaging.messaging.api.chat.send import archive_room as _archive_room
+from messaging.messaging.api.chat.send import delete_room as _delete_room
 from messaging.messaging.api.chat.send import mark_messages_seen as _mark_messages_seen
 from messaging.messaging.api.chat.send import send_message as _send_message
 from messaging.messaging.api.chat.types import (
@@ -28,6 +30,7 @@ from messaging.messaging.api.chat.types import (
 	MarkSeenResponse,
 	MessagesResponse,
 	Room,
+	RoomActionResponse,
 	RoomsResponse,
 	SendMessageResponse,
 )
@@ -156,6 +159,34 @@ def get_unread_count() -> int:
 	    Total unread message count
 	"""
 	return _get_unread_count()
+
+
+@frappe.whitelist()
+def archive_room(room_id: str) -> RoomActionResponse:
+	"""
+	Archive all messages in a room by setting status to 'Closed'.
+
+	Args:
+	    room_id: The room identifier
+
+	Returns:
+	    RoomActionResponse with success status and count of updated messages
+	"""
+	return _archive_room(room_id=room_id)
+
+
+@frappe.whitelist()
+def delete_room(room_id: str) -> RoomActionResponse:
+	"""
+	Delete all messages in a room (moves to trash).
+
+	Args:
+	    room_id: The room identifier
+
+	Returns:
+	    RoomActionResponse with success status and count of deleted messages
+	"""
+	return _delete_room(room_id=room_id)
 
 
 def notify_new_communication(doc: Any, method: str | None = None) -> None:

@@ -145,7 +145,7 @@ declare const frappe: {
 	};
 };
 
-declare const __: (text: string) => string;
+declare const __: (text: string, args?: unknown[], context?: string) => string;
 
 export default defineComponent({
 	name: "ChatView",
@@ -216,10 +216,12 @@ export default defineComponent({
 			CANCEL_SELECT_MESSAGE: __("Cancel"),
 		}));
 
-		// Menu actions for rooms
+		// Menu actions for rooms - add archive and delete
 		const menuActions: CustomAction[] = [
 			{ name: "openContact", title: __("View Contact") },
 			{ name: "markUnread", title: __("Mark as Unread") },
+			{ name: "archiveRoom", title: __("Archive Conversation") },
+			{ name: "deleteRoom", title: __("Delete Conversation") },
 		];
 
 		// Message actions - include built-in 'replyMessage' for native reply support
@@ -352,7 +354,8 @@ export default defineComponent({
 			}
 		}
 
-		function onMenuAction(data: { roomId: string; action: CustomAction }): void {
+		// Update onMenuAction to handle archive and delete
+		async function onMenuAction(data: { roomId: string; action: CustomAction }): Promise<void> {
 			const room = rooms.value.find((r) => r.roomId === data?.roomId);
 			if (!room || !data?.action) return;
 
@@ -366,6 +369,90 @@ export default defineComponent({
 						indicator: "blue",
 					});
 					break;
+				case "archiveRoom":
+					await archiveRoom(data.roomId);
+					break;
+				case "deleteRoom":
+					await deleteRoom(data.roomId);
+					break;
+			}
+		}
+
+		// Add archive room function
+		async function archiveRoom(roomId: string): Promise<void> {
+			if (!confirm(__("Are you sure you want to archive this conversation? All messages will be marked as closed."))) {
+				return;
+			}
+
+			try {
+				const response = await fetch("/api/method/messaging.messaging.api.chat.api.archive_room", {
+					method: "POST",
+					headers: {
+						"Content-Type": "application/json",
+						"X-Frappe-CSRF-Token": (window as any).frappe?.csrf_token || "",
+					},
+					body: JSON.stringify({ room_id: roomId }),
+				});
+
+				const result = await response.json();
+
+				if (result.message?.success) {
+					frappe.show_alert({
+						message: __("Conversation archived ({0} messages)", [result.message.count]),
+						indicator: "green",
+					});
+					// Refresh rooms list
+					await fetchRooms(true);
+				} else {
+					frappe.show_alert({
+						message: result.message?.error || __("Failed to archive conversation"),
+						indicator: "red",
+					});
+				}
+			} catch (error) {
+				frappe.show_alert({
+					message: __("Failed to archive conversation"),
+					indicator: "red",
+				});
+			}
+		}
+
+		// Add delete room function
+		async function deleteRoom(roomId: string): Promise<void> {
+			if (!confirm(__("Are you sure you want to delete this conversation? This action cannot be undone."))) {
+				return;
+			}
+
+			try {
+				const response = await fetch("/api/method/messaging.messaging.api.chat.api.delete_room", {
+					method: "POST",
+					headers: {
+						"Content-Type": "application/json",
+						"X-Frappe-CSRF-Token": (window as any).frappe?.csrf_token || "",
+					},
+					body: JSON.stringify({ room_id: roomId }),
+				});
+
+				const result = await response.json();
+
+				if (result.message?.success) {
+					frappe.show_alert({
+						message: __("Conversation deleted ({0} messages)", [result.message.count]),
+						indicator: "green",
+					});
+					// Refresh rooms list
+					await fetchRooms(true);
+				} else {
+					frappe.show_alert({
+						message: result.message?.error || __("Failed to delete conversation"),
+						indicator: "red",
+					});
+				}
+			} catch (error) {
+				frappe.show_alert({
+					message: __("Failed to delete conversation"),
+					indicator: "red",
+				});
 			}
 		}
 
@@ -555,6 +642,8 @@ export default defineComponent({
 			isUserOnline,
 			getMediumIcon,
 			__,
+			archiveRoom,
+			deleteRoom,
 		};
 	},
 });

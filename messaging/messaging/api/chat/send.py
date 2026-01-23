@@ -24,6 +24,7 @@ from messaging.messaging.api.chat.helpers import get_user_avatar, parse_room_id
 from messaging.messaging.api.chat.types import (
 	MarkSeenResponse,
 	Message,
+	RoomActionResponse,
 	SendMessageResponse,
 )
 
@@ -466,3 +467,102 @@ def mark_messages_seen(room_id: str) -> MarkSeenResponse:
 		frappe.db.commit()
 
 	return {"success": True, "count": count}
+
+
+def archive_room(room_id: str) -> RoomActionResponse:
+	"""
+	Archive all messages in a room by setting status to 'Closed'.
+
+	Args:
+	    room_id: The room identifier
+
+	Returns:
+	    RoomActionResponse with success status and count of updated messages
+	"""
+	room_parts = parse_room_id(room_id)
+	medium = room_parts.get("medium")
+	identifier = room_parts.get("identifier")
+
+	if not medium or not identifier:
+		return {"success": False, "count": 0, "error": "Invalid room ID"}
+
+	Communication = DocType("Communication")
+
+	# Build query to find all communications in this room
+	query = (
+		frappe.qb.from_(Communication)
+		.select(Communication.name)
+		.where(Communication.communication_type == "Communication")
+		.where(Communication.communication_medium == medium)
+	)
+
+	if medium in ("SMS", "Phone"):
+		query = query.where(Communication.phone_no == identifier)
+	else:
+		query = query.where(
+			(Communication.sender == identifier) | (Communication.recipients.like(f"%{identifier}%"))
+		)
+
+	comms = query.run(as_dict=True)
+
+	count = 0
+	for comm in comms:
+		frappe.db.set_value("Communication", comm["name"], "status", "Closed")
+		count += 1
+
+	if count > 0:
+		frappe.db.commit()
+
+	return {"success": True, "count": count, "error": None}
+
+
+def delete_room(room_id: str) -> RoomActionResponse:
+	"""
+	Delete all messages in a room.
+
+	Args:
+	    room_id: The room identifier
+
+	Returns:
+	    RoomActionResponse with success status and count of deleted messages
+	"""
+	room_parts = parse_room_id(room_id)
+	medium = room_parts.get("medium")
+	identifier = room_parts.get("identifier")
+
+	if not medium or not identifier:
+		return {"success": False, "count": 0, "error": "Invalid room ID"}
+
+	Communication = DocType("Communication")
+
+	# Build query to find all communications in this room
+	query = (
+		frappe.qb.from_(Communication)
+		.select(Communication.name)
+		.where(Communication.communication_type == "Communication")
+		.where(Communication.communication_medium == medium)
+	)
+
+	if medium in ("SMS", "Phone"):
+		query = query.where(Communication.phone_no == identifier)
+	else:
+		query = query.where(
+			(Communication.sender == identifier) | (Communication.recipients.like(f"%{identifier}%"))
+		)
+
+	comms = query.run(as_dict=True)
+
+	count = 0
+	errors = []
+	for comm in comms:
+		try:
+			frappe.delete_doc("Communication", comm["name"], force=True)
+			count += 1
+		except Exception as e:
+			errors.append(f"{comm['name']}: {str(e)}")
+
+	if count > 0:
+		frappe.db.commit()
+
+	error_msg = "; ".join(errors) if errors else None
+	return {"success": len(errors) == 0, "count": count, "error": error_msg}
