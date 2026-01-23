@@ -845,7 +845,7 @@ def get_messages(
 			"deleted": False,
 			"edited": False,
 			"failure": comm.get("delivery_status") in ("Bounced", "Error", "Rejected"),
-			"disableActions": sent_or_recv == "Received",
+			"disableActions": False,  # Allow actions (Reply, View Details, etc.) on all messages
 			"disableReactions": True,
 			"files": files if files else [],
 			"communicationName": comm_name,
@@ -1065,7 +1065,9 @@ def send_message(
 			from frappe.email.email_body import get_message_id
 
 			# Build email content with proper reply quoting if this is a reply
+			# Start with the user's new message content
 			email_content = content
+
 			if reply_content_for_quote and reply_sender_for_quote:
 				# Format the quoted reply text
 				reply_date_str = ""
@@ -1082,9 +1084,15 @@ def send_message(
 				# Strip HTML tags from quoted content for plain text quoting
 				quoted_text = reply_content_for_quote
 				if "<" in quoted_text and ">" in quoted_text:
-					# Simple HTML stripping - replace <br> with newlines, remove other tags
+					# Convert HTML to plain text more carefully
+					# Replace <br> and </p> with newlines first
 					quoted_text = re.sub(r"<br\s*/?>", "\n", quoted_text, flags=re.IGNORECASE)
+					quoted_text = re.sub(r"</p>", "\n", quoted_text, flags=re.IGNORECASE)
+					quoted_text = re.sub(r"</div>", "\n", quoted_text, flags=re.IGNORECASE)
+					# Remove remaining HTML tags
 					quoted_text = re.sub(r"<[^>]+>", "", quoted_text)
+					# Clean up multiple consecutive newlines
+					quoted_text = re.sub(r"\n{3,}", "\n\n", quoted_text)
 					quoted_text = quoted_text.strip()
 
 				# Add ">" prefix to each line for email quoting
@@ -1092,19 +1100,26 @@ def send_message(
 				quoted_block = "\n".join(quoted_lines)
 
 				# Build the full email content with reply quote at bottom
+				# Use double newline to separate the message from the quote header
 				email_content = (
 					f"{content}\n\nOn {reply_date_str}, {reply_sender_for_quote} wrote:\n{quoted_block}"
 				)
 
 			# Create Communication doc with in_reply_to set BEFORE sending
 			new_message_id = get_message_id().strip("<>")
+
+			# For the Communication record, store HTML content for better display
+			# Convert plain text to simple HTML for storage
+			html_content = email_content.replace("\n", "<br>\n")
+
 			comm_doc = frappe.get_doc(
 				{
 					"doctype": "Communication",
 					"communication_type": "Communication",
 					"communication_medium": "Email",
 					"subject": subject,
-					"content": email_content,
+					"content": html_content,  # Store HTML version for display
+					"text_content": email_content,  # Store plain text version
 					"sender": current_user_id,
 					"recipients": identifier,
 					"sent_or_received": "Sent",
@@ -1125,11 +1140,11 @@ def send_message(
 					recipients=[identifier],
 					sender=str(current_user_id),
 					subject=subject,
-					content=email_content,
+					message=html_content,  # Send HTML content
 					reference_doctype=ref_dt,
 					reference_name=ref_name,
 					message_id=new_message_id,
-					in_reply_to=reply_message_id,  # Use message_id for email header
+					in_reply_to=reply_message_id,  # Use Communication name for email header lookup
 					communication=comm_name,
 					delayed=True,
 				)
