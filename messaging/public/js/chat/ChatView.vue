@@ -222,11 +222,11 @@ export default defineComponent({
 			{ name: "markUnread", title: __("Mark as Unread") },
 		];
 
-		// Message actions
+		// Message actions - include built-in 'replyMessage' for native reply support
 		const messageActions: MessageAction[] = [
+			{ name: "replyMessage", title: __("Reply") },
 			{ name: "viewDetails", title: __("View Details") },
 			{ name: "openCommunication", title: __("Open Communication") },
-			{ name: "reply", title: __("Reply"), onlyMe: false },
 		];
 
 		// Custom styles
@@ -330,6 +330,8 @@ export default defineComponent({
 		}
 
 		function onSendMessage(data: SendMessageEvent): void {
+			// data.replyMessage contains the message being replied to (if any)
+			// The _id of replyMessage is the Communication document name
 			handleSendMessage(data);
 		}
 
@@ -375,6 +377,10 @@ export default defineComponent({
 			if (!data?.action) return;
 
 			switch (data.action.name) {
+				case "replyMessage":
+					// This is handled automatically by vue-advanced-chat
+					// The reply will be included in the send-message event
+					break;
 				case "viewDetails":
 					selectedMessage.value = data.message;
 					showCommPanel.value = true;
@@ -386,9 +392,6 @@ export default defineComponent({
 							"_blank"
 						);
 					}
-					break;
-				case "reply":
-					// Reply is handled automatically by vue-advanced-chat
 					break;
 			}
 		}

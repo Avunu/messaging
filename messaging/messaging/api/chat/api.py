@@ -891,7 +891,7 @@ def send_message(
 	    room_id: The room identifier
 	    content: Message content
 	    files: List of file attachments (JSON string or list)
-	    reply_message_id: ID of message being replied to
+	    reply_message_id: Communication name of message being replied to (for explicit replies)
 	    subject: Email subject (optional, auto-generated if empty)
 
 	Returns:
@@ -926,51 +926,15 @@ def send_message(
 	try:
 		Communication = DocType("Communication")
 
-		# Find the latest message in this thread to properly link the reply
-		latest_in_thread = (
-			frappe.qb.from_(Communication)
-			.select(
-				Communication.name,
-				Communication.message_id,
-				Communication.subject,
-				Communication.sent_or_received,
-				Communication.content,
-				Communication.text_content,
-				Communication.sender,
-				Communication.sender_full_name,
-				Communication.communication_date,
-			)
-			.where(Communication.communication_type == "Communication")
-			.where(Communication.communication_medium == medium)
-		)
-
-		if medium in ("SMS", "Phone"):
-			latest_in_thread = latest_in_thread.where(Communication.phone_no == identifier)
-		else:
-			latest_in_thread = latest_in_thread.where(
-				(Communication.sender == identifier) | (Communication.recipients.like(f"%{identifier}%"))
-			)
-
-		if ref_dt and ref_name:
-			latest_in_thread = latest_in_thread.where(Communication.reference_doctype == ref_dt)
-			latest_in_thread = latest_in_thread.where(Communication.reference_name == ref_name)
-
-		latest_in_thread = (
-			latest_in_thread.orderby(Communication.communication_date, order=Order.desc)
-			.limit(1)
-			.run(as_dict=True)
-		)
-
-		# Get in_reply_to message_id - either from explicit reply or latest message in thread
-		in_reply_to = None
-		original_subject = None
-		latest_received_name = None
-		reply_content_for_quote = None
-		reply_sender_for_quote = None
+		# Variables for reply handling
+		original_subject: str | None = None
+		reply_content_for_quote: str | None = None
+		reply_sender_for_quote: str | None = None
 		reply_date_for_quote = None
+		latest_received_name: str | None = None
 
+		# If explicit reply_message_id provided (user clicked Reply on a specific message)
 		if reply_message_id:
-			# Explicit reply to a specific message
 			reply_comm = (
 				frappe.qb.from_(Communication)
 				.select(
@@ -989,7 +953,6 @@ def send_message(
 				.run(as_dict=True)
 			)
 			if reply_comm:
-				in_reply_to = reply_comm[0].get("message_id")
 				original_subject = reply_comm[0].get("subject")
 				reply_content_for_quote = reply_comm[0].get("text_content") or reply_comm[0].get("content")
 				reply_sender_for_quote = reply_comm[0].get("sender_full_name") or reply_comm[0].get("sender")
@@ -997,20 +960,55 @@ def send_message(
 				# Track if it's a received message we're replying to
 				if reply_comm[0].get("sent_or_received") == "Received":
 					latest_received_name = reply_comm[0].get("name")
-		elif latest_in_thread:
-			# Use the latest message in thread for proper email threading
-			in_reply_to = latest_in_thread[0].get("message_id")
-			original_subject = latest_in_thread[0].get("subject")
-			reply_content_for_quote = latest_in_thread[0].get("text_content") or latest_in_thread[0].get(
-				"content"
+		else:
+			# No explicit reply - find the latest message in this thread for proper email threading
+			latest_in_thread = (
+				frappe.qb.from_(Communication)
+				.select(
+					Communication.name,
+					Communication.message_id,
+					Communication.subject,
+					Communication.sent_or_received,
+					Communication.content,
+					Communication.text_content,
+					Communication.sender,
+					Communication.sender_full_name,
+					Communication.communication_date,
+				)
+				.where(Communication.communication_type == "Communication")
+				.where(Communication.communication_medium == medium)
 			)
-			reply_sender_for_quote = latest_in_thread[0].get("sender_full_name") or latest_in_thread[0].get(
-				"sender"
+
+			if medium in ("SMS", "Phone"):
+				latest_in_thread = latest_in_thread.where(Communication.phone_no == identifier)
+			else:
+				latest_in_thread = latest_in_thread.where(
+					(Communication.sender == identifier) | (Communication.recipients.like(f"%{identifier}%"))
+				)
+
+			if ref_dt and ref_name:
+				latest_in_thread = latest_in_thread.where(Communication.reference_doctype == ref_dt)
+				latest_in_thread = latest_in_thread.where(Communication.reference_name == ref_name)
+
+			latest_in_thread = (
+				latest_in_thread.orderby(Communication.communication_date, order=Order.desc)
+				.limit(1)
+				.run(as_dict=True)
 			)
-			reply_date_for_quote = latest_in_thread[0].get("communication_date")
-			# Track if it's a received message we're replying to
-			if latest_in_thread[0].get("sent_or_received") == "Received":
-				latest_received_name = latest_in_thread[0].get("name")
+
+			if latest_in_thread:
+				reply_message_id = latest_in_thread[0].get("name")
+				original_subject = latest_in_thread[0].get("subject")
+				reply_content_for_quote = latest_in_thread[0].get("text_content") or latest_in_thread[0].get(
+					"content"
+				)
+				reply_sender_for_quote = latest_in_thread[0].get("sender_full_name") or latest_in_thread[
+					0
+				].get("sender")
+				reply_date_for_quote = latest_in_thread[0].get("communication_date")
+				# Track if it's a received message we're replying to
+				if latest_in_thread[0].get("sent_or_received") == "Received":
+					latest_received_name = latest_in_thread[0].get("name")
 
 		# Auto-generate subject if not provided
 		if not subject:
@@ -1045,7 +1043,7 @@ def send_message(
 					"sent_or_received": "Sent",
 					"reference_doctype": ref_dt,
 					"reference_name": ref_name,
-					"in_reply_to": in_reply_to,
+					"in_reply_to": reply_message_id,  # Store Communication name
 				}
 			)
 			comm_doc.insert(ignore_permissions=True)
@@ -1113,14 +1111,15 @@ def send_message(
 					"reference_doctype": ref_dt,
 					"reference_name": ref_name,
 					"message_id": new_message_id,
-					"in_reply_to": in_reply_to,
+					"in_reply_to": reply_message_id,  # Store Communication name (not message_id)
 					"status": "Linked",
 				}
 			)
 			comm_doc.insert(ignore_permissions=True)
 			comm_name = str(comm_doc.name)
 
-			# Send the email using frappe.sendmail directly to include in_reply_to header
+			# Send the email using frappe.sendmail directly
+			# The in_reply_to parameter here is for the email header. the message_id is queried by core
 			try:
 				frappe.sendmail(
 					recipients=[identifier],
@@ -1130,7 +1129,7 @@ def send_message(
 					reference_doctype=ref_dt,
 					reference_name=ref_name,
 					message_id=new_message_id,
-					in_reply_to=in_reply_to,  # This sets the In-Reply-To email header
+					in_reply_to=reply_message_id,  # Use message_id for email header
 					communication=comm_name,
 					delayed=True,
 				)

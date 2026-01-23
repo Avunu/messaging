@@ -203,8 +203,13 @@ export interface SendMessageEvent {
   roomId: string;
   content: string;
   files?: MessageFile[];
-  replyMessage?: ReplyMessage;
-  usersTag?: RoomUser[];
+  replyMessage?: {
+    _id: string;
+    content: string;
+    senderId: string;
+    files?: MessageFile[];
+  };
+  usersTag?: string[];
 }
 
 export interface EditMessageEvent {

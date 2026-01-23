@@ -217,18 +217,23 @@ export function useChat(): UseChatReturn {
     }
   }
 
-  async function handleSendMessage(event: SendMessageEvent): Promise<void> {
+  async function handleSendMessage(data: SendMessageEvent): Promise<void> {
     // Use roomId from event (more reliable than currentRoom with Web Components)
-    if (!event.roomId || !event.content?.trim()) return;
+    if (!data.roomId || !data.content?.trim()) return;
 
     try {
       error.value = null;
 
+      // Extract reply_message_id from replyMessage if present
+      // In vue-advanced-chat, replyMessage._id is the message identifier
+      // which in our case is the Communication document name
+      const replyMessageId = data.replyMessage?._id || '';
+
       const response = await sendMessage({
-        room_id: event.roomId,
-        content: event.content,
-        files: event.files,
-        reply_message_id: event.replyMessage?._id,
+        room_id: data.roomId,
+        content: data.content,
+        files: data.files,
+        reply_message_id: replyMessageId,
       });
 
       if (response.success && response.message) {
@@ -237,13 +242,13 @@ export function useChat(): UseChatReturn {
 
         // Update room's last message
         const roomIndex = rooms.value.findIndex(
-          (r) => r.roomId === event.roomId
+          (r) => r.roomId === data.roomId
         );
         if (roomIndex !== -1) {
           rooms.value[roomIndex] = {
             ...rooms.value[roomIndex],
             lastMessage: {
-              content: event.content,
+              content: data.content,
               senderId: currentUser.value?._id ?? '',
               timestamp: new Date().toLocaleTimeString([], {
                 hour: '2-digit',
