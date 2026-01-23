@@ -8,6 +8,7 @@ enabling a chat-like interface for email and SMS communications.
 Uses Frappe Query Builder exclusively for database operations.
 """
 
+import re
 from datetime import datetime, timedelta
 from typing import Any, Literal, cast
 
@@ -302,6 +303,89 @@ def _build_room_from_thread(thread: dict[str, Any], current_user_id: str) -> Roo
 	}
 
 	return room
+
+
+def _strip_quoted_replies(content: str) -> str:
+	"""
+	Strip quoted reply text from email content for cleaner chat display.
+
+	Handles multiple patterns:
+	1. Standard ">" prefix quoting
+	2. "---On [date], [sender] wrote:" pattern (common in many email clients)
+	3. "On [date], [sender] wrote:" pattern (inline or at start of line)
+	4. "From: ... Sent: ... To: ... Subject:" Outlook-style headers
+
+	Args:
+	    content: Raw email content (plain text)
+
+	Returns:
+	    Content with quoted replies stripped
+	"""
+	if not content:
+		return content
+
+	# First, try EmailReplyParser
+	try:
+		parsed = EmailReplyParser.parse_reply(content)
+		if parsed and parsed.strip():
+			content = parsed.strip()
+	except Exception:
+		pass
+
+	# Pattern 1: "---On [date], [sender] wrote:" (with optional line break before ---)
+	# This catches patterns like "Mike---On 5th January 2025, 07:18 PM, email@example.com wrote:"
+	pattern_dashes = re.compile(r"\s*-{2,3}\s*On\s+.+?\s+wrote:\s*.*", re.IGNORECASE | re.DOTALL)
+	match = pattern_dashes.search(content)
+	if match:
+		content = content[: match.start()].strip()
+
+	# Pattern 2: "On [date/time], [sender] wrote:" - handles various date formats
+	# This pattern matches inline occurrences (not just at line start)
+	# Examples:
+	#   "On Jan 4, 2025, at 4:52 PM, Someone wrote:"
+	#   "On 5th January 2025, 07:18 PM, email@example.com wrote:"
+	#   "On Monday, January 5, 2025 at 3:00 PM Someone <email@example.com> wrote:"
+	pattern_on_wrote = re.compile(
+		r"On\s+"
+		r"(?:"
+		# Format: "Jan 4, 2025" or "January 4, 2025" or "5th January 2025"
+		r"(?:(?:Mon|Tue|Wed|Thu|Fri|Sat|Sun)[a-z]*,?\s+)?"  # Optional day name
+		r"(?:"
+		# Date formats
+		r"\d{1,2}(?:st|nd|rd|th)?\s+.+?\s+\d{2,4}"  # "5th January 2025"
+		r"|"
+		r"(?:Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:tember)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)\s+\d{1,2},?\s+\d{2,4}"  # "Jan 4, 2025"
+		r"|"
+		r"(?:January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{1,2},?\s+\d{2,4}"  # "January 4, 2025"
+		r")"
+		# Time: "at 4:52 PM" or "07:18 PM"
+		r"(?:\s+at\s+.+?|:\d{2}\s*[AP]M?)?"  # Optional time
+		# End with sender info
+		r"\s+wrote:\s*.*",
+		re.IGNORECASE | re.DOTALL,
+	)
+	match = pattern_on_wrote.search(content)
+	if match:
+		content = content[: match.start()].strip()
+
+	# Pattern 3: Standard ">" prefix quoting
+	# This handles cases like:
+	# > On Jan 4, 2025, at 4:52 PM, Someone wrote:
+	# > From: Someone <someone@example.com>
+	# > To: Another <another@example.com>
+	# > Subject: Meeting
+	pattern_gt = re.compile(r"^\s*>\s+.+", re.MULTILINE)
+	content = pattern_gt.sub("", content).strip()
+
+	# Pattern 4: Outlook-style headers
+	# This matches lines starting with "From:", "Sent:", "To:", "Subject:"
+	# and removes the entire block up to the next blank line
+	pattern_outlook_headers = re.compile(
+		r"^(From|Sent|To|Subject):.*?(\r?\n\r?\n|\Z)", re.IGNORECASE | re.MULTILINE | re.DOTALL
+	)
+	content = pattern_outlook_headers.sub("", content).strip()
+
+	return content
 
 
 @frappe.whitelist()
@@ -655,12 +739,7 @@ def get_messages(
 			raw_content = strip_html_tags(raw_content)
 
 		# Strip quoted reply text for cleaner chat display
-		try:
-			parsed_reply = EmailReplyParser.parse_reply(raw_content)
-			if parsed_reply and parsed_reply.strip():
-				raw_content = parsed_reply.strip()
-		except Exception:
-			pass  # Keep original content if parsing fails
+		raw_content = _strip_quoted_replies(raw_content)
 
 		# For emails, prepend subject as a header
 		subject = comm.get("subject", "")
