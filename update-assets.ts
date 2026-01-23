@@ -80,30 +80,54 @@ function main(): void {
 
             console.log(`  ${bundleName} -> ${assetPath}`);
 
-            // Handle CSS if present
+            // Handle CSS if present in entry's css array
             if (entry.css && entry.css.length > 0) {
                 for (const cssFile of entry.css) {
-                    const cssSource = path.join(DIST_PATH, cssFile);
-                    const cssDest = path.join(ASSETS_DEST_PATH, cssFile);
-
-                    // Copy CSS file
-                    fs.mkdirSync(path.dirname(cssDest), { recursive: true });
-                    fs.copyFileSync(cssSource, cssDest);
-
-                    // Update assets.json for CSS
-                    const cssBundleName = 'chat.bundle.css';
-                    const cssAssetPath = `/assets/${APP_NAME}/dist/${cssFile}`;
-                    assetsJson[cssBundleName] = cssAssetPath;
-
-                    console.log(`  ${cssBundleName} -> ${cssAssetPath}`);
+                    processCssFile(cssFile, DIST_PATH, ASSETS_DEST_PATH, assetsJson);
                 }
             }
+        }
+
+        // Handle standalone CSS entries (like "style.css" in the manifest)
+        // These are CSS files that aren't associated with a JS entry's css array
+        if (!entry.isEntry && entry.file.endsWith('.css')) {
+            processCssFile(entry.file, DIST_PATH, ASSETS_DEST_PATH, assetsJson);
         }
     }
 
     // Write updated assets.json
     fs.writeFileSync(ASSETS_JSON_PATH, JSON.stringify(assetsJson, null, 4));
     console.log(`\nUpdated ${ASSETS_JSON_PATH}`);
+}
+
+/**
+ * Process and copy a CSS file, updating assets.json
+ */
+function processCssFile(
+    cssFile: string,
+    distPath: string,
+    assetsDestPath: string,
+    assetsJson: AssetsJson
+): void {
+    const cssSource = path.join(distPath, cssFile);
+    const cssDest = path.join(assetsDestPath, cssFile);
+
+    // Only process if source exists
+    if (!fs.existsSync(cssSource)) {
+        console.warn(`  Warning: CSS file not found: ${cssSource}`);
+        return;
+    }
+
+    // Copy CSS file
+    fs.mkdirSync(path.dirname(cssDest), { recursive: true });
+    fs.copyFileSync(cssSource, cssDest);
+
+    // Update assets.json for CSS
+    const cssBundleName = 'chat.bundle.css';
+    const cssAssetPath = `/assets/${APP_NAME}/dist/${cssFile}`;
+    assetsJson[cssBundleName] = cssAssetPath;
+
+    console.log(`  ${cssBundleName} -> ${cssAssetPath}`);
 }
 
 main();
