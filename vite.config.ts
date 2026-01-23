@@ -12,9 +12,9 @@ export default defineConfig({
     rollupOptions: {
       input: path.resolve(__dirname, 'messaging/public/js/chat/bundle.ts'),
       output: {
-        // Fixed filename - use query string for cache busting via Frappe's build_version
-        entryFileNames: 'chat.bundle.js',
-        assetFileNames: 'chat.bundle.css',
+        // Use hash in filename for cache busting (mimics esbuild's [name].[hash] pattern)
+        entryFileNames: 'js/chat.bundle.[hash].js',
+        assetFileNames: 'css/chat.bundle.[hash].[ext]',
         format: 'iife',
         name: 'MessagingChat',
         inlineDynamicImports: true,
@@ -26,9 +26,11 @@ export default defineConfig({
     emptyOutDir: true,
     minify: true,
     target: 'es2020',
-    sourcemap: false,
+    sourcemap: true,
     // Extract CSS into separate file (don't inline into JS)
     cssCodeSplit: false,
+    // Generate manifest.json for asset mapping
+    manifest: true,
   },
   resolve: {
     alias: {
