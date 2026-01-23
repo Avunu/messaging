@@ -100,14 +100,17 @@ declare const frappe: {
     factory_views: string[];
     list_views: string[];
     list_views_route: Record<string, string>;
+    route?: () => Promise<void>;
+    on?: (event: string, callback: () => void) => void;
   };
-  set_route(route: string | string[]): void;
+  set_route(...args: (string | string[])[]): void;
   show_alert(opts: { message: string; indicator: string }): void;
   boot: {
     user: {
       can_read: string[];
     };
   };
+  route_options?: Record<string, unknown> | null;
 };
 
 declare const locals: {
@@ -354,6 +357,190 @@ if (!frappe.router.factory_views.includes('chat')) {
 
 // Extend ListViewSelect to add Chat option in the dropdown
 extendListViewSelect();
+
+// ============================================================================
+// Route Interception - Redirect Inbox to Chat View
+// ============================================================================
+
+/**
+ * Intercept Communication list routes that look like "inbox" queries
+ * and redirect them to the Chat view instead.
+ *
+ * Frappe stores pending filters in `frappe.route_options` before the route
+ * is fully processed and URL params are appended. We intercept at that level.
+ */
+function setupInboxRedirect(): void {
+  // Store original set_route
+  const originalSetRoute = frappe.set_route.bind(frappe);
+
+  // Override set_route to intercept inbox-like routes
+  // Note: frappe.set_route can be called with various argument patterns:
+  // - set_route(['List', 'Communication'])
+  // - set_route('Form', 'Contact', 'name')
+  // - set_route('list/communication')
+  frappe.set_route = function (...args: (string | string[])[]): void {
+    // Normalize route to array
+    let routeArr: string[];
+    if (args.length === 1 && Array.isArray(args[0])) {
+      // Called with array: set_route(['List', 'Communication'])
+      routeArr = args[0];
+    } else if (args.length === 1 && typeof args[0] === 'string' && args[0].includes('/')) {
+      // Called with path string: set_route('list/communication')
+      routeArr = args[0].split('/');
+    } else {
+      // Called with multiple args: set_route('Form', 'Contact', 'name')
+      routeArr = args.map((arg) => (Array.isArray(arg) ? arg.join('/') : String(arg)));
+    }
+
+    // Clean up route - remove empty strings and 'desk'/'app' prefix
+    const cleanedRoute = routeArr.filter((r) => r && r !== 'desk' && r !== 'app');
+
+    // Check if this is a Communication list route
+    const isCommList =
+      (cleanedRoute[0]?.toLowerCase() === 'list' &&
+        cleanedRoute[1]?.toLowerCase() === 'communication') ||
+      (cleanedRoute[0]?.toLowerCase() === 'communication' &&
+        (cleanedRoute.length === 1 || cleanedRoute[1]?.toLowerCase() === 'view'));
+
+    if (isCommList) {
+      // Check frappe.route_options for inbox-like filters
+      const routeOpts = frappe.route_options;
+
+      if (routeOpts && isInboxRouteOptions(routeOpts)) {
+        // Clear route_options to prevent them being applied
+        frappe.route_options = null;
+        // Redirect to Chat view instead
+        originalSetRoute(['Chat', 'Communication']);
+        return;
+      }
+    }
+
+    // Otherwise, proceed normally with original arguments
+    originalSetRoute(...args);
+  };
+
+  // Also intercept at the router level for direct navigation
+  const originalRouterRoute = frappe.router.route;
+  if (originalRouterRoute && typeof originalRouterRoute === 'function') {
+    frappe.router.route = async function (): Promise<void> {
+      // Check current path and route_options before routing
+      const path = window.location.pathname;
+      const routeOpts = frappe.route_options;
+
+      if (
+        path.toLowerCase().includes('communication') &&
+        routeOpts &&
+        isInboxRouteOptions(routeOpts)
+      ) {
+        // Clear route_options and redirect
+        frappe.route_options = null;
+        frappe.set_route(['Chat', 'Communication']);
+        return;
+      }
+
+      // Also check URL search params
+      const searchParams = new URLSearchParams(window.location.search);
+      if (path.toLowerCase().includes('communication') && isInboxSearchParams(searchParams)) {
+        frappe.set_route(['Chat', 'Communication']);
+        return;
+      }
+
+      return originalRouterRoute.call(frappe.router);
+    };
+  }
+
+  // Check on initial page load
+  setTimeout(checkAndRedirectInbox, 0);
+
+  // Also check after frappe app initializes
+  document.addEventListener('DOMContentLoaded', () => {
+    setTimeout(checkAndRedirectInbox, 100);
+  });
+}
+
+/**
+ * Check if route_options indicate an inbox-like filter
+ */
+function isInboxRouteOptions(opts: Record<string, unknown>): boolean {
+  if (!opts) return false;
+
+  // Check for sent_or_received = Received
+  const sentOrReceived = opts.sent_or_received;
+  if (sentOrReceived === 'Received') {
+    return true;
+  }
+
+  // Check for status filters with != operators (inbox excludes Replied/Closed)
+  const status = opts.status;
+  if (status) {
+    // status could be a string like '["!=","Replied"]' or an array
+    const statusStr = typeof status === 'string' ? status : JSON.stringify(status);
+    if (statusStr.includes('!=') || statusStr.includes('not in')) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+/**
+ * Check if URL search params indicate an inbox-like filter
+ */
+function isInboxSearchParams(params: URLSearchParams): boolean {
+  // Check for sent_or_received=Received
+  const sentOrReceived = params.get('sent_or_received');
+  if (sentOrReceived === 'Received') {
+    return true;
+  }
+
+  // Check all status params for != operators
+  const statusValues = params.getAll('status');
+  for (const status of statusValues) {
+    try {
+      const decoded = decodeURIComponent(status);
+      if (decoded.includes('!=') || decoded.includes('not in')) {
+        return true;
+      }
+    } catch {
+      // If decoding fails, check raw value
+      if (status.includes('%21%3D') || status.includes('!=')) {
+        return true;
+      }
+    }
+  }
+
+  return false;
+}
+
+/**
+ * Check current route and redirect if it's an inbox route
+ */
+function checkAndRedirectInbox(): void {
+  const currentPath = window.location.pathname.toLowerCase();
+  const searchParams = new URLSearchParams(window.location.search);
+
+  // Check if we're on a Communication route
+  if (!currentPath.includes('communication')) {
+    return;
+  }
+
+  // Check route_options first (before URL params are applied)
+  const routeOpts = frappe.route_options;
+  if (routeOpts && isInboxRouteOptions(routeOpts)) {
+    frappe.route_options = null;
+    frappe.set_route(['Chat', 'Communication']);
+    return;
+  }
+
+  // Check URL search params
+  if (isInboxSearchParams(searchParams)) {
+    frappe.set_route(['Chat', 'Communication']);
+    return;
+  }
+}
+
+// Initialize inbox redirect
+setupInboxRedirect();
 
 // ============================================================================
 // Exports
