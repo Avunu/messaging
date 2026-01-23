@@ -28,6 +28,7 @@ from messaging.messaging.api.chat.types import (
 	MessageFile,
 	MessagesResponse,
 	ReplyMessage,
+	Room,
 	RoomsResponse,
 )
 
@@ -156,10 +157,21 @@ def get_rooms(
 				"unread_count": 0,
 				"_external_identifier": identifier,
 				"_external_name": external_name,
+				"_has_unreplied": False,
+				"_last_received_status": None,
 			}
-		else:
-			if external_name and not room_map[room_id].get("_external_name"):
-				room_map[room_id]["_external_name"] = external_name
+
+		# Track unreplied status - a room is "open" if the last received message
+		# is not Replied or Closed
+		if comm.get("sent_or_received") == "Received":
+			status = comm.get("status") or ""
+			if not room_map[room_id].get("_last_received_status"):
+				room_map[room_id]["_last_received_status"] = status
+				if status not in ("Replied", "Closed"):
+					room_map[room_id]["_has_unreplied"] = True
+
+		if external_name and not room_map[room_id].get("_external_name"):
+			room_map[room_id]["_external_name"] = external_name
 
 		if comm.get("sent_or_received") == "Received" and not comm.get("seen"):
 			room_map[room_id]["unread_count"] = room_map[room_id].get("unread_count", 0) + 1
@@ -167,7 +179,20 @@ def get_rooms(
 	user_id_str = str(current_user_id or "")
 	all_rooms = [build_room_from_thread(thread, user_id_str) for thread in room_map.values()]
 
-	all_rooms.sort(key=lambda r: r.get("index") or datetime.min, reverse=True)
+	# Sort rooms: unreplied first, then by date (most recent first)
+	def get_sort_key(r: Room) -> tuple[int, float]:
+		room_data = room_map.get(r.get("roomId", ""), {})
+		has_unreplied = 0 if room_data.get("_has_unreplied", False) else 1
+
+		index_val = r.get("index")
+		if isinstance(index_val, datetime):
+			ts = index_val.timestamp()
+		else:
+			ts = 0.0
+
+		return (has_unreplied, -ts)
+
+	all_rooms.sort(key=get_sort_key)
 
 	total = len(all_rooms)
 	paginated_rooms = all_rooms[offset : offset + limit]

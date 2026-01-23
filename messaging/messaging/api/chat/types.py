@@ -79,6 +79,7 @@ class Room(TypedDict, total=False):
 	emailId: str | None
 	referenceDoctype: str | None
 	referenceName: str | None
+	hasUnreplied: bool  # Whether room has unreplied received messages
 
 
 class MessageReaction(TypedDict):

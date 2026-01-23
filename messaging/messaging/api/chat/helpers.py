@@ -247,6 +247,9 @@ def build_room_from_thread(thread: dict[str, Any], current_user_id: str) -> Room
 	else:
 		last_message_sender = thread.get("user") or thread.get("sender") or current_user_id
 
+	# Check if this room has unreplied messages (for visual indicator)
+	has_unreplied = thread.get("_has_unreplied", False)
+
 	last_message: LastMessage = {
 		"content": last_message_content,
 		"senderId": last_message_sender,
@@ -272,6 +275,7 @@ def build_room_from_thread(thread: dict[str, Any], current_user_id: str) -> Room
 		"emailId": identifier if "@" in identifier else None,
 		"referenceDoctype": None,
 		"referenceName": None,
+		"hasUnreplied": has_unreplied,  # Add unreplied status to room
 	}
 
 	return room
