@@ -10,6 +10,10 @@
 
 import { createApp, h, type Component, type App } from 'vue';
 import ChatViewComponent from './ChatView.vue';
+import {
+  suspendFrappeKeyboardShortcuts,
+  resumeFrappeKeyboardShortcuts,
+} from './keyboardUtils';
 
 // ============================================================================
 // Type Declarations
@@ -169,6 +173,15 @@ class ChatFactory extends frappe.views.Factory {
       chatView.show();
     }
   }
+
+  // Add on_hide to resume shortcuts when navigating away
+  on_hide(): void {
+    const route = frappe.get_route();
+    const chatView = frappe.views.chats?.[route[1]];
+    if (chatView) {
+      chatView.hide();
+    }
+  }
 }
 
 // ============================================================================
@@ -252,6 +265,9 @@ class ChatView {
   }
 
   render(): void {
+    // Suspend Frappe keyboard shortcuts
+    suspendFrappeKeyboardShortcuts();
+
     // Clear body
     this.body.empty();
 
@@ -281,7 +297,14 @@ class ChatView {
   }
 
   show(): void {
+    // Suspend shortcuts when showing
+    suspendFrappeKeyboardShortcuts();
     frappe.container.change_to(this.page_name);
+  }
+
+  hide(): void {
+    // Resume shortcuts when hiding
+    resumeFrappeKeyboardShortcuts();
   }
 }
 

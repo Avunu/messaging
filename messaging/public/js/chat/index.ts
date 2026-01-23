@@ -19,3 +19,4 @@ export { default as ChatViewComponent } from './ChatView.vue';
 export { useChat } from './useChat';
 export * from './types';
 export * as api from './api';
+export * from './keyboardUtils';

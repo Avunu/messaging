@@ -117,6 +117,11 @@
 import { defineComponent, ref, computed, onMounted, onUnmounted } from "vue";
 import { register } from "vue-advanced-chat";
 import { useChat } from "./useChat";
+import {
+	suspendFrappeKeyboardShortcuts,
+	resumeFrappeKeyboardShortcuts,
+	createKeyboardBlocker,
+} from "./keyboardUtils";
 import type {
 	Room,
 	Message,
@@ -468,6 +473,9 @@ export default defineComponent({
 
 		// Lifecycle
 		onMounted(async () => {
+			// Suspend Frappe keyboard shortcuts while chat is active
+			suspendFrappeKeyboardShortcuts();
+
 			updateTheme();
 
 			// Watch for theme changes
@@ -525,7 +533,8 @@ export default defineComponent({
 		});
 
 		onUnmounted(() => {
-			// Cleanup
+			// Resume Frappe keyboard shortcuts when leaving chat
+			resumeFrappeKeyboardShortcuts();
 		});
 
 		return {
