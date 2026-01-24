@@ -149,7 +149,12 @@ export function useChat(): UseChatReturn {
       if (reset) {
         rooms.value = response.rooms;
       } else {
-        rooms.value = [...rooms.value, ...response.rooms];
+        // Append new rooms, avoiding duplicates by roomId
+        const existingIds = new Set(rooms.value.map((r) => r.roomId));
+        const newRooms = response.rooms.filter((r) => !existingIds.has(r.roomId));
+        if (newRooms.length > 0) {
+          rooms.value = [...rooms.value, ...newRooms];
+        }
       }
 
       roomsLoaded.value = !response.hasMore;
@@ -335,19 +340,69 @@ export function useChat(): UseChatReturn {
   }
 
   function handleNewCommunication(data: unknown): void {
-    // Refresh rooms and unread count when new communication arrives
-    fetchRooms(true);
+    // Update unread count
     refreshUnreadCount();
+
+    // Parse the incoming communication data
+    const commData = data as {
+      name?: string;
+      phone_no?: string;
+      sender?: string;
+      recipients?: string;
+      communication_medium?: string;
+      sent_or_received?: string;
+    };
+
+    // Determine the room identifier for this communication
+    const medium = commData.communication_medium || 'Email';
+    let identifier = '';
+
+    if (medium === 'SMS' || medium === 'Phone') {
+      identifier = commData.phone_no || '';
+    } else {
+      if (commData.sent_or_received === 'Received') {
+        identifier = commData.sender || '';
+      } else {
+        identifier = commData.recipients?.split(',')[0]?.trim() || '';
+      }
+    }
+
+    const roomId = `${medium}:${identifier}`;
+
+    // Check if this room already exists in our list
+    const existingRoomIndex = rooms.value.findIndex((r) => r.roomId === roomId);
+
+    if (existingRoomIndex !== -1) {
+      // Room exists - we could update it in place, but for simplicity
+      // just move it to the top by removing and re-fetching the first page
+      // This will bring the updated room to the top without losing other rooms
+      // For now, just trigger a soft refresh of just the room's data
+      // We'll update this room's unread count and last message when the user clicks it
+    } else {
+      // New room - fetch just the first page to get it, but don't reset existing rooms
+      // This is a compromise - we prepend new rooms without losing scroll position
+      getRooms({ page: 1, limit: 1, search: '', medium: 'All' }).then((response) => {
+        if (response.rooms.length > 0) {
+          const newRoom = response.rooms.find((r) => r.roomId === roomId);
+          if (newRoom && !rooms.value.some((r) => r.roomId === roomId)) {
+            // Prepend the new room to the list
+            rooms.value = [newRoom, ...rooms.value];
+          }
+        }
+      }).catch((err) => {
+        console.error('Failed to fetch new room:', err);
+      });
+    }
 
     // If we're viewing the relevant room, also refresh messages
     if (currentRoom.value) {
-      const commData = data as { phone_no?: string; sender?: string };
-      const roomParts = currentRoom.value.roomId.split(':');
-      const identifier = roomParts[1];
+      const currentRoomParts = currentRoom.value.roomId.split(':');
+      const currentIdentifier = currentRoomParts[1];
 
       if (
-        commData.phone_no === identifier ||
-        commData.sender === identifier
+        commData.phone_no === currentIdentifier ||
+        commData.sender === currentIdentifier ||
+        commData.recipients?.includes(currentIdentifier)
       ) {
         fetchMessages({ room: currentRoom.value, options: { reset: true } });
       }

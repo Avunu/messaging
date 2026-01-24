@@ -114,7 +114,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, computed, onMounted, onUnmounted } from "vue";
+import { defineComponent, ref, computed, onMounted, onUnmounted, watch, nextTick } from "vue";
 import { register } from "vue-advanced-chat";
 import { useChat } from "./useChat";
 import {
@@ -515,8 +515,40 @@ export default defineComponent({
 			}
 		}
 
+		// Track scroll position for preservation during room list updates
+		let savedRoomsScrollTop = 0;
+
+		function saveRoomsScrollPosition(): void {
+			const chatEl = chatWindowRef.value;
+			if (!chatEl) return;
+			
+			// Access the shadow DOM to find the rooms list
+			const shadowRoot = chatEl.shadowRoot;
+			if (!shadowRoot) return;
+			
+			const roomsList = shadowRoot.querySelector('#rooms-list');
+			if (roomsList) {
+				savedRoomsScrollTop = roomsList.scrollTop;
+			}
+		}
+
+		function restoreRoomsScrollPosition(): void {
+			const chatEl = chatWindowRef.value;
+			if (!chatEl || savedRoomsScrollTop === 0) return;
+			
+			const shadowRoot = chatEl.shadowRoot;
+			if (!shadowRoot) return;
+			
+			const roomsList = shadowRoot.querySelector('#rooms-list');
+			if (roomsList) {
+				roomsList.scrollTop = savedRoomsScrollTop;
+			}
+		}
+
 		function onFetchMoreRooms(): void {
 			if (!roomsLoaded.value && !loadingRooms.value) {
+				// Save scroll position before fetching more rooms
+				saveRoomsScrollPosition();
 				fetchRooms(false);
 			}
 		}
@@ -617,6 +649,20 @@ export default defineComponent({
 			// Resume Frappe keyboard shortcuts when leaving chat
 			resumeFrappeKeyboardShortcuts();
 		});
+
+		// Watch for rooms changes and restore scroll position after updates
+		watch(
+			() => rooms.value.length,
+			(newLen, oldLen) => {
+				// Only restore scroll when rooms were appended (not reset)
+				if (newLen > oldLen && oldLen > 0 && savedRoomsScrollTop > 0) {
+					nextTick(() => {
+						// Small delay to ensure DOM has updated
+						setTimeout(restoreRoomsScrollPosition, 50);
+					});
+				}
+			}
+		);
 
 		return {
 			// State
