@@ -257,7 +257,7 @@ export function useChat(): UseChatReturn {
             lastMessage: {
               content: data.content,
               senderId: currentUser.value?._id ?? '',
-              timestamp: `${now.getMonth() + 1}/${now.getDate()} ${now.toLocaleTimeString([], {
+              timestamp: `${now.getMonth() + 1}/${now.getDate()}/${now.getFullYear() % 100} ${now.toLocaleTimeString([], {
                 hour: 'numeric',
                 minute: '2-digit',
                 hour12: true,
