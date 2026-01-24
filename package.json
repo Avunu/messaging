@@ -17,6 +17,7 @@
     "upgrade:npx": "npx npm-check-updates -u && yarn install"
   },
   "dependencies": {
+    "frappe-ui": "^0.1.261",
     "vue": "^3.5.27",
     "vue-advanced-chat": "^2.1.2",
     "vue-eslint-parser": "^10.2.0"

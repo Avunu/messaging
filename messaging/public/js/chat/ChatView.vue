@@ -110,6 +110,13 @@
 				</div>
 			</div>
 		</Teleport>
+
+		<!-- Contact Details Panel -->
+		<ContactPanel 
+			:show="showContactPanel" 
+			:room="selectedContactRoom" 
+			@close="closeContactPanel" 
+		/>
 	</div>
 </template>
 
@@ -117,6 +124,7 @@
 import { defineComponent, ref, computed, onMounted, onUnmounted, watch, nextTick } from "vue";
 import { register } from "vue-advanced-chat";
 import { useChat } from "./useChat";
+import ContactPanel from "./ContactPanel.vue";
 import {
 	suspendFrappeKeyboardShortcuts,
 	resumeFrappeKeyboardShortcuts,
@@ -149,6 +157,9 @@ declare const __: (text: string, args?: unknown[], context?: string) => string;
 
 export default defineComponent({
 	name: "ChatView",
+	components: {
+		ContactPanel,
+	},
 
 	props: {
 		initialRoomId: {
@@ -190,6 +201,8 @@ export default defineComponent({
 		const selectedMedium = ref<CommunicationMedium | "All">("All");
 		const showCommPanel = ref(false);
 		const selectedMessage = ref<Message | null>(null);
+		const showContactPanel = ref(false);
+		const selectedContactRoom = ref<Room | null>(null);
 
 		// Theme handling
 		const isDarkMode = ref(false);
@@ -339,20 +352,9 @@ export default defineComponent({
 		}
 
 		function onRoomInfo(room: Room): void {
-			// Open contact or create new contact
-			if (room?.contactName) {
-				frappe.set_route("Form", "Contact", room.contactName);
-			} else if (room?.phoneNo) {
-				frappe.show_alert({
-					message: __("No contact found for this number"),
-					indicator: "yellow",
-				});
-			} else if (room?.emailId) {
-				frappe.show_alert({
-					message: __("No contact found for this email"),
-					indicator: "yellow",
-				});
-			}
+			// Show contact details panel
+			selectedContactRoom.value = room;
+			showContactPanel.value = true;
 		}
 
 		// Update onMenuAction to handle archive and delete
@@ -575,6 +577,11 @@ export default defineComponent({
 			selectedMessage.value = null;
 		}
 
+		function closeContactPanel(): void {
+			showContactPanel.value = false;
+			selectedContactRoom.value = null;
+		}
+
 		// Utility functions
 		function encodeDoctype(doctype: string | null | undefined): string {
 			if (!doctype) return "";
@@ -678,6 +685,8 @@ export default defineComponent({
 			selectedMedium,
 			showCommPanel,
 			selectedMessage,
+			showContactPanel,
+			selectedContactRoom,
 			isDarkMode,
 			theme,
 			chatHeight,
@@ -709,6 +718,7 @@ export default defineComponent({
 			onTypingMessage,
 			onMediumChange,
 			closeCommPanel,
+			closeContactPanel,
 			encodeDoctype,
 			formatMessageContent,
 			isUserOnline,
