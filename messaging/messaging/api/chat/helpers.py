@@ -212,13 +212,16 @@ def build_room_from_thread(thread: dict[str, Any], current_user_id: str) -> Room
 		}
 	]
 
+	# Build status text showing medium and address
+	status_text = f"{medium}: {identifier}" if identifier else medium
+
 	if contact and contact.get("user"):
 		users.append(
 			{
 				"_id": contact["user"],
 				"username": contact.get("full_name", identifier),
 				"avatar": get_user_avatar(contact.get("user")),
-				"status": get_user_status(contact.get("user")),
+				"status": {"state": "offline", "lastChanged": status_text},
 			}
 		)
 	else:
@@ -227,7 +230,7 @@ def build_room_from_thread(thread: dict[str, Any], current_user_id: str) -> Room
 				"_id": identifier,
 				"username": thread.get("sender_full_name") or identifier,
 				"avatar": avatar,
-				"status": {"state": "offline", "lastChanged": ""},
+				"status": {"state": "offline", "lastChanged": status_text},
 			}
 		)
 

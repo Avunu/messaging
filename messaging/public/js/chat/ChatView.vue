@@ -212,7 +212,7 @@ export default defineComponent({
 			TYPE_MESSAGE: __("Type a message..."),
 			SEARCH: __("Search"),
 			IS_ONLINE: __("is online"),
-			LAST_SEEN: __("last seen"),
+			LAST_SEEN: "", // Empty so room header shows medium:address directly
 			IS_TYPING: __("is typing..."),
 			CANCEL_SELECT_MESSAGE: __("Cancel"),
 		}));
@@ -521,12 +521,12 @@ export default defineComponent({
 		function saveRoomsScrollPosition(): void {
 			const chatEl = chatWindowRef.value;
 			if (!chatEl) return;
-			
+
 			// Access the shadow DOM to find the rooms list
 			const shadowRoot = chatEl.shadowRoot;
 			if (!shadowRoot) return;
-			
-			const roomsList = shadowRoot.querySelector('#rooms-list');
+
+			const roomsList = shadowRoot.querySelector("#rooms-list");
 			if (roomsList) {
 				savedRoomsScrollTop = roomsList.scrollTop;
 			}
@@ -535,11 +535,11 @@ export default defineComponent({
 		function restoreRoomsScrollPosition(): void {
 			const chatEl = chatWindowRef.value;
 			if (!chatEl || savedRoomsScrollTop === 0) return;
-			
+
 			const shadowRoot = chatEl.shadowRoot;
 			if (!shadowRoot) return;
-			
-			const roomsList = shadowRoot.querySelector('#rooms-list');
+
+			const roomsList = shadowRoot.querySelector("#rooms-list");
 			if (roomsList) {
 				roomsList.scrollTop = savedRoomsScrollTop;
 			}
