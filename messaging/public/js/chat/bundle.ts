@@ -404,7 +404,7 @@ function setupInboxRedirect(): void {
       // Match /communication or /communication/view/list only
       (cleanedRoute[0]?.toLowerCase() === 'communication' &&
         (cleanedRoute.length === 1 ||
-          (cleanedRoute[1]?.toLowerCase() === 'view' && 
+          (cleanedRoute[1]?.toLowerCase() === 'view' &&
            (!cleanedRoute[2] || cleanedRoute[2]?.toLowerCase() === 'list'))));
 
     if (isCommList) {
@@ -473,7 +473,7 @@ function isInboxRouteOptions(opts: Record<string, unknown>): boolean {
   // Must have sent_or_received = Received for inbox
   const sentOrReceived = opts.sent_or_received;
   const hasReceivedFilter = sentOrReceived === 'Received';
-  
+
   if (!hasReceivedFilter) {
     return false;
   }
@@ -545,7 +545,7 @@ function checkAndRedirectInbox(): void {
     return;
   }
   // Also check for /list/communication/{view} pattern
-  if (pathParts[0] === 'list' && pathParts[1] === 'communication' && 
+  if (pathParts[0] === 'list' && pathParts[1] === 'communication' &&
       pathParts[2] && pathParts[2] !== 'list') {
     return;
   }

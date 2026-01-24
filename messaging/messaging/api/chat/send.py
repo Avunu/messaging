@@ -559,7 +559,7 @@ def delete_room(room_id: str) -> RoomActionResponse:
 			frappe.delete_doc("Communication", comm["name"], force=True)
 			count += 1
 		except Exception as e:
-			errors.append(f"{comm['name']}: {str(e)}")
+			errors.append(f"{comm['name']}: {e!s}")
 
 	if count > 0:
 		frappe.db.commit()

@@ -355,7 +355,10 @@ export default defineComponent({
 		}
 
 		// Update onMenuAction to handle archive and delete
-		async function onMenuAction(data: { roomId: string; action: CustomAction }): Promise<void> {
+		async function onMenuAction(data: {
+			roomId: string;
+			action: CustomAction;
+		}): Promise<void> {
 			const room = rooms.value.find((r) => r.roomId === data?.roomId);
 			if (!room || !data?.action) return;
 
@@ -380,25 +383,36 @@ export default defineComponent({
 
 		// Add archive room function
 		async function archiveRoom(roomId: string): Promise<void> {
-			if (!confirm(__("Are you sure you want to archive this conversation? All messages will be marked as closed."))) {
+			if (
+				!confirm(
+					__(
+						"Are you sure you want to archive this conversation? All messages will be marked as closed."
+					)
+				)
+			) {
 				return;
 			}
 
 			try {
-				const response = await fetch("/api/method/messaging.messaging.api.chat.api.archive_room", {
-					method: "POST",
-					headers: {
-						"Content-Type": "application/json",
-						"X-Frappe-CSRF-Token": (window as any).frappe?.csrf_token || "",
-					},
-					body: JSON.stringify({ room_id: roomId }),
-				});
+				const response = await fetch(
+					"/api/method/messaging.messaging.api.chat.api.archive_room",
+					{
+						method: "POST",
+						headers: {
+							"Content-Type": "application/json",
+							"X-Frappe-CSRF-Token": (window as any).frappe?.csrf_token || "",
+						},
+						body: JSON.stringify({ room_id: roomId }),
+					}
+				);
 
 				const result = await response.json();
 
 				if (result.message?.success) {
 					frappe.show_alert({
-						message: __("Conversation archived ({0} messages)", [result.message.count]),
+						message: __("Conversation archived ({0} messages)", [
+							result.message.count,
+						]),
 						indicator: "green",
 					});
 					// Refresh rooms list
@@ -419,19 +433,28 @@ export default defineComponent({
 
 		// Add delete room function
 		async function deleteRoom(roomId: string): Promise<void> {
-			if (!confirm(__("Are you sure you want to delete this conversation? This action cannot be undone."))) {
+			if (
+				!confirm(
+					__(
+						"Are you sure you want to delete this conversation? This action cannot be undone."
+					)
+				)
+			) {
 				return;
 			}
 
 			try {
-				const response = await fetch("/api/method/messaging.messaging.api.chat.api.delete_room", {
-					method: "POST",
-					headers: {
-						"Content-Type": "application/json",
-						"X-Frappe-CSRF-Token": (window as any).frappe?.csrf_token || "",
-					},
-					body: JSON.stringify({ room_id: roomId }),
-				});
+				const response = await fetch(
+					"/api/method/messaging.messaging.api.chat.api.delete_room",
+					{
+						method: "POST",
+						headers: {
+							"Content-Type": "application/json",
+							"X-Frappe-CSRF-Token": (window as any).frappe?.csrf_token || "",
+						},
+						body: JSON.stringify({ room_id: roomId }),
+					}
+				);
 
 				const result = await response.json();
 
