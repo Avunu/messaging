@@ -64,6 +64,7 @@ export interface UseChatReturn {
   setMediumFilter: (medium: CommunicationMedium | 'All') => void;
   handleUploadFile: (file: File) => Promise<MessageFile>;
   refreshUnreadCount: () => Promise<void>;
+  removeRoom: (roomId: string) => void;
 }
 
 export function useChat(): UseChatReturn {
@@ -306,6 +307,18 @@ export function useChat(): UseChatReturn {
     }
   }
 
+  function removeRoom(roomId: string): void {
+    // Remove the room from local state without refetching
+    // This preserves the scroll position in the rooms list
+    rooms.value = rooms.value.filter((r) => r.roomId !== roomId);
+
+    // If the deleted room was the current room, clear the selection
+    if (currentRoom.value?.roomId === roomId) {
+      currentRoom.value = null;
+      messages.value = [];
+    }
+  }
+
   // Watch for search query changes with debounce
   let searchTimeout: ReturnType<typeof setTimeout> | null = null;
   watch(searchQuery, () => {
@@ -370,6 +383,7 @@ export function useChat(): UseChatReturn {
     setMediumFilter,
     handleUploadFile,
     refreshUnreadCount,
+    removeRoom,
   };
 }
 

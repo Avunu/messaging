@@ -183,6 +183,7 @@ export default defineComponent({
 			setMediumFilter,
 			handleUploadFile,
 			refreshUnreadCount,
+			removeRoom,
 		} = useChat();
 
 		// Local state
@@ -415,8 +416,9 @@ export default defineComponent({
 						]),
 						indicator: "green",
 					});
-					// Refresh rooms list
-					await fetchRooms(true);
+					// Remove the room from local state instead of refetching
+					// This preserves scroll position in the rooms list
+					removeRoom(roomId);
 				} else {
 					frappe.show_alert({
 						message: result.message?.error || __("Failed to archive conversation"),
@@ -463,8 +465,9 @@ export default defineComponent({
 						message: __("Conversation deleted ({0} messages)", [result.message.count]),
 						indicator: "green",
 					});
-					// Refresh rooms list
-					await fetchRooms(true);
+					// Remove the room from local state instead of refetching
+					// This preserves scroll position in the rooms list
+					removeRoom(roomId);
 				} else {
 					frappe.show_alert({
 						message: result.message?.error || __("Failed to delete conversation"),
