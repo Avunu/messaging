@@ -262,7 +262,7 @@ def send_message(
 			"username": user_fullname,
 			"avatar": get_user_avatar(current_user_id),
 			"date": now_datetime().strftime("%d %b %Y"),
-			"timestamp": now_datetime().strftime("%H:%M"),
+			"timestamp": now_datetime().strftime("%-I:%M %p"),
 			"system": False,
 			"saved": True,
 			"distributed": False,

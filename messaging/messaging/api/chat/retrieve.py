@@ -342,7 +342,7 @@ def get_messages(
 
 		comm_date = comm.get("communication_date")
 		date_str = comm_date.strftime("%d %b %Y") if comm_date else ""
-		time_str = comm_date.strftime("%H:%M") if comm_date else ""
+		time_str = comm_date.strftime("%-I:%M %p") if comm_date else ""
 
 		# Build message content
 		raw_content = comm.get("text_content") or comm.get("content") or ""

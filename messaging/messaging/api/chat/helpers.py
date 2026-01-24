@@ -256,7 +256,7 @@ def build_room_from_thread(thread: dict[str, Any], current_user_id: str) -> Room
 	last_message: LastMessage = {
 		"content": last_message_content,
 		"senderId": last_message_sender,
-		"timestamp": thread.get("communication_date", "").strftime("%H:%M")
+		"timestamp": thread.get("communication_date", "").strftime("%-m/%-d %-I:%M %p")
 		if thread.get("communication_date")
 		else "",
 		"seen": bool(thread.get("seen")),

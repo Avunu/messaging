@@ -251,15 +251,17 @@ export function useChat(): UseChatReturn {
           (r) => r.roomId === data.roomId
         );
         if (roomIndex !== -1) {
+          const now = new Date();
           rooms.value[roomIndex] = {
             ...rooms.value[roomIndex],
             lastMessage: {
               content: data.content,
               senderId: currentUser.value?._id ?? '',
-              timestamp: new Date().toLocaleTimeString([], {
-                hour: '2-digit',
+              timestamp: `${now.getMonth() + 1}/${now.getDate()} ${now.toLocaleTimeString([], {
+                hour: 'numeric',
                 minute: '2-digit',
-              }),
+                hour12: true,
+              })}`,
               saved: true,
               distributed: false,
               seen: false,
