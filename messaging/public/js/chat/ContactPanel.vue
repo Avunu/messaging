@@ -5,28 +5,21 @@
 				<div class="contact-panel" @click.stop>
 					<!-- Header -->
 					<div class="contact-panel-header">
-						<div class="flex items-center gap-3">
-							<Avatar
-								:image="room?.avatar"
-								:label="room?.roomName || '?'"
-								size="xl"
-							/>
-							<div class="flex-1 min-w-0">
-								<h3 class="text-lg font-semibold text-ink-gray-9 truncate">
-									{{ room?.roomName || __("Unknown") }}
-								</h3>
-								<p class="text-sm text-ink-gray-5 truncate">
-									{{ contactSubtitle }}
-								</p>
+						<div class="header-info">
+							<div class="avatar-wrapper">
+								<img v-if="room?.avatar" :src="room.avatar" :alt="room?.roomName" class="avatar-img" />
+								<span v-else class="avatar-placeholder">{{ avatarInitial }}</span>
+							</div>
+							<div class="header-text">
+								<h3 class="panel-title">{{ room?.roomName || __("Unknown") }}</h3>
+								<p class="panel-subtitle">{{ contactSubtitle }}</p>
 							</div>
 						</div>
-						<Button variant="ghost" @click="$emit('close')">
-							<template #icon>
-								<svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-								</svg>
-							</template>
-						</Button>
+						<button class="close-btn" @click="$emit('close')" :title="__('Close')">
+							<svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+							</svg>
+						</button>
 					</div>
 
 					<!-- Body -->
@@ -37,7 +30,7 @@
 							
 							<div v-if="room?.emailId" class="info-row">
 								<div class="info-icon">
-									<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+									<svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 										<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
 									</svg>
 								</div>
@@ -51,7 +44,7 @@
 
 							<div v-if="room?.phoneNo" class="info-row">
 								<div class="info-icon">
-									<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+									<svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 										<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
 									</svg>
 								</div>
@@ -65,15 +58,15 @@
 
 							<div class="info-row">
 								<div class="info-icon">
-									<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+									<svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 										<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
 									</svg>
 								</div>
 								<div class="info-content">
 									<span class="info-label">{{ __("Medium") }}</span>
-									<Badge :theme="mediumBadgeTheme">
+									<span class="badge" :class="mediumBadgeClass">
 										{{ room?.communicationMedium || "Email" }}
-									</Badge>
+									</span>
 								</div>
 							</div>
 						</div>
@@ -83,7 +76,7 @@
 							<h4 class="section-title">{{ __("Linked Document") }}</h4>
 							<div class="info-row">
 								<div class="info-icon">
-									<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+									<svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 										<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
 									</svg>
 								</div>
@@ -105,7 +98,7 @@
 							<h4 class="section-title">{{ __("Contact Record") }}</h4>
 							<div v-if="room?.contactName" class="info-row">
 								<div class="info-icon">
-									<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+									<svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 										<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
 									</svg>
 								</div>
@@ -121,50 +114,38 @@
 								</div>
 							</div>
 							<div v-else class="no-contact-notice">
-								<p class="text-sm text-ink-gray-5 mb-3">
+								<p class="notice-text">
 									{{ __("No contact record linked to this conversation.") }}
 								</p>
-								<Button 
-									variant="subtle" 
-									theme="blue"
-									@click="createContact"
-								>
-									<template #prefix>
-										<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-											<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-										</svg>
-									</template>
+								<button class="btn btn-secondary" @click="createContact">
+									<svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+										<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+									</svg>
 									{{ __("Create Contact") }}
-								</Button>
+								</button>
 							</div>
 						</div>
 					</div>
 
 					<!-- Footer Actions -->
 					<div class="contact-panel-footer">
-						<Button 
+						<button 
 							v-if="room?.contactName"
-							variant="solid" 
-							theme="gray"
-							class="w-full"
+							class="btn btn-primary"
 							@click="openContact"
 						>
 							{{ __("Open Contact") }}
-						</Button>
-						<Button 
+						</button>
+						<button 
 							v-if="room?.emailId"
-							variant="outline" 
-							theme="gray"
-							class="w-full"
+							class="btn btn-secondary"
 							@click="composeEmail"
 						>
-							<template #prefix>
-								<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-								</svg>
-							</template>
+							<svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+							</svg>
 							{{ __("Send Email") }}
-						</Button>
+						</button>
 					</div>
 				</div>
 			</div>
@@ -174,7 +155,6 @@
 
 <script setup lang="ts">
 import { computed } from "vue";
-import { Avatar, Button, Badge } from "frappe-ui";
 import type { Room } from "./types";
 
 // Frappe globals
@@ -195,23 +175,28 @@ const emit = defineEmits<{
 	(e: "close"): void;
 }>();
 
+const avatarInitial = computed(() => {
+	const name = props.room?.roomName || "?";
+	return name.charAt(0).toUpperCase();
+});
+
 const contactSubtitle = computed(() => {
 	if (props.room?.emailId) return props.room.emailId;
 	if (props.room?.phoneNo) return props.room.phoneNo;
 	return props.room?.communicationMedium || "";
 });
 
-const mediumBadgeTheme = computed(() => {
+const mediumBadgeClass = computed(() => {
 	const medium = props.room?.communicationMedium;
 	switch (medium) {
 		case "Email":
-			return "blue";
+			return "badge-blue";
 		case "SMS":
-			return "green";
+			return "badge-green";
 		case "Phone":
-			return "orange";
+			return "badge-orange";
 		default:
-			return "gray";
+			return "badge-gray";
 	}
 });
 
@@ -287,6 +272,80 @@ function composeEmail(): void {
 	background: var(--subtle-fg, #f9fafb);
 }
 
+.header-info {
+	display: flex;
+	align-items: center;
+	gap: 0.75rem;
+	min-width: 0;
+	flex: 1;
+}
+
+.avatar-wrapper {
+	width: 48px;
+	height: 48px;
+	border-radius: 50%;
+	overflow: hidden;
+	flex-shrink: 0;
+	background: var(--gray-200, #e5e7eb);
+}
+
+.avatar-img {
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+}
+
+.avatar-placeholder {
+	width: 100%;
+	height: 100%;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-size: 1.25rem;
+	font-weight: 600;
+	color: var(--text-muted, #6b7280);
+	background: var(--gray-200, #e5e7eb);
+}
+
+.header-text {
+	min-width: 0;
+	flex: 1;
+}
+
+.panel-title {
+	font-size: 1.125rem;
+	font-weight: 600;
+	color: var(--text-color, #111827);
+	margin: 0 0 0.25rem 0;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.panel-subtitle {
+	font-size: 0.875rem;
+	color: var(--text-muted, #6b7280);
+	margin: 0;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.close-btn {
+	background: transparent;
+	border: none;
+	padding: 0.5rem;
+	cursor: pointer;
+	border-radius: 0.375rem;
+	color: var(--text-muted, #6b7280);
+	transition: background-color 0.15s, color 0.15s;
+}
+
+.close-btn:hover {
+	background: var(--gray-200, #e5e7eb);
+	color: var(--text-color, #111827);
+}
+
 .contact-panel-body {
 	flex: 1;
 	overflow-y: auto;
@@ -311,7 +370,7 @@ function composeEmail(): void {
 	text-transform: uppercase;
 	letter-spacing: 0.05em;
 	color: var(--text-muted, #6b7280);
-	margin-bottom: 0.75rem;
+	margin: 0 0 0.75rem 0;
 }
 
 .info-row {
@@ -331,6 +390,11 @@ function composeEmail(): void {
 	background: var(--subtle-fg, #f3f4f6);
 	border-radius: 0.375rem;
 	color: var(--text-muted, #6b7280);
+}
+
+.icon {
+	width: 1rem;
+	height: 1rem;
 }
 
 .info-content {
@@ -361,6 +425,34 @@ function composeEmail(): void {
 	text-decoration: underline;
 }
 
+.badge {
+	display: inline-block;
+	padding: 0.125rem 0.5rem;
+	border-radius: 9999px;
+	font-size: 0.75rem;
+	font-weight: 500;
+}
+
+.badge-blue {
+	background: var(--blue-100, #dbeafe);
+	color: var(--blue-700, #1d4ed8);
+}
+
+.badge-green {
+	background: var(--green-100, #dcfce7);
+	color: var(--green-700, #15803d);
+}
+
+.badge-orange {
+	background: var(--orange-100, #ffedd5);
+	color: var(--orange-700, #c2410c);
+}
+
+.badge-gray {
+	background: var(--gray-100, #f3f4f6);
+	color: var(--gray-700, #374151);
+}
+
 .no-contact-notice {
 	padding: 1rem;
 	background: var(--subtle-fg, #f9fafb);
@@ -368,10 +460,59 @@ function composeEmail(): void {
 	text-align: center;
 }
 
+.notice-text {
+	font-size: 0.875rem;
+	color: var(--text-muted, #6b7280);
+	margin: 0 0 0.75rem 0;
+}
+
+/* Buttons */
+.btn {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: 0.5rem;
+	padding: 0.5rem 1rem;
+	font-size: 0.875rem;
+	font-weight: 500;
+	border-radius: 0.375rem;
+	cursor: pointer;
+	transition: background-color 0.15s, border-color 0.15s;
+	border: 1px solid transparent;
+	width: 100%;
+}
+
+.btn .icon {
+	width: 1rem;
+	height: 1rem;
+}
+
+.btn-primary {
+	background: var(--primary, #2490ef);
+	color: white;
+	border-color: var(--primary, #2490ef);
+}
+
+.btn-primary:hover {
+	background: var(--primary-dark, #1d7ad8);
+	border-color: var(--primary-dark, #1d7ad8);
+}
+
+.btn-secondary {
+	background: var(--fg-color, #fff);
+	color: var(--text-color, #111827);
+	border-color: var(--border-color, #d1d5db);
+}
+
+.btn-secondary:hover {
+	background: var(--subtle-fg, #f9fafb);
+	border-color: var(--gray-400, #9ca3af);
+}
+
 /* Slide transition */
 .panel-slide-enter-active,
 .panel-slide-leave-active {
-	transition: opacity 0.2s ease, transform 0.2s ease;
+	transition: opacity 0.2s ease;
 }
 
 .panel-slide-enter-active .contact-panel,
@@ -410,6 +551,11 @@ function composeEmail(): void {
 	
 	.no-contact-notice {
 		background: var(--subtle-fg, #374151);
+	}
+	
+	.avatar-wrapper,
+	.avatar-placeholder {
+		background: var(--gray-700, #374151);
 	}
 }
 </style>
