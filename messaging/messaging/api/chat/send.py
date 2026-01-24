@@ -343,9 +343,16 @@ def _send_email(
 	email_signature: str = "",
 ) -> Any:
 	"""Send email message and return Communication doc."""
+	from frappe.email.doctype.email_account.email_account import EmailAccount
 	from frappe.email.email_body import get_message_id
 
 	current_user_id = frappe.session.user
+
+	# Get the default incoming email account for reply-to address
+	reply_to_address = None
+	default_incoming = EmailAccount.find_default_incoming()
+	if default_incoming:
+		reply_to_address = default_incoming.email_id
 
 	# Build email content - start with the message
 	email_content = content
@@ -408,6 +415,7 @@ def _send_email(
 			message_id=new_message_id,
 			in_reply_to=reply_message_id,
 			communication=comm_name,
+			reply_to=reply_to_address,
 			delayed=True,
 		)
 	except Exception as e:
