@@ -149,7 +149,7 @@
    "type": "Link"
   }
  ],
- "modified": "2026-01-23 16:39:06.075567",
+ "modified": "2026-01-23 19:51:10.010236",
  "modified_by": "kevin@avu.nu",
  "module": "Messaging",
  "name": "Messaging",
@@ -170,14 +170,6 @@
   },
   {
    "color": "Grey",
-   "doc_view": "List",
-   "label": "Inbox",
-   "link_to": "Communication",
-   "stats_filter": "[[\"Communication\",\"sent_or_received\",\"=\",\"Received\"],[\"Communication\",\"status\",\"!=\",\"Replied\"],[\"Communication\",\"status\",\"!=\",\"Closed\"]]",
-   "type": "DocType"
-  },
-  {
-   "color": "Grey",
    "doc_view": "New",
    "label": "New Newsletter",
    "link_to": "Newsletter",
@@ -190,6 +182,14 @@
    "label": "New Group Text",
    "link_to": "Group Text Message",
    "stats_filter": "[]",
+   "type": "DocType"
+  },
+  {
+   "color": "Grey",
+   "doc_view": "List",
+   "label": "Inbox",
+   "link_to": "Communication",
+   "stats_filter": "[[\"Communication\",\"sent_or_received\",\"=\",\"Received\"],[\"Communication\",\"status\",\"!=\",\"Replied\"],[\"Communication\",\"status\",\"!=\",\"Closed\"]]",
    "type": "DocType"
   }
  ],

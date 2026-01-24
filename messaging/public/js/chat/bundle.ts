@@ -395,12 +395,17 @@ function setupInboxRedirect(): void {
     // Clean up route - remove empty strings and 'desk'/'app' prefix
     const cleanedRoute = routeArr.filter((r) => r && r !== 'desk' && r !== 'app');
 
-    // Check if this is a Communication list route
+    // Check if this is a Communication List view route (not Report, Dashboard, Kanban, etc.)
     const isCommList =
       (cleanedRoute[0]?.toLowerCase() === 'list' &&
-        cleanedRoute[1]?.toLowerCase() === 'communication') ||
+        cleanedRoute[1]?.toLowerCase() === 'communication' &&
+        // Only match if no view specified or view is 'list'
+        (!cleanedRoute[2] || cleanedRoute[2]?.toLowerCase() === 'list')) ||
+      // Match /communication or /communication/view/list only
       (cleanedRoute[0]?.toLowerCase() === 'communication' &&
-        (cleanedRoute.length === 1 || cleanedRoute[1]?.toLowerCase() === 'view'));
+        (cleanedRoute.length === 1 ||
+          (cleanedRoute[1]?.toLowerCase() === 'view' && 
+           (!cleanedRoute[2] || cleanedRoute[2]?.toLowerCase() === 'list'))));
 
     if (isCommList) {
       // Check frappe.route_options for inbox-like filters
@@ -460,14 +465,17 @@ function setupInboxRedirect(): void {
 
 /**
  * Check if route_options indicate an inbox-like filter
+ * Must match the specific inbox pattern: sent_or_received=Received AND status exclusions
  */
 function isInboxRouteOptions(opts: Record<string, unknown>): boolean {
   if (!opts) return false;
 
-  // Check for sent_or_received = Received
+  // Must have sent_or_received = Received for inbox
   const sentOrReceived = opts.sent_or_received;
-  if (sentOrReceived === 'Received') {
-    return true;
+  const hasReceivedFilter = sentOrReceived === 'Received';
+  
+  if (!hasReceivedFilter) {
+    return false;
   }
 
   // Check for status filters with != operators (inbox excludes Replied/Closed)
@@ -475,30 +483,34 @@ function isInboxRouteOptions(opts: Record<string, unknown>): boolean {
   if (status) {
     // status could be a string like '["!=","Replied"]' or an array
     const statusStr = typeof status === 'string' ? status : JSON.stringify(status);
-    if (statusStr.includes('!=') || statusStr.includes('not in')) {
-      return true;
-    }
+    const hasStatusExclusion = statusStr.includes('!=') || statusStr.includes('not in');
+    // Only redirect if we have BOTH the Received filter AND status exclusions
+    return hasStatusExclusion;
   }
 
-  return false;
+  // If we only have sent_or_received=Received without status filters,
+  // still consider it an inbox-like route
+  return true;
 }
 
 /**
  * Check if URL search params indicate an inbox-like filter
+ * Must have sent_or_received=Received to be considered inbox
  */
 function isInboxSearchParams(params: URLSearchParams): boolean {
-  // Check for sent_or_received=Received
+  // Must have sent_or_received=Received for inbox
   const sentOrReceived = params.get('sent_or_received');
-  if (sentOrReceived === 'Received') {
-    return true;
+  if (sentOrReceived !== 'Received') {
+    return false;
   }
 
-  // Check all status params for != operators
+  // If we have Received filter, check for status exclusions too
   const statusValues = params.getAll('status');
   for (const status of statusValues) {
     try {
       const decoded = decodeURIComponent(status);
       if (decoded.includes('!=') || decoded.includes('not in')) {
+        // Has both Received filter and status exclusion - definitely inbox
         return true;
       }
     } catch {
@@ -509,7 +521,8 @@ function isInboxSearchParams(params: URLSearchParams): boolean {
     }
   }
 
-  return false;
+  // Has sent_or_received=Received, which is inbox-like even without status filters
+  return true;
 }
 
 /**
@@ -521,6 +534,19 @@ function checkAndRedirectInbox(): void {
 
   // Check if we're on a Communication route
   if (!currentPath.includes('communication')) {
+    return;
+  }
+
+  // Don't redirect if we're on a non-list view (Report, Dashboard, Kanban, etc.)
+  // These paths look like /communication/view/report or /list/communication/report
+  const pathParts = currentPath.split('/').filter(p => p && p !== 'app' && p !== 'desk');
+  const viewIndex = pathParts.indexOf('view');
+  if (viewIndex !== -1 && pathParts[viewIndex + 1] && pathParts[viewIndex + 1] !== 'list') {
+    return;
+  }
+  // Also check for /list/communication/{view} pattern
+  if (pathParts[0] === 'list' && pathParts[1] === 'communication' && 
+      pathParts[2] && pathParts[2] !== 'list') {
     return;
   }
 
