@@ -125,6 +125,53 @@
 								</button>
 							</div>
 						</div>
+
+						<!-- Linked Documents Section -->
+						<div v-if="room?.contactName" class="panel-section">
+							<h4 class="section-title">{{ __("Linked Documents") }}</h4>
+							
+							<div v-if="loadingLinked" class="loading-state">
+								<div class="spinner"></div>
+								<span>{{ __("Loading...") }}</span>
+							</div>
+							
+							<div v-else-if="hasLinkedDocuments">
+								<div 
+									v-for="group in linkedGroups" 
+									:key="group" 
+									class="linked-group"
+								>
+									<h5 class="group-title">{{ group }}</h5>
+									<ul class="linked-list">
+										<li 
+											v-for="doc in linkedDocuments[group]" 
+											:key="`${doc.doctype}-${doc.name}`"
+											class="linked-item"
+										>
+											<div class="info-icon small">
+												<svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+													<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+												</svg>
+											</div>
+											<div class="linked-content">
+												<span class="linked-doctype">{{ doc.doctype }}</span>
+												<a 
+													:href="`/app/${encodeDoctype(doc.doctype)}/${doc.name}`"
+													class="linked-link"
+													target="_blank"
+												>
+													{{ doc.title || doc.name }}
+												</a>
+											</div>
+										</li>
+									</ul>
+								</div>
+							</div>
+							
+							<div v-else class="no-linked-notice">
+								<p class="notice-text">{{ __("No linked documents found.") }}</p>
+							</div>
+						</div>
 					</div>
 
 					<!-- Footer Actions -->
@@ -154,7 +201,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed, ref, watch } from "vue";
 import type { Room } from "./types";
 
 // Frappe globals
@@ -162,9 +209,23 @@ declare const frappe: {
 	_: (text: string) => string;
 	set_route: (...args: string[]) => void;
 	new_doc: (doctype: string, options?: Record<string, unknown>) => void;
+	call: <T>(options: {
+		method: string;
+		args?: Record<string, unknown>;
+		async?: boolean;
+		freeze?: boolean;
+	}) => Promise<{ message: T }>;
 };
 
 const __ = frappe._;
+
+interface LinkedDoc {
+	doctype: string;
+	name: string;
+	title: string;
+}
+
+type LinkedDocuments = Record<string, LinkedDoc[]>;
 
 const props = defineProps<{
 	show: boolean;
@@ -174,6 +235,39 @@ const props = defineProps<{
 const emit = defineEmits<{
 	(e: "close"): void;
 }>();
+
+// Linked documents state
+const linkedDocuments = ref<LinkedDocuments>({});
+const loadingLinked = ref(false);
+
+// Watch for room changes to fetch linked documents
+watch(
+	() => props.room?.contactName,
+	async (contactName) => {
+		linkedDocuments.value = {};
+		if (!contactName) return;
+		
+		loadingLinked.value = true;
+		try {
+			const response = await frappe.call<LinkedDocuments>({
+				method: "messaging.messaging.api.chat.links.get_linked_documents",
+				args: {
+					doctype: "Contact",
+					docname: contactName,
+				},
+			});
+			linkedDocuments.value = response.message || {};
+		} catch (error) {
+			console.error("Error fetching linked documents:", error);
+		} finally {
+			loadingLinked.value = false;
+		}
+	},
+	{ immediate: true }
+);
+
+const linkedGroups = computed(() => Object.keys(linkedDocuments.value).sort());
+const hasLinkedDocuments = computed(() => linkedGroups.value.length > 0);
 
 const avatarInitial = computed(() => {
 	const name = props.room?.roomName || "?";
@@ -530,6 +624,116 @@ function composeEmail(): void {
 	transform: translateX(100%);
 }
 
+/* Linked Documents */
+.linked-group {
+	margin-bottom: 1rem;
+}
+
+.linked-group:last-child {
+	margin-bottom: 0;
+}
+
+.group-title {
+	font-size: 0.8125rem;
+	font-weight: 600;
+	color: var(--text-color, #111827);
+	margin: 0 0 0.5rem 0;
+	padding-bottom: 0.25rem;
+	border-bottom: 1px solid var(--border-color, #e5e7eb);
+}
+
+.linked-list {
+	list-style: none;
+	padding: 0;
+	margin: 0;
+}
+
+.linked-item {
+	display: flex;
+	align-items: flex-start;
+	gap: 0.5rem;
+	padding: 0.375rem 0;
+}
+
+.linked-item:not(:last-child) {
+	border-bottom: 1px solid var(--border-color-light, #f3f4f6);
+}
+
+.info-icon.small {
+	width: 1.5rem;
+	height: 1.5rem;
+}
+
+.info-icon.small .icon {
+	width: 0.875rem;
+	height: 0.875rem;
+}
+
+.linked-content {
+	flex: 1;
+	min-width: 0;
+}
+
+.linked-doctype {
+	display: block;
+	font-size: 0.6875rem;
+	color: var(--text-muted, #6b7280);
+	text-transform: uppercase;
+	letter-spacing: 0.025em;
+}
+
+.linked-link {
+	display: block;
+	font-size: 0.8125rem;
+	color: var(--primary, #2490ef);
+	text-decoration: none;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.linked-link:hover {
+	text-decoration: underline;
+}
+
+.no-linked-notice {
+	padding: 0.75rem;
+	background: var(--subtle-fg, #f9fafb);
+	border-radius: 0.375rem;
+	text-align: center;
+}
+
+.no-linked-notice .notice-text {
+	margin: 0;
+	font-size: 0.8125rem;
+}
+
+/* Loading state */
+.loading-state {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 0.5rem;
+	padding: 1rem;
+	color: var(--text-muted, #6b7280);
+	font-size: 0.875rem;
+}
+
+.spinner {
+	width: 1rem;
+	height: 1rem;
+	border: 2px solid var(--border-color, #e5e7eb);
+	border-top-color: var(--primary, #2490ef);
+	border-radius: 50%;
+	animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+	to {
+		transform: rotate(360deg);
+	}
+}
+
 /* Dark mode support */
 @media (prefers-color-scheme: dark) {
 	.contact-panel {
@@ -556,6 +760,18 @@ function composeEmail(): void {
 	.avatar-wrapper,
 	.avatar-placeholder {
 		background: var(--gray-700, #374151);
+	}
+	
+	.group-title {
+		border-color: var(--border-color, #374151);
+	}
+	
+	.linked-item:not(:last-child) {
+		border-color: var(--border-color-light, #1f2937);
+	}
+	
+	.no-linked-notice {
+		background: var(--subtle-fg, #374151);
 	}
 }
 </style>
