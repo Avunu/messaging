@@ -27,35 +27,84 @@
 						<!-- Contact Info Section -->
 						<div class="panel-section">
 							<h4 class="section-title">{{ __("Contact Information") }}</h4>
-							
-							<div v-if="room?.emailId" class="info-row">
-								<div class="info-icon">
-									<svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-										<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-									</svg>
-								</div>
-								<div class="info-content">
-									<span class="info-label">{{ __("Email") }}</span>
-									<a :href="`mailto:${room.emailId}`" class="info-value link">
-										{{ room.emailId }}
-									</a>
-								</div>
+
+							<!-- Loading state -->
+							<div v-if="loadingContact && room?.contactName" class="loading-state">
+								<div class="spinner"></div>
+								<span>{{ __("Loading...") }}</span>
 							</div>
 
-							<div v-if="room?.phoneNo" class="info-row">
-								<div class="info-icon">
-									<svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-										<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-									</svg>
+							<!-- Contact details from Contact record -->
+							<template v-else-if="hasContactInfo">
+								<!-- All Email Addresses -->
+								<div v-for="(emailInfo, idx) in allEmails" :key="`email-${idx}`" class="info-row">
+									<div class="info-icon">
+										<svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+											<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+										</svg>
+									</div>
+									<div class="info-content">
+										<span class="info-label">
+											{{ __("Email") }}
+											<span v-if="emailInfo.isPrimary" class="primary-badge">{{ __("Primary") }}</span>
+										</span>
+										<a :href="`mailto:${emailInfo.email}`" class="info-value link">
+											{{ emailInfo.email }}
+										</a>
+									</div>
 								</div>
-								<div class="info-content">
-									<span class="info-label">{{ __("Phone") }}</span>
-									<a :href="`tel:${room.phoneNo}`" class="info-value link">
-										{{ room.phoneNo }}
-									</a>
-								</div>
-							</div>
 
+								<!-- All Phone Numbers -->
+								<div v-for="(phoneInfo, idx) in allPhones" :key="`phone-${idx}`" class="info-row">
+									<div class="info-icon">
+										<svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+											<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+										</svg>
+									</div>
+									<div class="info-content">
+										<span class="info-label">
+											{{ phoneInfo.isMobile ? __("Mobile") : __("Phone") }}
+											<span v-if="phoneInfo.isPrimary" class="primary-badge">{{ __("Primary") }}</span>
+										</span>
+										<a :href="`tel:${phoneInfo.phone}`" class="info-value link">
+											{{ phoneInfo.phone }}
+										</a>
+									</div>
+								</div>
+							</template>
+
+							<!-- Fallback to room data if no contact record -->
+							<template v-else>
+								<div v-if="room?.emailId" class="info-row">
+									<div class="info-icon">
+										<svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+											<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+										</svg>
+									</div>
+									<div class="info-content">
+										<span class="info-label">{{ __("Email") }}</span>
+										<a :href="`mailto:${room.emailId}`" class="info-value link">
+											{{ room.emailId }}
+										</a>
+									</div>
+								</div>
+
+								<div v-if="room?.phoneNo" class="info-row">
+									<div class="info-icon">
+										<svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+											<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+										</svg>
+									</div>
+									<div class="info-content">
+										<span class="info-label">{{ __("Phone") }}</span>
+										<a :href="`tel:${room.phoneNo}`" class="info-value link">
+											{{ room.phoneNo }}
+										</a>
+									</div>
+								</div>
+							</template>
+
+							<!-- Current Thread Medium -->
 							<div class="info-row">
 								<div class="info-icon">
 									<svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -63,7 +112,7 @@
 									</svg>
 								</div>
 								<div class="info-content">
-									<span class="info-label">{{ __("Medium") }}</span>
+									<span class="info-label">{{ __("Current Thread") }}</span>
 									<span class="badge" :class="mediumBadgeClass">
 										{{ room?.communicationMedium || "Email" }}
 									</span>
@@ -225,6 +274,33 @@ interface LinkedDoc {
 	title: string;
 }
 
+interface ContactEmail {
+	email_id: string;
+	is_primary: 0 | 1;
+}
+
+interface ContactPhone {
+	phone: string;
+	is_primary_phone: 0 | 1;
+	is_primary_mobile_no: 0 | 1;
+}
+
+interface ContactDetails {
+	name: string;
+	full_name: string;
+	first_name: string;
+	last_name: string;
+	email_id: string;
+	phone: string;
+	mobile_no: string;
+	email_ids: ContactEmail[];
+	phone_nos: ContactPhone[];
+	company_name: string;
+	designation: string;
+	address: string;
+	image: string;
+}
+
 type LinkedDocuments = Record<string, LinkedDoc[]>;
 
 const props = defineProps<{
@@ -240,31 +316,98 @@ const emit = defineEmits<{
 const linkedDocuments = ref<LinkedDocuments>({});
 const loadingLinked = ref(false);
 
-// Watch for room changes to fetch linked documents
+// Contact details state
+const contactDetails = ref<ContactDetails | null>(null);
+const loadingContact = ref(false);
+
+// Watch for room changes to fetch contact details and linked documents
 watch(
 	() => props.room?.contactName,
 	async (contactName) => {
 		linkedDocuments.value = {};
+		contactDetails.value = null;
 		if (!contactName) return;
-		
+
+		// Fetch contact details and linked documents in parallel
 		loadingLinked.value = true;
-		try {
-			const response = await frappe.call<LinkedDocuments>({
+		loadingContact.value = true;
+
+		const [linkedResponse, contactResponse] = await Promise.allSettled([
+			frappe.call<LinkedDocuments>({
 				method: "messaging.messaging.api.chat.links.get_linked_documents",
 				args: {
 					doctype: "Contact",
 					docname: contactName,
 				},
-			});
-			linkedDocuments.value = response.message || {};
-		} catch (error) {
-			console.error("Error fetching linked documents:", error);
-		} finally {
-			loadingLinked.value = false;
+			}),
+			frappe.call<ContactDetails>({
+				method: "frappe.client.get",
+				args: {
+					doctype: "Contact",
+					name: contactName,
+				},
+			}),
+		]);
+
+		if (linkedResponse.status === "fulfilled") {
+			linkedDocuments.value = linkedResponse.value.message || {};
+		} else {
+			console.error("Error fetching linked documents:", linkedResponse.reason);
 		}
+		loadingLinked.value = false;
+
+		if (contactResponse.status === "fulfilled") {
+			contactDetails.value = contactResponse.value.message || null;
+		} else {
+			console.error("Error fetching contact details:", contactResponse.reason);
+		}
+		loadingContact.value = false;
 	},
 	{ immediate: true }
 );
+
+// Computed properties for contact info
+const allEmails = computed(() => {
+	if (!contactDetails.value) return [];
+	const emails: { email: string; isPrimary: boolean }[] = [];
+
+	// Add emails from email_ids child table
+	if (contactDetails.value.email_ids?.length) {
+		for (const e of contactDetails.value.email_ids) {
+			emails.push({ email: e.email_id, isPrimary: !!e.is_primary });
+		}
+	}
+
+	// Sort primary first
+	return emails.sort((a, b) => (b.isPrimary ? 1 : 0) - (a.isPrimary ? 1 : 0));
+});
+
+const allPhones = computed(() => {
+	if (!contactDetails.value) return [];
+	const phones: { phone: string; isPrimary: boolean; isMobile: boolean }[] = [];
+
+	// Add phones from phone_nos child table
+	if (contactDetails.value.phone_nos?.length) {
+		for (const p of contactDetails.value.phone_nos) {
+			phones.push({
+				phone: p.phone,
+				isPrimary: !!p.is_primary_phone,
+				isMobile: !!p.is_primary_mobile_no,
+			});
+		}
+	}
+
+	// Sort primary first, then mobile
+	return phones.sort((a, b) => {
+		if (b.isPrimary !== a.isPrimary) return b.isPrimary ? 1 : -1;
+		if (b.isMobile !== a.isMobile) return b.isMobile ? 1 : -1;
+		return 0;
+	});
+});
+
+const hasContactInfo = computed(() => {
+	return allEmails.value.length > 0 || allPhones.value.length > 0;
+});
 
 const linkedGroups = computed(() => Object.keys(linkedDocuments.value).sort());
 const hasLinkedDocuments = computed(() => linkedGroups.value.length > 0);
@@ -497,10 +640,24 @@ function composeEmail(): void {
 }
 
 .info-label {
-	display: block;
+	display: flex;
+	align-items: center;
+	gap: 0.375rem;
 	font-size: 0.75rem;
 	color: var(--text-muted, #6b7280);
 	margin-bottom: 0.125rem;
+}
+
+.primary-badge {
+	display: inline-block;
+	padding: 0.0625rem 0.375rem;
+	border-radius: 0.25rem;
+	font-size: 0.625rem;
+	font-weight: 600;
+	text-transform: uppercase;
+	letter-spacing: 0.025em;
+	background: var(--primary-light, #e0f2fe);
+	color: var(--primary, #2490ef);
 }
 
 .info-value {
