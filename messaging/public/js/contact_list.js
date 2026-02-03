@@ -44,7 +44,7 @@ frappe.listview_settings["Contact"] = {
 							}
 						},
 					});
-				}
+				},
 			);
 		});
 	},

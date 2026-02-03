@@ -1,23 +1,52 @@
 <template>
 	<Teleport to="body">
 		<Transition name="panel-slide">
-			<div v-if="show" class="contact-panel-overlay" @click="$emit('close')">
+			<div
+				v-if="show"
+				class="contact-panel-overlay"
+				@click="$emit('close')"
+			>
 				<div class="contact-panel" @click.stop>
 					<!-- Header -->
 					<div class="contact-panel-header">
 						<div class="header-info">
 							<div class="avatar-wrapper">
-								<img v-if="room?.avatar" :src="room.avatar" :alt="room?.roomName" class="avatar-img" />
-								<span v-else class="avatar-placeholder">{{ avatarInitial }}</span>
+								<img
+									v-if="room?.avatar"
+									:src="room.avatar"
+									:alt="room?.roomName"
+									class="avatar-img"
+								/>
+								<span v-else class="avatar-placeholder">{{
+									avatarInitial
+								}}</span>
 							</div>
 							<div class="header-text">
-								<h3 class="panel-title">{{ room?.roomName || __("Unknown") }}</h3>
-								<p class="panel-subtitle">{{ contactSubtitle }}</p>
+								<h3 class="panel-title">
+									{{ room?.roomName || __("Unknown") }}
+								</h3>
+								<p class="panel-subtitle">
+									{{ contactSubtitle }}
+								</p>
 							</div>
 						</div>
-						<button class="close-btn" @click="$emit('close')" :title="__('Close')">
-							<svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+						<button
+							class="close-btn"
+							@click="$emit('close')"
+							:title="__('Close')"
+						>
+							<svg
+								class="icon"
+								fill="none"
+								stroke="currentColor"
+								viewBox="0 0 24 24"
+							>
+								<path
+									stroke-linecap="round"
+									stroke-linejoin="round"
+									stroke-width="2"
+									d="M6 18L18 6M6 6l12 12"
+								/>
 							</svg>
 						</button>
 					</div>
@@ -26,10 +55,15 @@
 					<div class="contact-panel-body">
 						<!-- Contact Info Section -->
 						<div class="panel-section">
-							<h4 class="section-title">{{ __("Contact Information") }}</h4>
+							<h4 class="section-title">
+								{{ __("Contact Information") }}
+							</h4>
 
 							<!-- Loading state -->
-							<div v-if="loadingContact && room?.contactName" class="loading-state">
+							<div
+								v-if="loadingContact && room?.contactName"
+								class="loading-state"
+							>
 								<div class="spinner"></div>
 								<span>{{ __("Loading...") }}</span>
 							</div>
@@ -37,36 +71,82 @@
 							<!-- Contact details from Contact record -->
 							<template v-else-if="hasContactInfo">
 								<!-- All Email Addresses -->
-								<div v-for="(emailInfo, idx) in allEmails" :key="`email-${idx}`" class="info-row">
+								<div
+									v-for="(emailInfo, idx) in allEmails"
+									:key="`email-${idx}`"
+									class="info-row"
+								>
 									<div class="info-icon">
-										<svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-											<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+										<svg
+											class="icon"
+											fill="none"
+											stroke="currentColor"
+											viewBox="0 0 24 24"
+										>
+											<path
+												stroke-linecap="round"
+												stroke-linejoin="round"
+												stroke-width="2"
+												d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+											/>
 										</svg>
 									</div>
 									<div class="info-content">
 										<span class="info-label">
 											{{ __("Email") }}
-											<span v-if="emailInfo.isPrimary" class="primary-badge">{{ __("Primary") }}</span>
+											<span
+												v-if="emailInfo.isPrimary"
+												class="primary-badge"
+												>{{ __("Primary") }}</span
+											>
 										</span>
-										<a :href="`mailto:${emailInfo.email}`" class="info-value link">
+										<a
+											:href="`mailto:${emailInfo.email}`"
+											class="info-value link"
+										>
 											{{ emailInfo.email }}
 										</a>
 									</div>
 								</div>
 
 								<!-- All Phone Numbers -->
-								<div v-for="(phoneInfo, idx) in allPhones" :key="`phone-${idx}`" class="info-row">
+								<div
+									v-for="(phoneInfo, idx) in allPhones"
+									:key="`phone-${idx}`"
+									class="info-row"
+								>
 									<div class="info-icon">
-										<svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-											<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+										<svg
+											class="icon"
+											fill="none"
+											stroke="currentColor"
+											viewBox="0 0 24 24"
+										>
+											<path
+												stroke-linecap="round"
+												stroke-linejoin="round"
+												stroke-width="2"
+												d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"
+											/>
 										</svg>
 									</div>
 									<div class="info-content">
 										<span class="info-label">
-											{{ phoneInfo.isMobile ? __("Mobile") : __("Phone") }}
-											<span v-if="phoneInfo.isPrimary" class="primary-badge">{{ __("Primary") }}</span>
+											{{
+												phoneInfo.isMobile
+													? __("Mobile")
+													: __("Phone")
+											}}
+											<span
+												v-if="phoneInfo.isPrimary"
+												class="primary-badge"
+												>{{ __("Primary") }}</span
+											>
 										</span>
-										<a :href="`tel:${phoneInfo.phone}`" class="info-value link">
+										<a
+											:href="`tel:${phoneInfo.phone}`"
+											class="info-value link"
+										>
 											{{ phoneInfo.phone }}
 										</a>
 									</div>
@@ -77,13 +157,28 @@
 							<template v-else>
 								<div v-if="room?.emailId" class="info-row">
 									<div class="info-icon">
-										<svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-											<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+										<svg
+											class="icon"
+											fill="none"
+											stroke="currentColor"
+											viewBox="0 0 24 24"
+										>
+											<path
+												stroke-linecap="round"
+												stroke-linejoin="round"
+												stroke-width="2"
+												d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+											/>
 										</svg>
 									</div>
 									<div class="info-content">
-										<span class="info-label">{{ __("Email") }}</span>
-										<a :href="`mailto:${room.emailId}`" class="info-value link">
+										<span class="info-label">{{
+											__("Email")
+										}}</span>
+										<a
+											:href="`mailto:${room.emailId}`"
+											class="info-value link"
+										>
 											{{ room.emailId }}
 										</a>
 									</div>
@@ -91,13 +186,28 @@
 
 								<div v-if="room?.phoneNo" class="info-row">
 									<div class="info-icon">
-										<svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-											<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+										<svg
+											class="icon"
+											fill="none"
+											stroke="currentColor"
+											viewBox="0 0 24 24"
+										>
+											<path
+												stroke-linecap="round"
+												stroke-linejoin="round"
+												stroke-width="2"
+												d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"
+											/>
 										</svg>
 									</div>
 									<div class="info-content">
-										<span class="info-label">{{ __("Phone") }}</span>
-										<a :href="`tel:${room.phoneNo}`" class="info-value link">
+										<span class="info-label">{{
+											__("Phone")
+										}}</span>
+										<a
+											:href="`tel:${room.phoneNo}`"
+											class="info-value link"
+										>
 											{{ room.phoneNo }}
 										</a>
 									</div>
@@ -107,31 +217,65 @@
 							<!-- Current Thread Medium -->
 							<div class="info-row">
 								<div class="info-icon">
-									<svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-										<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+									<svg
+										class="icon"
+										fill="none"
+										stroke="currentColor"
+										viewBox="0 0 24 24"
+									>
+										<path
+											stroke-linecap="round"
+											stroke-linejoin="round"
+											stroke-width="2"
+											d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
+										/>
 									</svg>
 								</div>
 								<div class="info-content">
-									<span class="info-label">{{ __("Current Thread") }}</span>
-									<span class="badge" :class="mediumBadgeClass">
-										{{ room?.communicationMedium || "Email" }}
+									<span class="info-label">{{
+										__("Current Thread")
+									}}</span>
+									<span
+										class="badge"
+										:class="mediumBadgeClass"
+									>
+										{{
+											room?.communicationMedium || "Email"
+										}}
 									</span>
 								</div>
 							</div>
 						</div>
 
 						<!-- Reference Section -->
-						<div v-if="room?.referenceDoctype" class="panel-section">
-							<h4 class="section-title">{{ __("Linked Document") }}</h4>
+						<div
+							v-if="room?.referenceDoctype"
+							class="panel-section"
+						>
+							<h4 class="section-title">
+								{{ __("Linked Document") }}
+							</h4>
 							<div class="info-row">
 								<div class="info-icon">
-									<svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-										<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+									<svg
+										class="icon"
+										fill="none"
+										stroke="currentColor"
+										viewBox="0 0 24 24"
+									>
+										<path
+											stroke-linecap="round"
+											stroke-linejoin="round"
+											stroke-width="2"
+											d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+										/>
 									</svg>
 								</div>
 								<div class="info-content">
-									<span class="info-label">{{ room.referenceDoctype }}</span>
-									<a 
+									<span class="info-label">{{
+										room.referenceDoctype
+									}}</span>
+									<a
 										:href="`/app/${encodeDoctype(room.referenceDoctype)}/${room.referenceName}`"
 										class="info-value link"
 										target="_blank"
@@ -144,16 +288,30 @@
 
 						<!-- Contact Record Section -->
 						<div class="panel-section">
-							<h4 class="section-title">{{ __("Contact Record") }}</h4>
+							<h4 class="section-title">
+								{{ __("Contact Record") }}
+							</h4>
 							<div v-if="room?.contactName" class="info-row">
 								<div class="info-icon">
-									<svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-										<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+									<svg
+										class="icon"
+										fill="none"
+										stroke="currentColor"
+										viewBox="0 0 24 24"
+									>
+										<path
+											stroke-linecap="round"
+											stroke-linejoin="round"
+											stroke-width="2"
+											d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+										/>
 									</svg>
 								</div>
 								<div class="info-content">
-									<span class="info-label">{{ __("Contact") }}</span>
-									<a 
+									<span class="info-label">{{
+										__("Contact")
+									}}</span>
+									<a
 										:href="`/app/contact/${room.contactName}`"
 										class="info-value link"
 										target="_blank"
@@ -164,11 +322,28 @@
 							</div>
 							<div v-else class="no-contact-notice">
 								<p class="notice-text">
-									{{ __("No contact record linked to this conversation.") }}
+									{{
+										__(
+											"No contact record linked to this conversation.",
+										)
+									}}
 								</p>
-								<button class="btn btn-secondary" @click="createContact">
-									<svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-										<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+								<button
+									class="btn btn-secondary"
+									@click="createContact"
+								>
+									<svg
+										class="icon"
+										fill="none"
+										stroke="currentColor"
+										viewBox="0 0 24 24"
+									>
+										<path
+											stroke-linecap="round"
+											stroke-linejoin="round"
+											stroke-width="2"
+											d="M12 4v16m8-8H4"
+										/>
 									</svg>
 									{{ __("Create Contact") }}
 								</button>
@@ -177,34 +352,50 @@
 
 						<!-- Linked Documents Section -->
 						<div v-if="room?.contactName" class="panel-section">
-							<h4 class="section-title">{{ __("Linked Documents") }}</h4>
-							
+							<h4 class="section-title">
+								{{ __("Linked Documents") }}
+							</h4>
+
 							<div v-if="loadingLinked" class="loading-state">
 								<div class="spinner"></div>
 								<span>{{ __("Loading...") }}</span>
 							</div>
-							
+
 							<div v-else-if="hasLinkedDocuments">
-								<div 
-									v-for="group in linkedGroups" 
-									:key="group" 
+								<div
+									v-for="group in linkedGroups"
+									:key="group"
 									class="linked-group"
 								>
 									<h5 class="group-title">{{ group }}</h5>
 									<ul class="linked-list">
-										<li 
-											v-for="doc in linkedDocuments[group]" 
+										<li
+											v-for="doc in linkedDocuments[
+												group
+											]"
 											:key="`${doc.doctype}-${doc.name}`"
 											class="linked-item"
 										>
 											<div class="info-icon small">
-												<svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-													<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+												<svg
+													class="icon"
+													fill="none"
+													stroke="currentColor"
+													viewBox="0 0 24 24"
+												>
+													<path
+														stroke-linecap="round"
+														stroke-linejoin="round"
+														stroke-width="2"
+														d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+													/>
 												</svg>
 											</div>
 											<div class="linked-content">
-												<span class="linked-doctype">{{ doc.doctype }}</span>
-												<a 
+												<span class="linked-doctype">{{
+													doc.doctype
+												}}</span>
+												<a
 													:href="`/app/${encodeDoctype(doc.doctype)}/${doc.name}`"
 													class="linked-link"
 													target="_blank"
@@ -216,29 +407,41 @@
 									</ul>
 								</div>
 							</div>
-							
+
 							<div v-else class="no-linked-notice">
-								<p class="notice-text">{{ __("No linked documents found.") }}</p>
+								<p class="notice-text">
+									{{ __("No linked documents found.") }}
+								</p>
 							</div>
 						</div>
 					</div>
 
 					<!-- Footer Actions -->
 					<div class="contact-panel-footer">
-						<button 
+						<button
 							v-if="room?.contactName"
 							class="btn btn-primary"
 							@click="openContact"
 						>
 							{{ __("Open Contact") }}
 						</button>
-						<button 
+						<button
 							v-if="room?.emailId"
 							class="btn btn-secondary"
 							@click="composeEmail"
 						>
-							<svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+							<svg
+								class="icon"
+								fill="none"
+								stroke="currentColor"
+								viewBox="0 0 24 24"
+							>
+								<path
+									stroke-linecap="round"
+									stroke-linejoin="round"
+									stroke-width="2"
+									d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+								/>
 							</svg>
 							{{ __("Send Email") }}
 						</button>
@@ -352,18 +555,24 @@ watch(
 		if (linkedResponse.status === "fulfilled") {
 			linkedDocuments.value = linkedResponse.value.message || {};
 		} else {
-			console.error("Error fetching linked documents:", linkedResponse.reason);
+			console.error(
+				"Error fetching linked documents:",
+				linkedResponse.reason,
+			);
 		}
 		loadingLinked.value = false;
 
 		if (contactResponse.status === "fulfilled") {
 			contactDetails.value = contactResponse.value.message || null;
 		} else {
-			console.error("Error fetching contact details:", contactResponse.reason);
+			console.error(
+				"Error fetching contact details:",
+				contactResponse.reason,
+			);
 		}
 		loadingContact.value = false;
 	},
-	{ immediate: true }
+	{ immediate: true },
 );
 
 // Computed properties for contact info
@@ -384,7 +593,8 @@ const allEmails = computed(() => {
 
 const allPhones = computed(() => {
 	if (!contactDetails.value) return [];
-	const phones: { phone: string; isPrimary: boolean; isMobile: boolean }[] = [];
+	const phones: { phone: string; isPrimary: boolean; isMobile: boolean }[] =
+		[];
 
 	// Add phones from phone_nos child table
 	if (contactDetails.value.phone_nos?.length) {
@@ -450,12 +660,14 @@ function openContact(): void {
 
 function createContact(): void {
 	const options: Record<string, unknown> = {};
-	
+
 	if (props.room?.emailId) {
 		options.email_ids = [{ email_id: props.room.emailId, is_primary: 1 }];
 	}
 	if (props.room?.phoneNo) {
-		options.phone_nos = [{ phone: props.room.phoneNo, is_primary_phone: 1 }];
+		options.phone_nos = [
+			{ phone: props.room.phoneNo, is_primary_phone: 1 },
+		];
 	}
 	if (props.room?.roomName && !props.room.roomName.includes("@")) {
 		// Try to split name into first/last
@@ -467,7 +679,7 @@ function createContact(): void {
 			options.first_name = props.room.roomName;
 		}
 	}
-	
+
 	frappe.new_doc("Contact", options);
 	emit("close");
 }
@@ -575,7 +787,9 @@ function composeEmail(): void {
 	cursor: pointer;
 	border-radius: 0.375rem;
 	color: var(--text-muted, #6b7280);
-	transition: background-color 0.15s, color 0.15s;
+	transition:
+		background-color 0.15s,
+		color 0.15s;
 }
 
 .close-btn:hover {
@@ -728,7 +942,9 @@ function composeEmail(): void {
 	font-weight: 500;
 	border-radius: 0.375rem;
 	cursor: pointer;
-	transition: background-color 0.15s, border-color 0.15s;
+	transition:
+		background-color 0.15s,
+		border-color 0.15s;
 	border: 1px solid transparent;
 	width: 100%;
 }
@@ -896,37 +1112,37 @@ function composeEmail(): void {
 	.contact-panel {
 		background: var(--fg-color, #1f2937);
 	}
-	
+
 	.contact-panel-header {
 		background: var(--subtle-fg, #111827);
 		border-color: var(--border-color, #374151);
 	}
-	
+
 	.contact-panel-footer {
 		border-color: var(--border-color, #374151);
 	}
-	
+
 	.info-icon {
 		background: var(--subtle-fg, #374151);
 	}
-	
+
 	.no-contact-notice {
 		background: var(--subtle-fg, #374151);
 	}
-	
+
 	.avatar-wrapper,
 	.avatar-placeholder {
 		background: var(--gray-700, #374151);
 	}
-	
+
 	.group-title {
 		border-color: var(--border-color, #374151);
 	}
-	
+
 	.linked-item:not(:last-child) {
 		border-color: var(--border-color-light, #1f2937);
 	}
-	
+
 	.no-linked-notice {
 		background: var(--subtle-fg, #374151);
 	}
