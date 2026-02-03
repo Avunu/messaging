@@ -52,6 +52,12 @@ repos:
       - id: eslint
         types_or: [javascript]
         args: ['--quiet']
+        additional_dependencies: 
+          - eslint
+          - jiti
+          - globals
+          - typescript
+          - typescript-eslint
         # Ignore any files that might contain jinja / bundles
         exclude: |
             (?x)^(
