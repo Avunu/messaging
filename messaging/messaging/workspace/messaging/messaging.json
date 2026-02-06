@@ -149,7 +149,7 @@
    "type": "Link"
   }
  ],
- "modified": "2026-01-23 19:51:10.010236",
+ "modified": "2026-02-06 13:05:51.362648",
  "modified_by": "kevin@avu.nu",
  "module": "Messaging",
  "name": "Messaging",
@@ -186,7 +186,7 @@
   },
   {
    "color": "Grey",
-   "doc_view": "List",
+   "doc_view": "Chat",
    "label": "Inbox",
    "link_to": "Communication",
    "stats_filter": "[[\"Communication\",\"sent_or_received\",\"=\",\"Received\"],[\"Communication\",\"status\",\"!=\",\"Replied\"],[\"Communication\",\"status\",\"!=\",\"Closed\"]]",

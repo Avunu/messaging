@@ -38,3 +38,8 @@ scheduler_events = {
 		"messaging.messaging.doctype.group_text_message.send_scheduled_messages",
 	],
 }
+
+# Install/migrate hooks for doctype view registration
+after_install = "messaging.config.after_install"
+after_migrate = "messaging.config.after_migrate"
+after_uninstall = "messaging.config.after_uninstall"
