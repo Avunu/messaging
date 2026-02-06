@@ -8,7 +8,7 @@ from typing import Any
 
 import frappe
 from frappe import _
-from frappe.query_builder import DocType
+from frappe.query_builder import DocType, Order
 
 
 @frappe.whitelist()
@@ -47,6 +47,8 @@ def get_linked_documents(doctype: str, docname: str) -> dict[str, list[dict[str,
 		)
 		.where(DocTypeLink.parent == doctype)
 		.where(DocTypeLink.hidden == 0)
+		.orderby(DocTypeLink.group, order=Order.asc)
+		.orderby(DocTypeLink.parent_doctype, order=Order.desc)
 		.run(as_dict=True)
 	)
 
@@ -75,6 +77,7 @@ def get_linked_documents(doctype: str, docname: str) -> dict[str, list[dict[str,
 					frappe.qb.from_(ChildTable)
 					.select(ChildTable.parent)
 					.where(getattr(ChildTable, link_fieldname) == docname)
+					.orderby(ChildTable.creation, order=Order.desc)
 					.distinct()
 					.run(as_dict=True)
 				)
@@ -103,6 +106,7 @@ def get_linked_documents(doctype: str, docname: str) -> dict[str, list[dict[str,
 					frappe.qb.from_(LinkedDocType)
 					.select(LinkedDocType.name)
 					.where(getattr(LinkedDocType, link_fieldname) == docname)
+					.orderby(LinkedDocType.creation, order=Order.desc)
 					.run(as_dict=True)
 				)
 
