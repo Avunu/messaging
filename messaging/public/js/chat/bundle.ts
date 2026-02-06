@@ -12,10 +12,6 @@
 
 import { createApp, h, type Component, type App } from 'vue';
 import ChatViewComponent from './ChatView.vue';
-import {
-  suspendFrappeKeyboardShortcuts,
-  resumeFrappeKeyboardShortcuts,
-} from './keyboardUtils';
 
 // ============================================================================
 // Type Declarations
@@ -276,17 +272,11 @@ class ChatView {
   }
 
   show(): void {
-    // Suspend Frappe keyboard shortcuts when showing chat view
-    suspendFrappeKeyboardShortcuts();
-
     // Switch to our page
     frappe.container.change_to(this.page_name);
   }
 
   hide(): void {
-    // Resume Frappe keyboard shortcuts when hiding
-    resumeFrappeKeyboardShortcuts();
-
     // Unmount Vue app when hiding to clean up
     if (this.vueApp) {
       this.vueApp.unmount();
