@@ -44,9 +44,15 @@ interface FrappePage {
   clear_menu(): void;
   main: JQueryElement;
   wrapper: JQueryElement;
-  page: {
-    wrapper: JQueryElement;
-  };
+}
+
+interface FrappeContainer {
+  add_page(label: string): HTMLElement & { page: FrappePage };
+  change_to(label: string): void;
+}
+
+interface FrappeUI {
+  make_app_page(opts: { parent: HTMLElement; single_column?: boolean }): void;
 }
 
 interface FrappeModel {
@@ -100,6 +106,8 @@ declare const frappe: {
   provide(namespace: string): void;
   views: FrappeViews;
   model: FrappeModel;
+  container: FrappeContainer;
+  ui: FrappeUI;
   breadcrumbs: FrappeBreadcrumbs;
   get_route(): string[];
   get_route_str(): string;
@@ -150,15 +158,15 @@ frappe.provide('frappe.router');
  * ChatView is a standard Frappe list view that can be loaded via ListFactory.
  * Route: /desk/communication/view/chat
  *
- * This follows the pattern of other list views to integrate with Frappe's
- * view system while rendering a custom Vue component for the chat interface.
+ * This follows the TreeView pattern - creating its own page with single_column
+ * layout for a clean, full-width chat interface.
  */
 class ChatView {
   doctype: string;
-  parent: HTMLElement;
+  page_name: string;
+  parent!: HTMLElement & { page: FrappePage };
   page!: FrappePage;
-  page_title: string;
-  $page!: JQueryElement;
+  body!: JQueryElement;
   vueApp: App | null = null;
   container: HTMLElement | null = null;
   menu_items: Array<{ label: string; action: () => void; standard?: boolean }> = [];
@@ -170,36 +178,45 @@ class ChatView {
 
   constructor(opts: BaseListOptions) {
     this.doctype = opts.doctype;
-    this.parent = opts.parent;
-    this.page_title = __('Messages');
+    this.page_name = frappe.get_route_str();
 
-    // Initialize synchronously like other views
-    this.setup_defaults();
-    this.setup_page();
+    // Create our own page with single_column layout (like TreeView)
+    this.make_page();
     this.set_breadcrumbs();
     this.set_menu_items();
     this.render();
   }
 
-  setup_defaults(): void {
-    this.menu_items = [];
-  }
+  /**
+   * Create page structure with single_column layout.
+   * This follows the TreeView pattern for a clean, sidebar-free layout.
+   */
+  make_page(): void {
+    // Create a new page in the container (like TreeView does)
+    this.parent = frappe.container.add_page(this.page_name);
+    $(this.parent).addClass('chat-view');
 
-  setup_page(): void {
-    this.$page = $(this.parent);
-    this.page = (this.parent as HTMLElement & { page: FrappePage }).page;
+    // Create app page with single_column layout
+    frappe.ui.make_app_page({
+      parent: this.parent,
+      single_column: true,
+    });
+
+    this.page = this.parent.page;
+    frappe.container.change_to(this.page_name);
 
     // Set page title
-    this.page.set_title(this.page_title);
+    this.page.set_title(__('Messages'));
 
     // Style the main area - no padding, full height
     this.page.main.css({
-      'min-height': '500px',
-      padding: '0',
+      'min-height': '300px',
     });
 
     // Add frappe-card class for consistent styling
     this.page.main.addClass('frappe-card');
+
+    this.body = this.page.main;
   }
 
   set_breadcrumbs(): void {
@@ -211,9 +228,6 @@ class ChatView {
   }
 
   set_menu_items(): void {
-    // Clear existing menu
-    this.page.clear_menu();
-
     // View List menu item
     this.page.add_menu_item(__('View List'), () => {
       frappe.set_route('List', this.doctype, 'List');
@@ -234,7 +248,7 @@ class ChatView {
 
   render(): void {
     // Clear body
-    this.page.main.empty();
+    this.body.empty();
 
     // Unmount existing Vue app if present
     if (this.vueApp) {
@@ -247,7 +261,7 @@ class ChatView {
     this.container.id = 'chat-view-container';
     this.container.style.height = 'calc(100vh - 46px)';
     this.container.style.minHeight = '500px';
-    this.page.main.append(this.container);
+    this.body.append(this.container);
 
     // Mount Vue chat application
     this.vueApp = createApp({
@@ -265,8 +279,8 @@ class ChatView {
     // Suspend Frappe keyboard shortcuts when showing chat view
     suspendFrappeKeyboardShortcuts();
 
-    // Show the page
-    this.$page.show();
+    // Switch to our page
+    frappe.container.change_to(this.page_name);
   }
 
   hide(): void {
@@ -278,11 +292,11 @@ class ChatView {
       this.vueApp.unmount();
       this.vueApp = null;
     }
-
-    this.$page.hide();
   }
 
   // Required stubs for BaseList compatibility
+  setup_defaults(): void {}
+  setup_page(): void {}
   setup_page_head(): void {}
   set_primary_action(): void {}
   render_header(): void {}
