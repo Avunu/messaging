@@ -3,6 +3,16 @@
     "property_setters": [
         {
             "doc_type": "Communication",
+            "doctype_or_field": "DocType",
+            "is_system_generated": 1,
+            "module": "Messaging",
+            "name": "Communication-main-default_view",
+            "property": "default_view",
+            "property_type": "Data",
+            "value": "Chat"
+        },
+        {
+            "doc_type": "Communication",
             "doctype_or_field": "DocField",
             "field_name": "subject",
             "is_system_generated": 1,

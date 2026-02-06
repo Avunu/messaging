@@ -23,7 +23,7 @@ frappe.listview_settings["Contact"] = {
 				},
 				function (data) {
 					frappe.call({
-						method: "messaging.overrides.contact.bulk_add_to_group",
+						method: "messaging.messaging.custom.contact.bulk_add_to_group",
 						args: {
 							doc_names: docnames,
 							group_name: data.group_name,
@@ -44,7 +44,7 @@ frappe.listview_settings["Contact"] = {
 							}
 						},
 					});
-				}
+				},
 			);
 		});
 	},

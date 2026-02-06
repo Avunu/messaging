@@ -1,0 +1,41 @@
+{
+  "name": "messaging",
+  "version": "1.0.0",
+  "description": "Messaging app for Frappe with chat-like interface for Communications",
+  "author": "Avunu LLC",
+  "license": "MIT",
+  "private": false,
+  "type": "module",
+  "scripts": {
+    "build": "vite build && ts-node --esm update-assets.ts",
+    "watch": "vite build --watch",
+    "dev": "vite build --watch",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint messaging/public/js --ext .ts,.vue",
+    "postinstall": "echo 'Run yarn build to compile assets'",
+    "upgrade:interactive": "yarn upgrade-interactive --latest",
+    "upgrade:npx": "npx npm-check-updates -u && yarn install"
+  },
+  "dependencies": {
+    "frappe-ui": "^0.1.261",
+    "vue": "^3.5.27",
+    "vue-advanced-chat": "^2.1.2",
+    "vue-eslint-parser": "^10.2.0"
+  },
+  "devDependencies": {
+    "@eslint/eslintrc": "^3.3.3",
+    "@eslint/js": "^9.39.2",
+    "@types/node": "^25.0.10",
+    "@typescript-eslint/eslint-plugin": "^8.53.1",
+    "@typescript-eslint/parser": "^8.53.1",
+    "@vitejs/plugin-vue": "^6.0.3",
+    "@vue/compiler-sfc": "^3.5.27",
+    "eslint": "^9.39.2",
+    "eslint-plugin-vue": "^10.7.0",
+    "globals": "^17.3.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.3",
+    "vite": "^7.3.1"
+  },
+  "packageManager": "yarn@1.22.22"
+}

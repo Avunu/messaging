@@ -1,7 +1,7 @@
 {
  "app": "messaging",
  "charts": [],
- "content": "[{\"id\":\"U3vGigzTls\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">Communication</span>\",\"col\":12}},{\"id\":\"LWtEU9DoWu\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"New Group Text\",\"col\":3}},{\"id\":\"I3YcTO8eAd\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"New Newsletter\",\"col\":3}},{\"id\":\"LqcbPH_Ijy\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Email Inbox\",\"col\":3}},{\"id\":\"YI_0X0tS48\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Notifications\",\"col\":3}},{\"id\":\"FypNF-1Lu3\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"Sw-K3RF4bL\",\"type\":\"card\",\"data\":{\"card_name\":\"Contact Management\",\"col\":4}},{\"id\":\"cZV_ge-roG\",\"type\":\"card\",\"data\":{\"card_name\":\"Broadcasts\",\"col\":4}},{\"id\":\"TvNSlyeTTh\",\"type\":\"card\",\"data\":{\"card_name\":\"Notifications\",\"col\":4}},{\"id\":\"vOSXH9Xfdc\",\"type\":\"card\",\"data\":{\"card_name\":\"Setup\",\"col\":4}}]",
+ "content": "[{\"id\":\"U3vGigzTls\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">Communication</span>\",\"col\":12}},{\"id\":\"LWtEU9DoWu\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"New Group Text\",\"col\":3}},{\"id\":\"I3YcTO8eAd\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"New Newsletter\",\"col\":3}},{\"id\":\"LqcbPH_Ijy\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Inbox\",\"col\":3}},{\"id\":\"YI_0X0tS48\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Notifications\",\"col\":3}},{\"id\":\"FypNF-1Lu3\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"Sw-K3RF4bL\",\"type\":\"card\",\"data\":{\"card_name\":\"Contact Management\",\"col\":4}},{\"id\":\"cZV_ge-roG\",\"type\":\"card\",\"data\":{\"card_name\":\"Broadcasts\",\"col\":4}},{\"id\":\"TvNSlyeTTh\",\"type\":\"card\",\"data\":{\"card_name\":\"Notifications\",\"col\":4}},{\"id\":\"vOSXH9Xfdc\",\"type\":\"card\",\"data\":{\"card_name\":\"Setup\",\"col\":4}}]",
  "creation": "2023-08-04 09:07:45.599484",
  "custom_blocks": [],
  "docstatus": 0,
@@ -149,7 +149,7 @@
    "type": "Link"
   }
  ],
- "modified": "2025-01-21 16:03:29.255578",
+ "modified": "2026-02-06 13:05:51.362648",
  "modified_by": "kevin@avu.nu",
  "module": "Messaging",
  "name": "Messaging",
@@ -170,14 +170,6 @@
   },
   {
    "color": "Grey",
-   "doc_view": "List",
-   "label": "Email Inbox",
-   "link_to": "Communication",
-   "stats_filter": "[[\"Communication\",\"sent_or_received\",\"=\",\"Received\",false],[\"Communication\",\"status\",\"!=\",\"Closed\",false]]",
-   "type": "DocType"
-  },
-  {
-   "color": "Grey",
    "doc_view": "New",
    "label": "New Newsletter",
    "link_to": "Newsletter",
@@ -190,6 +182,14 @@
    "label": "New Group Text",
    "link_to": "Group Text Message",
    "stats_filter": "[]",
+   "type": "DocType"
+  },
+  {
+   "color": "Grey",
+   "doc_view": "Chat",
+   "label": "Inbox",
+   "link_to": "Communication",
+   "stats_filter": "[[\"Communication\",\"sent_or_received\",\"=\",\"Received\"],[\"Communication\",\"status\",\"!=\",\"Replied\"],[\"Communication\",\"status\",\"!=\",\"Closed\"]]",
    "type": "DocType"
   }
  ],

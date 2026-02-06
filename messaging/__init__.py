@@ -1,11 +1,13 @@
 __version__ = "0.0.1"
 
+from typing import cast
+
 import frappe
 from frappe.core.doctype.dynamic_link.dynamic_link import deduplicate_dynamic_links
 from frappe.query_builder import DocType
 from frappe.query_builder.functions import Count
 
-from messaging.overrides.contact import Contact
+from messaging.messaging.custom.contact import Contact
 
 
 def clean_phone_numbers() -> None:
@@ -113,7 +115,7 @@ def consolidate_duplicate_contacts() -> None:
 
 
 def consolidate_contact_data(primary_contact_name: str, other_contact_entries: list[str]) -> None:
-	primary_contact = Contact("Contact", primary_contact_name)
+	primary_contact = cast(Contact, frappe.get_doc("Contact", primary_contact_name))
 	fields_to_update = [
 		"phone_nos",
 		"email_ids",
@@ -124,7 +126,7 @@ def consolidate_contact_data(primary_contact_name: str, other_contact_entries: l
 	]
 
 	for contact_entry in other_contact_entries:
-		other_contact = Contact("Contact", contact_entry)
+		other_contact = cast(Contact, frappe.get_doc("Contact", contact_entry))
 		for field in fields_to_update:
 			# Update primary_contact fields if they are empty and other_contact has data
 			if not getattr(primary_contact, field) and getattr(other_contact, field):
@@ -150,7 +152,7 @@ def deduplicate_contact_links() -> None:
 def refresh_primary_contact_fields() -> None:
 	contacts = frappe.get_all("Contact", fields=["name"])
 	for contact in contacts:
-		contact_doc = Contact("Contact", contact.get("name"))
+		contact_doc = cast(Contact, frappe.get_doc("Contact", contact.get("name")))
 		contact_doc.set_primary_email()
 		contact_doc.set_primary("phone")
 		contact_doc.set_primary("mobile_no")
