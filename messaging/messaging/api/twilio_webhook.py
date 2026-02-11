@@ -1,9 +1,15 @@
 import json
+from typing import cast
 from urllib.parse import urlparse
 
 import frappe
 from frappe import _
+from frappe.utils import now
 from twilio.request_validator import RequestValidator
+
+from messaging.messaging.doctype.messaging_settings.messaging_settings import (
+	MessagingSettings,
+)
 
 
 @frappe.whitelist(allow_guest=True)
@@ -13,7 +19,7 @@ def sms():
 		frappe.throw(_("Only POST requests allowed"), frappe.ValidationError)
 
 	# Get Twilio settings
-	settings = frappe.get_doc("Messaging Settings")
+	settings = cast(MessagingSettings, frappe.get_doc("Messaging Settings"))
 	if not settings.twilio_auth_token:
 		frappe.throw(_("Twilio auth token not configured"), frappe.ValidationError)
 
@@ -48,7 +54,7 @@ def sms():
 	# Create communication
 	communication = frappe.get_doc(
 		{
-			"communication_date": frappe.utils.now(),
+			"communication_date": now(),
 			"communication_medium": "SMS",
 			"communication_type": "Communication",
 			"content": frappe.request.form.get("Body"),
