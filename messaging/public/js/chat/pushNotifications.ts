@@ -170,7 +170,7 @@ export async function subscribeToPush(): Promise<boolean> {
 export async function unsubscribeFromPush(): Promise<boolean> {
   if (!swRegistration) {
     swRegistration =
-      (await navigator.serviceWorker?.getRegistration('/')) ?? null;
+      (await navigator.serviceWorker?.getRegistration('/app/')) ?? null;
   }
   if (!swRegistration) return true;
 
@@ -200,7 +200,7 @@ export async function isSubscribed(): Promise<boolean> {
 
   if (!swRegistration) {
     swRegistration =
-      (await navigator.serviceWorker?.getRegistration('/')) ?? null;
+      (await navigator.serviceWorker?.getRegistration('/app/')) ?? null;
   }
   if (!swRegistration) return false;
 

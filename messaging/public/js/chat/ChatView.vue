@@ -9,26 +9,6 @@
 				}}</span>
 			</div>
 			<div class="toolbar-right">
-				<button
-					v-if="pushSupported && !pushSubscribed"
-					class="btn-notifications"
-					:disabled="pushSubscribing"
-					@click="enablePushNotifications"
-				>
-					🔔
-					{{
-						pushSubscribing
-							? __("Enabling...")
-							: __("Enable Notifications")
-					}}
-				</button>
-				<button
-					v-else-if="pushSupported && pushSubscribed"
-					class="btn-notifications btn-notifications--active"
-					@click="disablePushNotifications"
-				>
-					🔕 {{ __("Notifications On") }}
-				</button>
 				<select
 					v-model="selectedMedium"
 					class="medium-filter"
@@ -40,23 +20,6 @@
 					<option value="Phone">{{ __("Phone") }}</option>
 				</select>
 			</div>
-		</div>
-
-		<!-- Notification permission banner (shown once if never asked) -->
-		<div v-if="showNotificationBanner" class="notification-banner">
-			<span>🔔 {{ __("Get notified when new messages arrive.") }}</span>
-			<button
-				class="banner-btn banner-btn--enable"
-				@click="enablePushNotifications"
-			>
-				{{ __("Enable") }}
-			</button>
-			<button
-				class="banner-btn banner-btn--dismiss"
-				@click="dismissNotificationBanner"
-			>
-				{{ __("Not now") }}
-			</button>
 		</div>
 
 		<!-- Main chat component -->
@@ -191,14 +154,7 @@ import {
 import { register } from "vue-advanced-chat";
 import { useChat } from "./useChat";
 import ContactPanel from "./ContactPanel.vue";
-import {
-	isPushSupported,
-	getPermissionState,
-	registerServiceWorker,
-	subscribeToPush,
-	unsubscribeFromPush,
-	isSubscribed,
-} from "./pushNotifications";
+
 import type {
 	Room,
 	Message,
@@ -272,13 +228,6 @@ export default defineComponent({
 		const selectedMessage = ref<Message | null>(null);
 		const showContactPanel = ref(false);
 		const selectedContactRoom = ref<Room | null>(null);
-
-		// Push notification state
-		const pushSupported = ref(isPushSupported());
-		const pushSubscribed = ref(false);
-		const pushSubscribing = ref(false);
-		const showNotificationBanner = ref(false);
-		const bannerDismissedKey = "messaging_push_banner_dismissed";
 
 		// Theme handling
 		const isDarkMode = ref(false);
@@ -726,69 +675,6 @@ export default defineComponent({
 			}
 		}
 
-		// Push notification methods
-		async function checkPushStatus(): Promise<void> {
-			if (!pushSupported.value) return;
-			// Register service worker early
-			await registerServiceWorker();
-			pushSubscribed.value = await isSubscribed();
-
-			// Show banner if never asked and not subscribed
-			if (
-				!pushSubscribed.value &&
-				getPermissionState() === "default" &&
-				!localStorage.getItem(bannerDismissedKey)
-			) {
-				showNotificationBanner.value = true;
-			}
-		}
-
-		async function enablePushNotifications(): Promise<void> {
-			pushSubscribing.value = true;
-			showNotificationBanner.value = false;
-			try {
-				const success = await subscribeToPush();
-				pushSubscribed.value = success;
-				if (success) {
-					frappe.show_alert({
-						message: __("Notifications enabled!"),
-						indicator: "green",
-					});
-				} else {
-					frappe.show_alert({
-						message: __(
-							"Could not enable notifications. Check browser permissions.",
-						),
-						indicator: "orange",
-					});
-				}
-			} catch (err) {
-				console.error("Failed to enable push:", err);
-				frappe.show_alert({
-					message: __("Failed to enable notifications."),
-					indicator: "red",
-				});
-			} finally {
-				pushSubscribing.value = false;
-			}
-		}
-
-		async function disablePushNotifications(): Promise<void> {
-			const success = await unsubscribeFromPush();
-			pushSubscribed.value = !success;
-			if (success) {
-				frappe.show_alert({
-					message: __("Notifications disabled."),
-					indicator: "blue",
-				});
-			}
-		}
-
-		function dismissNotificationBanner(): void {
-			showNotificationBanner.value = false;
-			localStorage.setItem(bannerDismissedKey, "1");
-		}
-
 		/**
 		 * Prevent Frappe global keyboard shortcuts from firing while typing
 		 * inside the vue-advanced-chat Web Component.
@@ -848,9 +734,6 @@ export default defineComponent({
 
 			// Set up keyboard guard after the Web Component is in the DOM
 			nextTick(() => setupKeyboardGuard());
-
-			// Check push notification status and prompt if needed
-			await checkPushStatus();
 
 			// Open initial room if provided
 			if (props.initialRoomId) {
@@ -932,15 +815,6 @@ export default defineComponent({
 			__,
 			archiveRoom,
 			deleteRoom,
-
-			// Push notifications
-			pushSupported,
-			pushSubscribed,
-			pushSubscribing,
-			showNotificationBanner,
-			enablePushNotifications,
-			disablePushNotifications,
-			dismissNotificationBanner,
 		};
 	},
 });
@@ -1021,106 +895,6 @@ export default defineComponent({
 	--input-bg: #2d2d2d;
 	--text-color: #fff;
 	--border-color: #444;
-}
-
-/* Push notification button */
-.btn-notifications {
-	padding: 6px 12px;
-	border: 1px solid #1976d2;
-	border-radius: 6px;
-	background: #e3f2fd;
-	color: #1976d2;
-	font-size: 13px;
-	cursor: pointer;
-	transition: all 0.2s;
-	white-space: nowrap;
-}
-
-.btn-notifications:hover {
-	background: #bbdefb;
-}
-
-.btn-notifications:disabled {
-	opacity: 0.6;
-	cursor: not-allowed;
-}
-
-.btn-notifications--active {
-	background: #c8e6c9;
-	border-color: #388e3c;
-	color: #388e3c;
-}
-
-.btn-notifications--active:hover {
-	background: #a5d6a7;
-}
-
-.chat-dark .btn-notifications {
-	background: #0d47a1;
-	color: #90caf9;
-	border-color: #1565c0;
-}
-
-.chat-dark .btn-notifications--active {
-	background: #1b5e20;
-	color: #a5d6a7;
-	border-color: #2e7d32;
-}
-
-/* Notification permission banner */
-.notification-banner {
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	gap: 12px;
-	padding: 10px 16px;
-	background: #e3f2fd;
-	border-bottom: 1px solid #bbdefb;
-	font-size: 14px;
-	color: #1565c0;
-}
-
-.chat-dark .notification-banner {
-	background: #0d47a1;
-	border-color: #1565c0;
-	color: #90caf9;
-}
-
-.banner-btn {
-	padding: 4px 14px;
-	border-radius: 4px;
-	font-size: 13px;
-	cursor: pointer;
-	border: none;
-	transition: all 0.15s;
-}
-
-.banner-btn--enable {
-	background: #1976d2;
-	color: #fff;
-}
-
-.banner-btn--enable:hover {
-	background: #1565c0;
-}
-
-.banner-btn--dismiss {
-	background: transparent;
-	color: #1976d2;
-	border: 1px solid #1976d2;
-}
-
-.banner-btn--dismiss:hover {
-	background: rgba(25, 118, 210, 0.08);
-}
-
-.chat-dark .banner-btn--enable {
-	background: #1565c0;
-}
-
-.chat-dark .banner-btn--dismiss {
-	color: #90caf9;
-	border-color: #1565c0;
 }
 
 /* Room header customization */
