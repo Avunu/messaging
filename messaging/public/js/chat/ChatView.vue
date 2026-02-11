@@ -789,6 +789,49 @@ export default defineComponent({
 			localStorage.setItem(bannerDismissedKey, "1");
 		}
 
+		/**
+		 * Prevent Frappe global keyboard shortcuts from firing while typing
+		 * inside the vue-advanced-chat Web Component.
+		 *
+		 * Because vue-advanced-chat uses Shadow DOM, document.activeElement
+		 * returns the <vue-advanced-chat> host element (not the inner
+		 * textarea/input), so Frappe's is_input_focused guard fails.
+		 * We intercept keydown on the host and stop propagation when focus
+		 * is on an input-like element inside the shadow tree.
+		 *
+		 * Modifier combos that Frappe needs globally (ctrl+s, ctrl+k, etc.)
+		 * are allowed through so they keep working.
+		 */
+		function setupKeyboardGuard(): void {
+			const chatEl = chatWindowRef.value;
+			if (!chatEl) return;
+
+			chatEl.addEventListener("keydown", (e: KeyboardEvent) => {
+				// Always let through global Frappe combos with Ctrl/Meta
+				if (e.ctrlKey || e.metaKey) return;
+
+				// Walk the Shadow DOM activeElement chain to find the real focused element
+				let active: Element | null = document.activeElement;
+				while (active?.shadowRoot?.activeElement) {
+					active = active.shadowRoot.activeElement;
+				}
+
+				if (!active) return;
+
+				const tag = active.tagName?.toLowerCase() ?? "";
+				const isEditable =
+					tag === "input" ||
+					tag === "textarea" ||
+					tag === "select" ||
+					active.getAttribute("contenteditable") === "true";
+
+				if (isEditable) {
+					// Stop the event from reaching the global $(window).on('keydown') handler
+					e.stopPropagation();
+				}
+			});
+		}
+
 		// Lifecycle
 		onMounted(async () => {
 			updateTheme();
@@ -802,6 +845,9 @@ export default defineComponent({
 
 			// Initialize chat
 			await initialize();
+
+			// Set up keyboard guard after the Web Component is in the DOM
+			nextTick(() => setupKeyboardGuard());
 
 			// Check push notification status and prompt if needed
 			await checkPushStatus();
