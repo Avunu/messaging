@@ -1,0 +1,71 @@
+{
+ "actions": [],
+ "autoname": "hash",
+ "creation": "2025-02-11 00:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "user",
+  "endpoint",
+  "subscription_json",
+  "p256dh_key",
+  "auth_key"
+ ],
+ "fields": [
+  {
+   "fieldname": "user",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "User",
+   "options": "User",
+   "reqd": 1
+  },
+  {
+   "fieldname": "endpoint",
+   "fieldtype": "Small Text",
+   "in_list_view": 1,
+   "label": "Endpoint",
+   "reqd": 1
+  },
+  {
+   "fieldname": "subscription_json",
+   "fieldtype": "Long Text",
+   "hidden": 1,
+   "label": "Subscription JSON",
+   "reqd": 1
+  },
+  {
+   "fieldname": "p256dh_key",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "p256dh Key"
+  },
+  {
+   "fieldname": "auth_key",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "Auth Key"
+  }
+ ],
+ "index_web_pages_for_search": 0,
+ "links": [],
+ "modified": "2025-02-11 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Messaging",
+ "name": "Push Subscription",
+ "naming_rule": "Random",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "read": 1,
+   "role": "System Manager",
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 0
+}

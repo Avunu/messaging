@@ -11,7 +11,13 @@
   "enable_number_validation",
   "twilio_account_sid",
   "twilio_auth_token",
-  "twilio_phone_no"
+  "twilio_phone_no",
+  "push_notification_settings_section",
+  "enable_push_notifications",
+  "vapid_contact_email",
+  "vapid_public_key",
+  "vapid_private_key_secret",
+  "generate_vapid_keys_btn"
  ],
  "fields": [
   {
@@ -50,13 +56,48 @@
    "fieldname": "enable_number_validation",
    "fieldtype": "Check",
    "label": "Enable Phone Number Validation"
+  },
+  {
+   "fieldname": "push_notification_settings_section",
+   "fieldtype": "Section Break",
+   "label": "Push Notification Settings"
+  },
+  {
+   "default": "0",
+   "fieldname": "enable_push_notifications",
+   "fieldtype": "Check",
+   "label": "Enable Push Notifications"
+  },
+  {
+   "description": "Contact email for VAPID identification (e.g. mailto:admin@example.com)",
+   "fieldname": "vapid_contact_email",
+   "fieldtype": "Data",
+   "label": "VAPID Contact Email"
+  },
+  {
+   "description": "Auto-generated. Used by browsers to subscribe to push notifications.",
+   "fieldname": "vapid_public_key",
+   "fieldtype": "Small Text",
+   "label": "VAPID Public Key",
+   "read_only": 1
+  },
+  {
+   "description": "Auto-generated. Keep this secret.",
+   "fieldname": "vapid_private_key_secret",
+   "fieldtype": "Password",
+   "label": "VAPID Private Key"
+  },
+  {
+   "fieldname": "generate_vapid_keys_btn",
+   "fieldtype": "Button",
+   "label": "Generate VAPID Keys"
   }
  ],
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2025-02-17 09:16:58.696065",
- "modified_by": "Administrator",
+ "modified": "2026-02-11 10:54:53.680983",
+ "modified_by": "kevin@avu.nu",
  "module": "Messaging",
  "name": "Messaging Settings",
  "owner": "Administrator",
@@ -72,6 +113,7 @@
    "write": 1
   }
  ],
+ "row_format": "Dynamic",
  "sort_field": "modified",
  "sort_order": "DESC",
  "states": []

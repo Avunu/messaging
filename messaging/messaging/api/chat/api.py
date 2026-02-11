@@ -194,7 +194,7 @@ def notify_new_communication(doc: Any, method: str | None = None) -> None:
 	Hook function to notify connected clients of new communications.
 
 	Called after a Communication is inserted to trigger realtime updates
-	in the chat interface.
+	in the chat interface, and send push notifications for received messages.
 
 	Also handles SMS opt-out requests when a user texts "STOP".
 
@@ -222,6 +222,92 @@ def notify_new_communication(doc: Any, method: str | None = None) -> None:
 		},
 		after_commit=True,
 	)
+
+	# Send push notifications for received messages
+	if doc.sent_or_received == "Received":
+		frappe.enqueue(
+			_send_push_for_received,
+			queue="short",
+			doc_name=doc.name,
+			sender=doc.sender,
+			phone_no=doc.phone_no,
+			content=doc.text_content or doc.content or "",
+			medium=doc.communication_medium,
+			subject=doc.subject,
+			now=frappe.flags.in_test,
+		)
+
+
+def _send_push_for_received(
+	doc_name: str,
+	sender: str,
+	phone_no: str,
+	content: str,
+	medium: str,
+	subject: str | None = None,
+) -> None:
+	"""
+	Background job: send push notifications to all users with active subscriptions
+	when a new message is received.
+
+	Args:
+	    doc_name: Communication document name
+	    sender: Sender identifier (email or phone)
+	    phone_no: Phone number (for SMS/Phone)
+	    content: Message content
+	    medium: Communication medium (Email, SMS, etc.)
+	    subject: Email subject line
+	"""
+	# Determine sender display name via Contact lookup
+	from messaging.messaging.api.chat.helpers import get_contact_from_identifier
+	from messaging.messaging.api.chat.push import send_push_to_user
+
+	identifier = phone_no if medium in ("SMS", "Phone") else sender
+	room_id = f"{medium}:{identifier}"
+
+	contact = get_contact_from_identifier(identifier, medium)
+	sender_name = contact.get("contact_name") if contact else identifier
+
+	# Truncate body for notification
+	body = (content or "").strip()
+	# Strip HTML tags for notification body
+	import re
+
+	body = re.sub(r"<[^>]+>", "", body)
+	if len(body) > 200:
+		body = body[:200] + "..."
+
+	title = f"{sender_name}"
+	if subject and medium == "Email":
+		title = f"{sender_name}: {subject}"
+
+	# Get all users with System Manager or any desk access who can read Communication
+	# Only send to users who have active push subscriptions (opted-in)
+	subscribed_users = frappe.get_all(
+		"Push Subscription",
+		fields=["user"],
+		distinct=True,
+	)
+
+	for row in subscribed_users:
+		user = row["user"]
+		if user == "Guest":
+			continue
+
+		try:
+			send_push_to_user(
+				user=user,
+				title=title,
+				body=body,
+				room_id=room_id,
+				communication_name=doc_name,
+				url="/app/communication/view/chat",
+			)
+		except Exception as e:
+			frappe.log_error(
+				f"Push notification failed for user {user}: {e}",
+				"Push Notification Error",
+			)
 
 
 def _handle_sms_opt_out(doc: Any) -> None:
