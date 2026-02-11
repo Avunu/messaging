@@ -1,3 +1,0 @@
-[submodule "vendor/vue-advanced-chat"]
-	path = vendor/vue-advanced-chat
-	url = https://github.com/advanced-chat/vue-advanced-chat.git
