@@ -700,7 +700,7 @@ export default defineComponent({
 <style>
 .chat-container {
 	width: 100%;
-	height: calc(100vh - 80px);
+	height: calc(100vh - 46px);
 	display: flex;
 	flex-direction: column;
 	background: var(--bg-color, #fff);
