@@ -69,7 +69,9 @@
 			:placeholder="textMessages.TYPE_MESSAGE"
 			@send-message="onSendMessage"
 			@clear-reply="replyToMessage = null"
-			@typing="onTypingMessage({ roomId: currentRoomId, message: $event })"
+			@typing="
+				onTypingMessage({ roomId: currentRoomId, message: $event })
+			"
 		/>
 
 		<!-- Side panel for Communication details -->
@@ -561,8 +563,11 @@ export default defineComponent({
 						files: data.message.files,
 					} as ReplyMessage & { username?: string };
 					// Attach display name for preview
-					(replyToMessage.value as ReplyMessage & { username?: string }).username =
-						data.message.username || data.message.senderId;
+					(
+						replyToMessage.value as ReplyMessage & {
+							username?: string;
+						}
+					).username = data.message.username || data.message.senderId;
 					break;
 				case "viewDetails":
 					selectedMessage.value = data.message;

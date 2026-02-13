@@ -1,20 +1,34 @@
 <template>
-	<div v-if="roomId" class="chat-footer-wrapper" :class="{ 'chat-dark': isDark }">
+	<div
+		v-if="roomId"
+		class="chat-footer-wrapper"
+		:class="{ 'chat-dark': isDark }"
+	>
 		<!-- Reply preview -->
 		<div v-if="replyMessage" class="reply-preview">
 			<div class="reply-preview-bar" />
 			<div class="reply-preview-content">
-				<span class="reply-preview-sender">{{ replyMessage.username || replyMessage.senderId }}</span>
+				<span class="reply-preview-sender">{{
+					replyMessage.username || replyMessage.senderId
+				}}</span>
 				<p class="reply-preview-text" v-html="truncatedReplyContent" />
 			</div>
-			<button class="reply-preview-close" @click="$emit('clear-reply')" :title="__('Cancel reply')">
+			<button
+				class="reply-preview-close"
+				@click="$emit('clear-reply')"
+				:title="__('Cancel reply')"
+			>
 				&times;
 			</button>
 		</div>
 
 		<!-- File previews -->
 		<div v-if="files.length" class="file-preview-list">
-			<div v-for="(file, index) in files" :key="index" class="file-preview-item">
+			<div
+				v-for="(file, index) in files"
+				:key="index"
+				class="file-preview-item"
+			>
 				<img
 					v-if="file.preview && file.type?.startsWith('image/')"
 					:src="file.preview"
@@ -23,7 +37,9 @@
 				/>
 				<span v-else class="file-preview-icon">📎</span>
 				<span class="file-preview-name">{{ file.name }}</span>
-				<button class="file-preview-remove" @click="removeFile(index)">&times;</button>
+				<button class="file-preview-remove" @click="removeFile(index)">
+					&times;
+				</button>
 			</div>
 		</div>
 
@@ -49,8 +65,19 @@
 					@click="triggerFileUpload"
 					:title="__('Attach file')"
 				>
-					<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-						<path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48" />
+					<svg
+						width="20"
+						height="20"
+						viewBox="0 0 24 24"
+						fill="none"
+						stroke="currentColor"
+						stroke-width="2"
+						stroke-linecap="round"
+						stroke-linejoin="round"
+					>
+						<path
+							d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"
+						/>
 					</svg>
 				</button>
 				<button
@@ -60,7 +87,16 @@
 					@click="sendMessage"
 					:title="__('Send message')"
 				>
-					<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+					<svg
+						width="20"
+						height="20"
+						viewBox="0 0 24 24"
+						fill="none"
+						stroke="currentColor"
+						stroke-width="2"
+						stroke-linecap="round"
+						stroke-linejoin="round"
+					>
 						<line x1="22" y1="2" x2="11" y2="13" />
 						<polygon points="22 2 15 22 11 13 2 9 22 2" />
 					</svg>
@@ -178,7 +214,7 @@ export default defineComponent({
 					const rootEl = editorRef.value?.rootRef;
 					if (rootEl) {
 						const popup = document.querySelector(
-							".tippy-box, .suggestion-list, .slash-commands-list"
+							".tippy-box, .suggestion-list, .slash-commands-list",
 						);
 						if (popup) return; // Let the suggestion handle Enter
 					}
@@ -272,7 +308,7 @@ export default defineComponent({
 				nextTick(() => {
 					editorRef.value?.editor?.commands.focus();
 				});
-			}
+			},
 		);
 
 		// Focus editor when a reply is initiated
@@ -284,7 +320,7 @@ export default defineComponent({
 						editorRef.value?.editor?.commands.focus();
 					});
 				}
-			}
+			},
 		);
 
 		return {
@@ -493,7 +529,10 @@ export default defineComponent({
 	margin: 0;
 }
 
-.editor-container .chat-editor-content .ProseMirror p.is-editor-empty:first-child::before {
+.editor-container
+	.chat-editor-content
+	.ProseMirror
+	p.is-editor-empty:first-child::before {
 	color: #adb5bd;
 	content: attr(data-placeholder);
 	float: left;
