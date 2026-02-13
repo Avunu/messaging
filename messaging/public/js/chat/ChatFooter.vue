@@ -54,7 +54,7 @@
 					:bubble-menu="false"
 					:fixed-menu="true"
 					:floating-menu="false"
-					editor-class="chat-editor-content"
+					editor-class="chat-editor-content max-w-none"
 					:starterkit-options="starterkitOptions"
 					@change="onEditorChange"
 				/>
@@ -521,6 +521,7 @@ export default defineComponent({
 
 .editor-container .chat-editor-content .ProseMirror {
 	min-height: 20px;
+	max-width: none !important;
 	padding: 0;
 	outline: none;
 }
