@@ -12,6 +12,10 @@
 
 import { createApp, h, type Component, type App } from 'vue';
 import ChatViewComponent from './ChatView.vue';
+
+// frappe-ui Tailwind styles (processed by PostCSS/Tailwind pipeline, scoped under .messaging-chat-root)
+import 'frappe-ui/style.css';
+import 'frappe-ui/editor-style.css';
 import {
   isPushSupported,
   getPermissionState,
@@ -392,6 +396,7 @@ class ChatView {
     // Create Vue container
     this.container = document.createElement('div');
     this.container.id = 'chat-view-container';
+    this.container.classList.add('messaging-chat-root');
     this.container.style.height = 'calc(100vh - 46px)';
     this.container.style.minHeight = '500px';
     this.body.append(this.container);
