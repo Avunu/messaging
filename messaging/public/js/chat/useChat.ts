@@ -85,6 +85,8 @@ export function useChat(): UseChatReturn {
   // Pagination state
   const roomsPage = ref(1);
   const messagesPage = ref(1);
+  // Separate guard for "load more" appends so we don't block on loadingRooms
+  let fetchingMoreRooms = false;
 
   // Computed
   const filteredRooms = computed(() => {
@@ -127,16 +129,25 @@ export function useChat(): UseChatReturn {
   }
 
   async function fetchRooms(reset = false): Promise<void> {
-    if (loadingRooms.value) return;
+    // Prevent concurrent fetches — use separate guards for reset vs. append
+    if (reset && loadingRooms.value) return;
+    if (!reset && fetchingMoreRooms) return;
 
     try {
-      loadingRooms.value = true;
       error.value = null;
 
       if (reset) {
+        // Only set loadingRooms for initial/reset fetches.
+        // This is critical because upstream RoomsList wraps its entire list
+        // in v-if="!loadingRooms" — setting it true destroys the DOM and
+        // kills scroll position. ChatWindow also clears the current room
+        // when loadingRooms becomes true.
+        loadingRooms.value = true;
         roomsPage.value = 1;
         rooms.value = [];
         roomsLoaded.value = false;
+      } else {
+        fetchingMoreRooms = true;
       }
 
       const response = await getRooms({
@@ -164,6 +175,7 @@ export function useChat(): UseChatReturn {
       console.error('Failed to fetch rooms:', err);
     } finally {
       loadingRooms.value = false;
+      fetchingMoreRooms = false;
     }
   }
 
