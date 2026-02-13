@@ -4,9 +4,23 @@
 import { defineConfig } from 'vite';
 import vue from '@vitejs/plugin-vue';
 import path from 'path';
+import Icons from 'unplugin-icons/vite';
 
 export default defineConfig({
-  plugins: [vue()],
+  plugins: [
+    vue({
+      template: {
+        compilerOptions: {
+          // Treat vue-advanced-chat and emoji-picker as custom elements (web components)
+          isCustomElement: (tag: string) =>
+            tag === 'vue-advanced-chat' || tag === 'emoji-picker',
+        },
+      },
+    }),
+    Icons({
+      compiler: 'vue3',
+    }),
+  ],
   build: {
     // Use rollupOptions for more control over output
     rollupOptions: {
@@ -45,6 +59,6 @@ export default defineConfig({
     __VUE_PROD_HYDRATION_MISMATCH_DETAILS__: false,
   },
   optimizeDeps: {
-    include: ['vue', 'vue-advanced-chat'],
+    include: ['vue', 'vue-advanced-chat', 'frappe-ui'],
   },
 });

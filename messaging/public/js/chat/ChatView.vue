@@ -36,12 +36,12 @@
 			:room-id="currentRoomId"
 			:show-search="true"
 			:show-add-room="false"
-			:show-files="true"
+			:show-files="false"
 			:show-audio="false"
-			:show-emojis="true"
+			:show-emojis="false"
 			:show-reaction-emojis="false"
 			:show-new-messages-divider="true"
-			:show-footer="true"
+			:show-footer="false"
 			:text-messages="textMessagesJson"
 			:room-info-enabled="true"
 			:menu-actions="menuActionsJson"
@@ -60,6 +60,17 @@
 		>
 			<!-- Note: Slots don't work well with Web Components, using default rendering -->
 		</vue-advanced-chat>
+
+		<!-- Custom footer with frappe-ui TextEditor -->
+		<ChatFooter
+			:room-id="currentRoomId"
+			:reply-message="replyToMessage"
+			:is-dark="isDarkMode"
+			:placeholder="textMessages.TYPE_MESSAGE"
+			@send-message="onSendMessage"
+			@clear-reply="replyToMessage = null"
+			@typing="onTypingMessage({ roomId: currentRoomId, message: $event })"
+		/>
 
 		<!-- Side panel for Communication details -->
 		<Teleport to="body">
@@ -154,10 +165,12 @@ import {
 import { register } from "vue-advanced-chat";
 import { useChat } from "./useChat";
 import ContactPanel from "./ContactPanel.vue";
+import ChatFooter from "./ChatFooter.vue";
 
 import type {
 	Room,
 	Message,
+	ReplyMessage,
 	FetchMessagesEvent,
 	SendMessageEvent,
 	CustomAction,
@@ -184,6 +197,7 @@ export default defineComponent({
 	name: "ChatView",
 	components: {
 		ContactPanel,
+		ChatFooter,
 	},
 
 	props: {
@@ -233,8 +247,11 @@ export default defineComponent({
 		const isDarkMode = ref(false);
 		const theme = computed(() => (isDarkMode.value ? "dark" : "light"));
 
-		// Chat height (responsive)
-		const chatHeight = ref("calc(100vh - 46px)");
+		// Chat height (responsive) - reduced to make room for custom ChatFooter
+		const chatHeight = ref("calc(100vh - 170px)");
+
+		// Reply-to-message state (for custom footer)
+		const replyToMessage = ref<ReplyMessage | null>(null);
 
 		// Current user ID
 		const currentUserId = computed(() => currentUser.value?._id ?? "");
@@ -263,9 +280,10 @@ export default defineComponent({
 			{ name: "deleteRoom", title: __("Delete Conversation") },
 		];
 
-		// Message actions - include built-in 'replyMessage' for native reply support
+		// Message actions - use 'reply' (not 'replyMessage') so the event
+		// propagates out of the vue-advanced-chat web component to our custom footer
 		const messageActions: MessageAction[] = [
-			{ name: "replyMessage", title: __("Reply") },
+			{ name: "reply", title: __("Reply") },
 			{ name: "viewDetails", title: __("View Details") },
 			{ name: "openCommunication", title: __("Open Communication") },
 		];
@@ -377,9 +395,12 @@ export default defineComponent({
 		}
 
 		function onSendMessage(data: SendMessageEvent): void {
+			// Called by ChatFooter (or vue-advanced-chat if footer were enabled)
 			// data.replyMessage contains the message being replied to (if any)
 			// The _id of replyMessage is the Communication document name
 			handleSendMessage(data);
+			// Clear reply state after sending
+			replyToMessage.value = null;
 		}
 
 		function onRoomInfo(room: Room): void {
@@ -531,9 +552,17 @@ export default defineComponent({
 			if (!data?.action) return;
 
 			switch (data.action.name) {
-				case "replyMessage":
-					// This is handled automatically by vue-advanced-chat
-					// The reply will be included in the send-message event
+				case "reply":
+					// Store for our custom ChatFooter
+					replyToMessage.value = {
+						_id: data.message._id,
+						content: data.message.content || "",
+						senderId: data.message.senderId,
+						files: data.message.files,
+					} as ReplyMessage & { username?: string };
+					// Attach display name for preview
+					(replyToMessage.value as ReplyMessage & { username?: string }).username =
+						data.message.username || data.message.senderId;
 					break;
 				case "viewDetails":
 					selectedMessage.value = data.message;
@@ -783,6 +812,7 @@ export default defineComponent({
 			menuActions,
 			messageActions,
 			customStyles,
+			replyToMessage,
 
 			// JSON stringified props for Web Component
 			roomsJson,

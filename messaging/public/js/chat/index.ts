@@ -16,6 +16,7 @@ export * from './bundle';
 
 // Also export component parts for potential reuse
 export { default as ChatViewComponent } from './ChatView.vue';
+export { default as ChatFooterComponent } from './ChatFooter.vue';
 export { useChat } from './useChat';
 export * from './types';
 export * as api from './api';
