@@ -11,9 +11,9 @@ export default defineConfig({
     vue({
       template: {
         compilerOptions: {
-          // Treat vue-advanced-chat and emoji-picker as custom elements (web components)
-          isCustomElement: (tag: string) =>
-            tag === 'vue-advanced-chat' || tag === 'emoji-picker',
+          // emoji-picker is a web component from emoji-picker-element
+          // (used internally by vue-advanced-chat's RoomFooter, still mounted but hidden)
+          isCustomElement: (tag: string) => tag === 'emoji-picker',
         },
       },
     }),
@@ -47,8 +47,12 @@ export default defineConfig({
     manifest: true,
   },
   resolve: {
+    // Add .vue to resolvable extensions for vendor source imports (upstream omits extensions)
+    extensions: ['.mjs', '.js', '.mts', '.ts', '.jsx', '.tsx', '.json', '.vue'],
     alias: {
       '@': path.resolve(__dirname, 'messaging/public/js'),
+      // Import vue-advanced-chat sub-components directly from vendor submodule source
+      '@vendor-chat': path.resolve(__dirname, 'vendor/vue-advanced-chat/src'),
       vue: 'vue/dist/vue.esm-bundler.js',
     },
   },
@@ -58,7 +62,15 @@ export default defineConfig({
     __VUE_PROD_DEVTOOLS__: false,
     __VUE_PROD_HYDRATION_MISMATCH_DETAILS__: false,
   },
+  css: {
+    preprocessorOptions: {
+      scss: {
+        // Suppress Sass @import deprecation warnings from upstream vue-advanced-chat SCSS
+        silenceDeprecations: ['import'],
+      },
+    },
+  },
   optimizeDeps: {
-    include: ['vue', 'vue-advanced-chat', 'frappe-ui'],
+    include: ['vue', 'frappe-ui'],
   },
 });

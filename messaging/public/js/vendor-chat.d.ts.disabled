@@ -1,0 +1,51 @@
+/**
+ * Type declarations for the vue-advanced-chat vendor submodule
+ * imported via the @vendor-chat Vite alias.
+ */
+
+// Wildcard: any .vue file under @vendor-chat resolves to a Vue component
+declare module '@vendor-chat/lib/ChatWindow.vue' {
+  import { DefineComponent } from 'vue'
+  const component: DefineComponent<any, any, any>
+  export default component
+}
+
+declare module '@vendor-chat/lib/RoomsList/RoomsList' {
+  import { DefineComponent } from 'vue'
+  const component: DefineComponent<any, any, any>
+  export default component
+}
+
+declare module '@vendor-chat/lib/Room/Room' {
+  import { DefineComponent } from 'vue'
+  const component: DefineComponent<any, any, any>
+  export default component
+}
+
+declare module '@vendor-chat/lib/MediaPreview/MediaPreview' {
+  import { DefineComponent } from 'vue'
+  const component: DefineComponent<any, any, any>
+  export default component
+}
+
+declare module '@vendor-chat/locales' {
+  const locales: Record<string, string>
+  export default locales
+}
+
+declare module '@vendor-chat/themes' {
+  export const defaultThemeStyles: Record<string, Record<string, Record<string, string>>>
+  export function cssThemeVars(
+    themeStyles: Record<string, any>
+  ): Record<string, string>
+}
+
+declare module '@vendor-chat/utils/data-validation' {
+  export function roomsValidation(room: any): void
+  export function partcipantsValidation(user: any): void
+}
+
+declare module '@vendor-chat/styles/index.scss' {
+  const content: string
+  export default content
+}

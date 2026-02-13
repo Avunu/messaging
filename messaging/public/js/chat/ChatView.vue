@@ -22,56 +22,38 @@
 			</div>
 		</div>
 
-		<!-- Main chat component -->
-		<!-- Note: vue-advanced-chat is a Web Component, so events come via CustomEvent with data in detail[0] -->
-		<vue-advanced-chat
-			ref="chatWindowRef"
-			:height="chatHeight"
+		<!-- Main chat layout: composes upstream RoomsList + Room with our custom TextEditor footer -->
+		<ChatWindow
+			class="chat-window"
 			:current-user-id="currentUserId"
-			:rooms="roomsJson"
+			:rooms="rooms"
 			:rooms-loaded="roomsLoaded"
 			:loading-rooms="loadingRooms"
-			:messages="messagesJson"
+			:messages="messages"
 			:messages-loaded="messagesLoaded"
 			:room-id="currentRoomId"
 			:show-search="true"
 			:show-add-room="false"
-			:show-files="false"
-			:show-audio="false"
-			:show-emojis="false"
 			:show-reaction-emojis="false"
 			:show-new-messages-divider="true"
-			:show-footer="false"
-			:text-messages="textMessagesJson"
+			:text-messages="textMessages"
 			:room-info-enabled="true"
-			:menu-actions="menuActionsJson"
-			:message-actions="messageActionsJson"
+			:menu-actions="menuActions"
+			:message-actions="messageActions"
 			:theme="theme"
-			:styles="customStylesJson"
-			@fetch-messages="onFetchMessagesRaw"
-			@send-message="onSendMessage($event.detail[0])"
-			@room-info="onRoomInfo($event.detail[0])"
-			@menu-action-handler="onMenuAction($event.detail[0])"
-			@message-action-handler="onMessageAction($event.detail[0])"
-			@search-room="onSearchRoom($event.detail[0])"
-			@fetch-more-rooms="onFetchMoreRooms"
-			@open-file="onOpenFile($event.detail[0])"
-			@typing-message="onTypingMessage($event.detail[0])"
-		>
-			<!-- Note: Slots don't work well with Web Components, using default rendering -->
-		</vue-advanced-chat>
-
-		<!-- Custom footer with frappe-ui TextEditor -->
-		<ChatFooter
-			:room-id="currentRoomId"
+			:styles="customStyles"
 			:reply-message="replyToMessage"
-			:is-dark="isDarkMode"
-			:placeholder="textMessages.TYPE_MESSAGE"
+			:custom-search-room-enabled="true"
+			@fetch-messages="onFetchMessages"
 			@send-message="onSendMessage"
+			@room-info="onRoomInfo"
+			@menu-action-handler="onMenuAction"
+			@message-action-handler="onMessageAction"
+			@search-room="onSearchRoom"
+			@fetch-more-rooms="onFetchMoreRooms"
+			@open-file="onOpenFile"
+			@typing-message="onTypingMessage"
 			@clear-reply="replyToMessage = null"
-			@typing="
-				onTypingMessage({ roomId: currentRoomId, message: $event })
-			"
 		/>
 
 		<!-- Side panel for Communication details -->
@@ -156,18 +138,10 @@
 </template>
 
 <script lang="ts">
-import {
-	defineComponent,
-	ref,
-	computed,
-	onMounted,
-	watch,
-	nextTick,
-} from "vue";
-import { register } from "vue-advanced-chat";
+import { defineComponent, ref, computed, onMounted } from "vue";
 import { useChat } from "./useChat";
 import ContactPanel from "./ContactPanel.vue";
-import ChatFooter from "./ChatFooter.vue";
+import ChatWindow from "./ChatWindow.vue";
 
 import type {
 	Room,
@@ -179,9 +153,6 @@ import type {
 	MessageAction,
 	CommunicationMedium,
 } from "./types";
-
-// Register vue-advanced-chat as custom element
-register();
 
 // Frappe globals
 declare const frappe: {
@@ -199,7 +170,7 @@ export default defineComponent({
 	name: "ChatView",
 	components: {
 		ContactPanel,
-		ChatFooter,
+		ChatWindow,
 	},
 
 	props: {
@@ -249,10 +220,7 @@ export default defineComponent({
 		const isDarkMode = ref(false);
 		const theme = computed(() => (isDarkMode.value ? "dark" : "light"));
 
-		// Chat height (responsive) - reduced to make room for custom ChatFooter
-		const chatHeight = ref("calc(100vh - 170px)");
-
-		// Reply-to-message state (for custom footer)
+		// Reply-to-message state (managed here, passed to ChatWindow)
 		const replyToMessage = ref<ReplyMessage | null>(null);
 
 		// Current user ID
@@ -367,37 +335,15 @@ export default defineComponent({
 			},
 		}));
 
-		// JSON stringified versions for Web Component props
-		// vue-advanced-chat uses defineCustomElement, which requires object props to be JSON strings
-		const roomsJson = computed(() => JSON.stringify(rooms.value));
-		const messagesJson = computed(() => JSON.stringify(messages.value));
-		const textMessagesJson = computed(() =>
-			JSON.stringify(textMessages.value),
-		);
-		const menuActionsJson = computed(() => JSON.stringify(menuActions));
-		const messageActionsJson = computed(() =>
-			JSON.stringify(messageActions),
-		);
-		const customStylesJson = computed(() =>
-			JSON.stringify(customStyles.value),
-		);
-
-		// Ref for the chat window element
-		const chatWindowRef = ref<HTMLElement | null>(null);
-
 		// Event handlers
-		// Note: When used as Web Component, events are CustomEvents with data in detail[0]
-		function onFetchMessagesRaw(event: Event): void {
-			if (event instanceof CustomEvent) {
-				const data = event.detail?.[0] as FetchMessagesEvent;
-				if (data?.room) {
-					fetchMessages(data);
-				}
+
+		function onFetchMessages(data: FetchMessagesEvent): void {
+			if (data?.room) {
+				fetchMessages(data);
 			}
 		}
 
 		function onSendMessage(data: SendMessageEvent): void {
-			// Called by ChatFooter (or vue-advanced-chat if footer were enabled)
 			// data.replyMessage contains the message being replied to (if any)
 			// The _id of replyMessage is the Communication document name
 			handleSendMessage(data);
@@ -590,40 +536,8 @@ export default defineComponent({
 			}
 		}
 
-		// Track scroll position for preservation during room list updates
-		let savedRoomsScrollTop = 0;
-
-		function saveRoomsScrollPosition(): void {
-			const chatEl = chatWindowRef.value;
-			if (!chatEl) return;
-
-			// Access the shadow DOM to find the rooms list
-			const shadowRoot = chatEl.shadowRoot;
-			if (!shadowRoot) return;
-
-			const roomsList = shadowRoot.querySelector("#rooms-list");
-			if (roomsList) {
-				savedRoomsScrollTop = roomsList.scrollTop;
-			}
-		}
-
-		function restoreRoomsScrollPosition(): void {
-			const chatEl = chatWindowRef.value;
-			if (!chatEl || savedRoomsScrollTop === 0) return;
-
-			const shadowRoot = chatEl.shadowRoot;
-			if (!shadowRoot) return;
-
-			const roomsList = shadowRoot.querySelector("#rooms-list");
-			if (roomsList) {
-				roomsList.scrollTop = savedRoomsScrollTop;
-			}
-		}
-
 		function onFetchMoreRooms(): void {
 			if (!roomsLoaded.value && !loadingRooms.value) {
-				// Save scroll position before fetching more rooms
-				saveRoomsScrollPosition();
 				fetchRooms(false);
 			}
 		}
@@ -709,49 +623,6 @@ export default defineComponent({
 			}
 		}
 
-		/**
-		 * Prevent Frappe global keyboard shortcuts from firing while typing
-		 * inside the vue-advanced-chat Web Component.
-		 *
-		 * Because vue-advanced-chat uses Shadow DOM, document.activeElement
-		 * returns the <vue-advanced-chat> host element (not the inner
-		 * textarea/input), so Frappe's is_input_focused guard fails.
-		 * We intercept keydown on the host and stop propagation when focus
-		 * is on an input-like element inside the shadow tree.
-		 *
-		 * Modifier combos that Frappe needs globally (ctrl+s, ctrl+k, etc.)
-		 * are allowed through so they keep working.
-		 */
-		function setupKeyboardGuard(): void {
-			const chatEl = chatWindowRef.value;
-			if (!chatEl) return;
-
-			chatEl.addEventListener("keydown", (e: KeyboardEvent) => {
-				// Always let through global Frappe combos with Ctrl/Meta
-				if (e.ctrlKey || e.metaKey) return;
-
-				// Walk the Shadow DOM activeElement chain to find the real focused element
-				let active: Element | null = document.activeElement;
-				while (active?.shadowRoot?.activeElement) {
-					active = active.shadowRoot.activeElement;
-				}
-
-				if (!active) return;
-
-				const tag = active.tagName?.toLowerCase() ?? "";
-				const isEditable =
-					tag === "input" ||
-					tag === "textarea" ||
-					tag === "select" ||
-					active.getAttribute("contenteditable") === "true";
-
-				if (isEditable) {
-					// Stop the event from reaching the global $(window).on('keydown') handler
-					e.stopPropagation();
-				}
-			});
-		}
-
 		// Lifecycle
 		onMounted(async () => {
 			updateTheme();
@@ -766,9 +637,6 @@ export default defineComponent({
 			// Initialize chat
 			await initialize();
 
-			// Set up keyboard guard after the Web Component is in the DOM
-			nextTick(() => setupKeyboardGuard());
-
 			// Open initial room if provided
 			if (props.initialRoomId) {
 				const room = rooms.value.find(
@@ -779,20 +647,6 @@ export default defineComponent({
 				}
 			}
 		});
-
-		// Watch for rooms changes and restore scroll position after updates
-		watch(
-			() => rooms.value.length,
-			(newLen, oldLen) => {
-				// Only restore scroll when rooms were appended (not reset)
-				if (newLen > oldLen && oldLen > 0 && savedRoomsScrollTop > 0) {
-					nextTick(() => {
-						// Small delay to ensure DOM has updated
-						setTimeout(restoreRoomsScrollPosition, 50);
-					});
-				}
-			},
-		);
 
 		return {
 			// State
@@ -812,26 +666,14 @@ export default defineComponent({
 			selectedContactRoom,
 			isDarkMode,
 			theme,
-			chatHeight,
 			textMessages,
 			menuActions,
 			messageActions,
 			customStyles,
 			replyToMessage,
 
-			// JSON stringified props for Web Component
-			roomsJson,
-			messagesJson,
-			textMessagesJson,
-			menuActionsJson,
-			messageActionsJson,
-			customStylesJson,
-
-			// Refs
-			chatWindowRef,
-
 			// Methods
-			onFetchMessagesRaw,
+			onFetchMessages,
 			onSendMessage,
 			onRoomInfo,
 			onMenuAction,
@@ -862,6 +704,13 @@ export default defineComponent({
 	display: flex;
 	flex-direction: column;
 	background: var(--bg-color, #fff);
+}
+
+/* ChatWindow fills remaining space below toolbar */
+.chat-window {
+	flex: 1;
+	min-height: 0;
+	overflow: hidden;
 }
 
 .chat-dark {
