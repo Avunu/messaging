@@ -119,15 +119,59 @@ def get_rooms(
 		base_query = base_query.where(Communication.communication_medium == medium)
 
 	if search:
-		search_pattern = f"%{search}%"
-		base_query = base_query.where(
-			(Communication.subject.like(search_pattern))
-			| (Communication.content.like(search_pattern))
-			| (Communication.sender.like(search_pattern))
-			| (Communication.sender_full_name.like(search_pattern))
-			| (Communication.recipients.like(search_pattern))
-			| (Communication.phone_no.like(search_pattern))
-		)
+		# Fuzzy search: split query into tokens and require each token to
+		# match at least one searchable field.  This means "john smith" will
+		# match a communication where subject contains "john" AND sender
+		# contains "smith", giving a much more flexible search experience.
+		tokens = [t.strip() for t in search.split() if t.strip()]
+
+		if tokens:
+			# Also look up Contact names linked to Communication via Dynamic Link
+			contact_senders: set[str] = set()
+			try:
+				Contact = DocType("Contact")
+				contact_query = frappe.qb.from_(Contact).select(Contact.email_id, Contact.name).distinct()
+				# Each token must appear somewhere in the contact name or email
+				for token in tokens:
+					tp = f"%{token}%"
+					contact_query = contact_query.where(
+						(Contact.name.like(tp))
+						| (Contact.first_name.like(tp))
+						| (Contact.last_name.like(tp))
+						| (Contact.full_name.like(tp))
+						| (Contact.email_id.like(tp))
+						| (Contact.company_name.like(tp))
+					)
+				contact_results = contact_query.run(as_dict=True)
+				for c in contact_results:
+					if c.get("email_id"):
+						contact_senders.add(c["email_id"])
+			except Exception:
+				# If Contact doctype doesn't exist or query fails, skip
+				pass
+
+			for token in tokens:
+				tp = f"%{token}%"
+				token_conditions = (
+					(Communication.subject.like(tp))
+					| (Communication.content.like(tp))
+					| (Communication.text_content.like(tp))
+					| (Communication.sender.like(tp))
+					| (Communication.sender_full_name.like(tp))
+					| (Communication.recipients.like(tp))
+					| (Communication.phone_no.like(tp))
+				)
+
+				# If any contacts matched, also include communications from
+				# those senders so that searching by contact name works
+				if contact_senders:
+					sender_conditions = [Communication.sender.like(f"%{s}%") for s in contact_senders]
+					sender_criterion = sender_conditions[0]
+					for sc in sender_conditions[1:]:
+						sender_criterion = sender_criterion | sc
+					token_conditions = token_conditions | sender_criterion
+
+				base_query = base_query.where(token_conditions)
 
 	all_comms = base_query.run(as_dict=True)
 

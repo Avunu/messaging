@@ -93,12 +93,27 @@ export function useChat(): UseChatReturn {
     let filtered = rooms.value;
 
     if (searchQuery.value) {
-      const query = searchQuery.value.toLowerCase();
-      filtered = filtered.filter(
-        (room) =>
-          room.roomName.toLowerCase().includes(query) ||
-          room.lastMessage?.content?.toLowerCase().includes(query)
-      );
+      // Fuzzy local filter: split query into tokens, each token must match
+      // at least one searchable field on the room
+      const tokens = searchQuery.value
+        .toLowerCase()
+        .split(/\s+/)
+        .filter((t) => t.length > 0);
+
+      if (tokens.length > 0) {
+        filtered = filtered.filter((room) => {
+          const haystack = [
+            room.roomName,
+            room.lastMessage?.content,
+            room.roomId,
+          ]
+            .filter(Boolean)
+            .join(' ')
+            .toLowerCase();
+
+          return tokens.every((token) => haystack.includes(token));
+        });
+      }
     }
 
     if (mediumFilter.value !== 'All') {
@@ -343,9 +358,38 @@ export function useChat(): UseChatReturn {
   watch(searchQuery, () => {
     if (searchTimeout) clearTimeout(searchTimeout);
     searchTimeout = setTimeout(() => {
-      fetchRooms(true);
+      // Don't use reset=true for search-triggered fetches because that
+      // sets loadingRooms=true, which destroys/hides the rooms list DOM
+      // (including the search input). Instead, fetch quietly and swap.
+      fetchRoomsQuiet();
     }, 300);
   });
+
+  /**
+   * Fetch rooms without setting loadingRooms, so the DOM (search bar,
+   * room list) stays intact. Replaces the rooms array in-place.
+   */
+  async function fetchRoomsQuiet(): Promise<void> {
+    try {
+      error.value = null;
+      roomsPage.value = 1;
+
+      const response = await getRooms({
+        page: roomsPage.value,
+        limit: 20,
+        search: searchQuery.value,
+        medium: mediumFilter.value,
+      });
+
+      rooms.value = response.rooms;
+      roomsLoaded.value = !response.hasMore;
+      roomsPage.value++;
+    } catch (err) {
+      error.value =
+        err instanceof Error ? err.message : 'Failed to fetch rooms';
+      console.error('Failed to fetch rooms:', err);
+    }
+  }
 
   // Realtime listeners for new messages
   function setupRealtimeListeners(): void {
