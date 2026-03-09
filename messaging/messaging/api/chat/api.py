@@ -234,7 +234,7 @@ def notify_new_communication(doc: Any, method: str | None = None) -> None:
 			content=doc.text_content or doc.content or "",
 			medium=doc.communication_medium,
 			subject=doc.subject,
-			now=frappe.flags.in_test,
+			now=getattr(frappe.flags, "in_test", False),
 		)
 
 
