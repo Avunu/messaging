@@ -67,6 +67,7 @@ class GroupTextMessage(Document):
 
 	@frappe.whitelist()
 	def send_text_message(self):
+		assert isinstance(self.name, str), "Expected self.name to be a string"
 		try:
 			# get the messaging group
 			messaging_groups = [group.messaging_group for group in self.messaging_group]
@@ -121,7 +122,4 @@ class GroupTextMessage(Document):
 		except Exception as e:
 			frappe.log_error(title="Error sending group text message", message=str(e))
 			self.add_comment("Bot", f"Error sending message: {e}")
-			self.status = "Error"
-			self.save()
-			frappe.db.commit()
-			return
+			frappe.db.set_value("Group Text Message", self.name, "status", "Error")
