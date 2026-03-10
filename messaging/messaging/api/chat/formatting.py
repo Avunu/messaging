@@ -23,10 +23,10 @@ def strip_quoted_replies(content: str) -> str:
 	5. Email signature separators
 
 	Args:
-	    content: Raw email content (plain text)
+		content: Raw email content (plain text)
 
 	Returns:
-	    Content with quoted replies stripped
+		Content with quoted replies stripped
 	"""
 	if not content:
 		return content
@@ -111,10 +111,10 @@ def html_to_plain_text(html_content: str) -> str:
 	Convert HTML content to plain text, preserving line breaks.
 
 	Args:
-	    html_content: HTML string
+		html_content: HTML string
 
 	Returns:
-	    Plain text with newlines preserved
+		Plain text with newlines preserved
 	"""
 	if not html_content:
 		return ""
@@ -136,10 +136,10 @@ def plain_text_to_html(text: str) -> str:
 	Convert plain text to simple HTML, converting newlines to <br>.
 
 	Args:
-	    text: Plain text string
+		text: Plain text string
 
 	Returns:
-	    HTML string with <br> tags
+		HTML string with <br> tags
 	"""
 	if not text:
 		return ""
@@ -156,13 +156,13 @@ def build_quoted_reply(
 	Build email content with a quoted reply block.
 
 	Args:
-	    content: The new message content
-	    reply_content: The content being replied to
-	    reply_sender: The sender of the original message
-	    reply_date_str: Formatted date string
+		content: The new message content
+		reply_content: The content being replied to
+		reply_sender: The sender of the original message
+		reply_date_str: Formatted date string
 
 	Returns:
-	    Full email content with quoted reply at bottom
+		Full email content with quoted reply at bottom
 	"""
 	# Strip HTML from quoted content
 	quoted_text = reply_content

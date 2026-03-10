@@ -7,7 +7,6 @@ API endpoints for fetching linked documents.
 from typing import Any
 
 import frappe
-from frappe import _
 from frappe.query_builder import DocType, Order
 
 
@@ -19,11 +18,11 @@ def get_linked_documents(doctype: str, docname: str) -> dict[str, list[dict[str,
 	Uses the DocType Link configuration to find linked documents.
 
 	Args:
-	    doctype: The doctype of the document (e.g., "Contact")
-	    docname: The name of the document
+		doctype: The doctype of the document (e.g., "Contact")
+		docname: The name of the document
 
 	Returns:
-	    Dictionary grouped by group name, containing lists of linked documents
+		Dictionary grouped by group name, containing lists of linked documents
 	"""
 	if not doctype or not docname:
 		return {}

@@ -107,7 +107,7 @@
  ],
  "is_submittable": 1,
  "links": [],
- "modified": "2026-03-10 13:11:17.076453",
+ "modified": "2026-03-10 15:41:13.834386",
  "modified_by": "kevin@avu.nu",
  "module": "Messaging",
  "name": "Group Text Message",
@@ -178,6 +178,10 @@
   {
    "color": "Blue",
    "title": "Scheduled"
+  },
+  {
+   "color": "Red",
+   "title": "Error"
   }
  ],
  "title_field": "message_title",

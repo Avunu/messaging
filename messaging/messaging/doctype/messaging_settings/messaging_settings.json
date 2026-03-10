@@ -8,6 +8,7 @@
   "contact_settings_section",
   "all_contacts_group",
   "twilio_settings_section",
+  "send_via_twilio",
   "enable_number_validation",
   "twilio_account_sid",
   "twilio_auth_token",
@@ -91,12 +92,18 @@
    "fieldname": "generate_vapid_keys_btn",
    "fieldtype": "Button",
    "label": "Generate VAPID Keys"
+  },
+  {
+   "default": "0",
+   "fieldname": "send_via_twilio",
+   "fieldtype": "Check",
+   "label": "Send via Twilio"
   }
  ],
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2026-02-11 10:54:53.680983",
+ "modified": "2026-03-10 16:02:12.411234",
  "modified_by": "kevin@avu.nu",
  "module": "Messaging",
  "name": "Messaging Settings",

@@ -33,6 +33,7 @@ extend_doctype_class = {
 	"Newsletter": "messaging.messaging.custom.newsletter.Newsletter",
 }
 required_apps = ["newsletter"]
+send_sms = ["messaging.messaging.api.twilio_sms.send_sms"]
 scheduler_events = {
 	"all": [
 		"messaging.messaging.doctype.group_text_message.send_scheduled_messages",

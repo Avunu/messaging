@@ -42,7 +42,7 @@ def get_current_user() -> CurrentUser:
 	Get information about the currently logged-in user.
 
 	Returns:
-	    CurrentUser dict with user details for vue-advanced-chat
+		CurrentUser dict with user details for vue-advanced-chat
 	"""
 	return _get_current_user()
 
@@ -58,13 +58,13 @@ def get_rooms(
 	Get list of chat rooms (conversation threads).
 
 	Args:
-	    page: Page number for pagination (1-indexed)
-	    limit: Number of rooms per page
-	    search: Search query for filtering rooms
-	    medium: Filter by communication medium (Email, SMS, All)
+		page: Page number for pagination (1-indexed)
+		limit: Number of rooms per page
+		search: Search query for filtering rooms
+		medium: Filter by communication medium (Email, SMS, All)
 
 	Returns:
-	    RoomsResponse with list of rooms and pagination info
+		RoomsResponse with list of rooms and pagination info
 	"""
 	return _get_rooms(page=page, limit=limit, search=search, medium=medium)
 
@@ -80,13 +80,13 @@ def get_messages(
 	Get messages for a specific room (conversation thread).
 
 	Args:
-	    room_id: The room identifier (format: medium:identifier)
-	    page: Page number for pagination (1-indexed)
-	    limit: Number of messages per page
-	    before_id: Get messages before this message ID (for infinite scroll)
+		room_id: The room identifier (format: medium:identifier)
+		page: Page number for pagination (1-indexed)
+		limit: Number of messages per page
+		before_id: Get messages before this message ID (for infinite scroll)
 
 	Returns:
-	    MessagesResponse with list of messages and pagination info
+		MessagesResponse with list of messages and pagination info
 	"""
 	return _get_messages(room_id=room_id, page=page, limit=limit, before_id=before_id)
 
@@ -103,14 +103,14 @@ def send_message(
 	Send a new message in a conversation.
 
 	Args:
-	    room_id: The room identifier
-	    content: Message content
-	    files: List of file attachments (JSON string or list)
-	    reply_message_id: Communication name of message being replied to
-	    subject: Email subject (optional, auto-generated if empty)
+		room_id: The room identifier
+		content: Message content
+		files: List of file attachments (JSON string or list)
+		reply_message_id: Communication name of message being replied to
+		subject: Email subject (optional, auto-generated if empty)
 
 	Returns:
-	    SendMessageResponse with the created message or error
+		SendMessageResponse with the created message or error
 	"""
 	return _send_message(
 		room_id=room_id,
@@ -127,10 +127,10 @@ def mark_messages_seen(room_id: str) -> MarkSeenResponse:
 	Mark all messages in a room as seen.
 
 	Args:
-	    room_id: The room identifier
+		room_id: The room identifier
 
 	Returns:
-	    MarkSeenResponse with success status and count of updated messages
+		MarkSeenResponse with success status and count of updated messages
 	"""
 	return _mark_messages_seen(room_id=room_id)
 
@@ -141,11 +141,11 @@ def search_rooms(query: str, limit: int = 10) -> list[Room]:
 	Search for rooms matching a query.
 
 	Args:
-	    query: Search string
-	    limit: Maximum results to return
+		query: Search string
+		limit: Maximum results to return
 
 	Returns:
-	    List of matching Room objects
+		List of matching Room objects
 	"""
 	return _get_rooms(page=1, limit=limit, search=query)["rooms"]
 
@@ -156,7 +156,7 @@ def get_unread_count() -> int:
 	Get total count of unread messages across all rooms.
 
 	Returns:
-	    Total unread message count
+		Total unread message count
 	"""
 	return _get_unread_count()
 
@@ -167,10 +167,10 @@ def archive_room(room_id: str) -> RoomActionResponse:
 	Archive all messages in a room by setting status to 'Closed'.
 
 	Args:
-	    room_id: The room identifier
+		room_id: The room identifier
 
 	Returns:
-	    RoomActionResponse with success status and count of updated messages
+		RoomActionResponse with success status and count of updated messages
 	"""
 	return _archive_room(room_id=room_id)
 
@@ -181,10 +181,10 @@ def delete_room(room_id: str) -> RoomActionResponse:
 	Delete all messages in a room (moves to trash).
 
 	Args:
-	    room_id: The room identifier
+		room_id: The room identifier
 
 	Returns:
-	    RoomActionResponse with success status and count of deleted messages
+		RoomActionResponse with success status and count of deleted messages
 	"""
 	return _delete_room(room_id=room_id)
 
@@ -199,8 +199,8 @@ def notify_new_communication(doc: Any, method: str | None = None) -> None:
 	Also handles SMS opt-out requests when a user texts "STOP".
 
 	Args:
-	    doc: The Communication document
-	    method: The hook method name (unused)
+		doc: The Communication document
+		method: The hook method name (unused)
 	"""
 	if doc.communication_type != "Communication":
 		return
@@ -251,12 +251,12 @@ def _send_push_for_received(
 	when a new message is received.
 
 	Args:
-	    doc_name: Communication document name
-	    sender: Sender identifier (email or phone)
-	    phone_no: Phone number (for SMS/Phone)
-	    content: Message content
-	    medium: Communication medium (Email, SMS, etc.)
-	    subject: Email subject line
+		doc_name: Communication document name
+		sender: Sender identifier (email or phone)
+		phone_no: Phone number (for SMS/Phone)
+		content: Message content
+		medium: Communication medium (Email, SMS, etc.)
+		subject: Email subject line
 	"""
 	# Determine sender display name via Contact lookup
 	from messaging.messaging.api.chat.helpers import get_contact_from_identifier
@@ -318,7 +318,7 @@ def _handle_sms_opt_out(doc: Any) -> None:
 	field for the contact associated with the phone number and send a confirmation.
 
 	Args:
-	    doc: The Communication document
+		doc: The Communication document
 	"""
 	# Get message content and check if it's a stop request
 	content = (doc.text_content or doc.content or "").strip().lower()
@@ -353,6 +353,7 @@ def _handle_sms_opt_out(doc: Any) -> None:
 
 	# Update consent_sms for all matching contacts
 	for contact in contacts:
+		frappe.db.set_value("Contact", contact["name"], "consent_sms", 0)
 		frappe.db.set_value("Contact", contact["name"], "unsubscribed", 1)
 		frappe.log_error(
 			f"SMS opt-out processed for contact {contact['name']} (phone: {phone_no})",
@@ -371,7 +372,7 @@ def _send_opt_out_confirmation(phone_no: str) -> None:
 	Send SMS confirmation that the user has been removed from the broadcast list.
 
 	Args:
-	    phone_no: The phone number to send confirmation to
+		phone_no: The phone number to send confirmation to
 	"""
 	confirmation_message = "You have been removed from our broadcast list."
 

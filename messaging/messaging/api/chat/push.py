@@ -29,7 +29,7 @@ def get_vapid_public_key() -> str:
 	a new pair is generated automatically.
 
 	Returns:
-	    The VAPID public key (base64url-encoded).
+		The VAPID public key (base64url-encoded).
 	"""
 	settings = cast(MessagingSettings, frappe.get_single("Messaging Settings"))
 
@@ -47,10 +47,10 @@ def save_push_subscription(subscription: str) -> dict:
 	Save or update a push subscription for the current user.
 
 	Args:
-	    subscription: JSON-encoded PushSubscription from the browser.
+		subscription: JSON-encoded PushSubscription from the browser.
 
 	Returns:
-	    Success status dict.
+		Success status dict.
 	"""
 	user = frappe.session.user
 	if user == "Guest":
@@ -98,10 +98,10 @@ def remove_push_subscription(endpoint: str) -> dict:
 	Remove a push subscription (e.g. user revoked permission).
 
 	Args:
-	    endpoint: The push subscription endpoint URL.
+		endpoint: The push subscription endpoint URL.
 
 	Returns:
-	    Success status dict.
+		Success status dict.
 	"""
 	user = frappe.session.user
 	subs = frappe.get_all(
@@ -122,7 +122,7 @@ def get_push_subscription_status() -> dict:
 	Check whether the current user has any active push subscriptions.
 
 	Returns:
-	    Dict with 'subscribed' bool and count.
+		Dict with 'subscribed' bool and count.
 	"""
 	user = frappe.session.user
 	count = frappe.db.count("Push Subscription", {"user": user})
@@ -176,16 +176,16 @@ def send_push_to_user(
 	Send a push notification to all subscriptions for a given user.
 
 	Args:
-	    user: The Frappe user (email) to notify.
-	    title: Notification title.
-	    body: Notification body text.
-	    room_id: Chat room identifier for deep-linking.
-	    communication_name: Communication doc name.
-	    url: URL to open on click.
-	    icon: Notification icon URL.
+		user: The Frappe user (email) to notify.
+		title: Notification title.
+		body: Notification body text.
+		room_id: Chat room identifier for deep-linking.
+		communication_name: Communication doc name.
+		url: URL to open on click.
+		icon: Notification icon URL.
 
 	Returns:
-	    Number of successfully delivered push messages.
+		Number of successfully delivered push messages.
 	"""
 	settings = cast(MessagingSettings, frappe.get_single("Messaging Settings"))
 

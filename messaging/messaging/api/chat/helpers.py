@@ -21,10 +21,10 @@ def get_user_avatar(user: str | None) -> str:
 	Get avatar URL for a user.
 
 	Args:
-	    user: The user ID or email
+		user: The user ID or email
 
 	Returns:
-	    URL to the user's avatar or a default gravatar
+		URL to the user's avatar or a default gravatar
 	"""
 	if not user:
 		return f"{get_url()}/assets/frappe/images/default-avatar.png"
@@ -46,10 +46,10 @@ def get_user_status(user: str | None) -> UserStatus:
 	Get online/offline status for a user.
 
 	Args:
-	    user: The user ID or email
+		user: The user ID or email
 
 	Returns:
-	    UserStatus dict with state and lastChanged
+		UserStatus dict with state and lastChanged
 	"""
 	if not user:
 		return {"state": "offline", "lastChanged": ""}
@@ -84,13 +84,13 @@ def format_room_id(
 	Generate a unique room ID from communication details.
 
 	Args:
-	    medium: Communication medium (Email, SMS, etc.)
-	    identifier: Phone number or email address
-	    reference_doctype: Linked document type
-	    reference_name: Linked document name
+		medium: Communication medium (Email, SMS, etc.)
+		identifier: Phone number or email address
+		reference_doctype: Linked document type
+		reference_name: Linked document name
 
 	Returns:
-	    Unique room identifier string
+		Unique room identifier string
 	"""
 	base = f"{medium}:{identifier}"
 	if reference_doctype and reference_name:
@@ -103,11 +103,11 @@ def parse_room_id(room_id: str) -> dict[str, str | None]:
 	Parse a room ID back into its components.
 
 	Args:
-	    room_id: The room identifier string
-	    Format: medium:identifier
+		room_id: The room identifier string
+		Format: medium:identifier
 
 	Returns:
-	    Dict with medium, identifier
+		Dict with medium, identifier
 	"""
 	parts = room_id.split(":")
 	result: dict[str, str | None] = {
@@ -124,11 +124,11 @@ def get_contact_from_identifier(medium: str, identifier: str) -> dict[str, Any] 
 	Look up contact information from phone/email.
 
 	Args:
-	    medium: Communication medium (Email, SMS)
-	    identifier: Phone number or email address
+		medium: Communication medium (Email, SMS)
+		identifier: Phone number or email address
 
 	Returns:
-	    Contact dict or None if not found
+		Contact dict or None if not found
 	"""
 	Contact = DocType("Contact")
 
@@ -175,11 +175,11 @@ def build_room_from_thread(thread: dict[str, Any], current_user_id: str) -> Room
 	Build a Room object from a communication thread.
 
 	Args:
-	    thread: Thread data from database query
-	    current_user_id: Current user's ID
+		thread: Thread data from database query
+		current_user_id: Current user's ID
 
 	Returns:
-	    Room dict matching vue-advanced-chat format
+		Room dict matching vue-advanced-chat format
 	"""
 	medium = thread.get("communication_medium", "Email")
 

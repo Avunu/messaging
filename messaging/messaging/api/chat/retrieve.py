@@ -38,7 +38,7 @@ def get_current_user() -> CurrentUser:
 	Get information about the currently logged-in user.
 
 	Returns:
-	    CurrentUser dict with user details for vue-advanced-chat
+		CurrentUser dict with user details for vue-advanced-chat
 	"""
 	user = frappe.session.user
 
@@ -76,13 +76,13 @@ def get_rooms(
 	Get list of chat rooms (conversation threads).
 
 	Args:
-	    page: Page number for pagination (1-indexed)
-	    limit: Number of rooms per page
-	    search: Search query for filtering rooms
-	    medium: Filter by communication medium (Email, SMS, All)
+		page: Page number for pagination (1-indexed)
+		limit: Number of rooms per page
+		search: Search query for filtering rooms
+		medium: Filter by communication medium (Email, SMS, All)
 
 	Returns:
-	    RoomsResponse with list of rooms and pagination info
+		RoomsResponse with list of rooms and pagination info
 	"""
 	page = cint(page) or 1
 	limit = cint(limit) or 20
@@ -259,13 +259,13 @@ def get_messages(
 	Get messages for a specific room (conversation thread).
 
 	Args:
-	    room_id: The room identifier (format: medium:identifier)
-	    page: Page number for pagination (1-indexed)
-	    limit: Number of messages per page
-	    before_id: Get messages before this message ID (for infinite scroll)
+		room_id: The room identifier (format: medium:identifier)
+		page: Page number for pagination (1-indexed)
+		limit: Number of messages per page
+		before_id: Get messages before this message ID (for infinite scroll)
 
 	Returns:
-	    MessagesResponse with list of messages and pagination info
+		MessagesResponse with list of messages and pagination info
 	"""
 	page = cint(page) or 1
 	limit = cint(limit) or 50
@@ -503,7 +503,7 @@ def get_unread_count() -> int:
 	Get total count of unread messages across all rooms.
 
 	Returns:
-	    Total unread message count
+		Total unread message count
 	"""
 	Communication = DocType("Communication")
 

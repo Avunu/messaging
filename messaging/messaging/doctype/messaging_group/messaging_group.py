@@ -8,10 +8,6 @@ from frappe.email.doctype.email_group_member.email_group_member import EmailGrou
 from frappe.model.document import Document
 from frappe.query_builder import DocType
 
-from messaging.messaging.doctype.messaging_group_member.messaging_group_member import (
-	MessagingGroupMember,
-)
-
 
 class MessagingGroup(Document):
 	# begin: auto-generated types

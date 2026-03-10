@@ -2,10 +2,11 @@
 # For license information, please see license.txt
 
 import frappe
-from frappe.core.doctype.sms_settings.sms_settings import send_sms
 from frappe.model.document import Document
 from frappe.query_builder import DocType
 from frappe.utils.data import get_datetime, now_datetime
+
+from messaging.messaging.api.twilio_sms import send_sms
 
 # Define DocTypes for query builder
 ContactPhone = DocType("Contact Phone")
@@ -82,6 +83,7 @@ class GroupTextMessage(Document):
 				.where(MessagingGroupMember.parent.isin(messaging_groups))
 				.where(MessagingGroupMember.parenttype == "Messaging Group")
 				.where(Contact.consent_sms == 1)
+				.where(Contact.unsubscribed == 0)
 			)
 
 			# Conditionally add exclusion
@@ -107,15 +109,37 @@ class GroupTextMessage(Document):
 
 			contact_phone_numbers = contact_phone_numbers_query.run(pluck="phone")
 
-			# send the text message to the contact phone numbers
-			send_sms(contact_phone_numbers, self.message)
+			if not contact_phone_numbers:
+				self.add_comment("Info", "No eligible recipients found.")
+				self.status = "Error"
+				self.save()
+				return
 
-			comment = f"Sent to {len(contact_phone_numbers)} contacts: {', '.join(contact_phone_numbers)}"
-			self.add_comment("Info", comment)
+			# Send via Twilio with per-recipient error handling
+			result = send_sms(contact_phone_numbers, self.message, success_msg=False)
 
-			# set the status of the group text message to sent
+			success = result["success"]
+			errors = result["errors"]
+
+			# Build detailed comment
+			parts = []
+			if success:
+				parts.append(
+					f"Sent to {len(success)} of {len(contact_phone_numbers)} recipients: {', '.join(success)}"
+				)
+			if errors:
+				error_lines = []
+				for err in errors:
+					code = err.get("code", "unknown")
+					number = err.get("number", "unknown")
+					error_lines.append(f"{number} (error {code})")
+				parts.append(f"Failed for {len(errors)} recipients: {', '.join(error_lines)}")
+
+			self.add_comment("Info", "<br>".join(parts))
+
+			# set the status of the group text message
 			self.delivery_datetime = now_datetime()
-			self.status = "Sent"
+			self.status = "Sent" if success else "Error"
 			self.save()
 			frappe.db.commit()
 

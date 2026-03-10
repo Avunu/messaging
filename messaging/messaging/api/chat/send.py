@@ -37,10 +37,10 @@ def get_user_email_signature(user: str) -> str:
 	Otherwise, generate a default signature using their full name.
 
 	Args:
-	    user: The user ID (email)
+		user: The user ID (email)
 
 	Returns:
-	    Plain text email signature
+		Plain text email signature
 	"""
 	if not user:
 		return ""
@@ -85,14 +85,14 @@ def send_message(
 	Creates a Communication document and sends via the appropriate medium.
 
 	Args:
-	    room_id: The room identifier
-	    content: Message content
-	    files: List of file attachments (JSON string or list)
-	    reply_message_id: Communication name of message being replied to
-	    subject: Email subject (optional, auto-generated if empty)
+		room_id: The room identifier
+		content: Message content
+		files: List of file attachments (JSON string or list)
+		reply_message_id: Communication name of message being replied to
+		subject: Email subject (optional, auto-generated if empty)
 
 	Returns:
-	    SendMessageResponse with the created message or error
+		SendMessageResponse with the created message or error
 	"""
 	current_user_id = frappe.session.user
 
@@ -319,10 +319,16 @@ def _send_sms(
 	comm_doc.insert(ignore_permissions=True)
 
 	try:
-		from frappe.core.doctype.sms_settings.sms_settings import send_sms
+		from messaging.messaging.api.twilio_sms import send_sms
 
-		send_sms([identifier], content)
-		comm_doc.db_set("delivery_status", "Sent")
+		result = send_sms([identifier], content, success_msg=False)
+		if result["success"]:
+			comm_doc.db_set("delivery_status", "Sent")
+		else:
+			err = result["errors"][0] if result["errors"] else {}
+			code = err.get("code", "unknown")
+			frappe.log_error(f"SMS send failed for {identifier}: Twilio error {code}")
+			comm_doc.db_set("delivery_status", "Error")
 	except Exception as e:
 		frappe.log_error(f"SMS send failed: {e}")
 		comm_doc.db_set("delivery_status", "Error")
@@ -430,10 +436,10 @@ def mark_messages_seen(room_id: str) -> MarkSeenResponse:
 	Mark all messages in a room as seen.
 
 	Args:
-	    room_id: The room identifier
+		room_id: The room identifier
 
 	Returns:
-	    MarkSeenResponse with success status and count of updated messages
+		MarkSeenResponse with success status and count of updated messages
 	"""
 	room_parts = parse_room_id(room_id)
 	medium = room_parts.get("medium")
@@ -482,10 +488,10 @@ def archive_room(room_id: str) -> RoomActionResponse:
 	Archive all messages in a room by setting status to 'Closed'.
 
 	Args:
-	    room_id: The room identifier
+		room_id: The room identifier
 
 	Returns:
-	    RoomActionResponse with success status and count of updated messages
+		RoomActionResponse with success status and count of updated messages
 	"""
 	room_parts = parse_room_id(room_id)
 	medium = room_parts.get("medium")
@@ -529,10 +535,10 @@ def delete_room(room_id: str) -> RoomActionResponse:
 	Delete all messages in a room.
 
 	Args:
-	    room_id: The room identifier
+		room_id: The room identifier
 
 	Returns:
-	    RoomActionResponse with success status and count of deleted messages
+		RoomActionResponse with success status and count of deleted messages
 	"""
 	room_parts = parse_room_id(room_id)
 	medium = room_parts.get("medium")

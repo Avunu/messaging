@@ -17,6 +17,7 @@ class MessagingSettings(Document):
 		all_contacts_group: DF.Link | None
 		enable_number_validation: DF.Check
 		enable_push_notifications: DF.Check
+		send_via_twilio: DF.Check
 		twilio_account_sid: DF.Data | None
 		twilio_auth_token: DF.Password | None
 		twilio_phone_no: DF.Data | None
