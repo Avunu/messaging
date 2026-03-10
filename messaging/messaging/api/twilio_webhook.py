@@ -44,12 +44,18 @@ def sms():
 
 	sender_full_name = ""
 	sender_user = ""
+	sender_contact = ""
 	sender_number = frappe.request.form.get("From")
+	body = (frappe.request.form.get("Body") or "").strip()
 	sender_is_contact = frappe.db.exists("Contact Phone", {"phone": sender_number})
 	if sender_is_contact:
-		sender_contact = frappe.db.get_value("Contact Phone", sender_is_contact, "parent")
+		sender_contact = str(frappe.db.get_value("Contact Phone", sender_is_contact, "parent") or "")
 		sender_full_name = frappe.db.get_value("Contact", sender_contact, "full_name")
 		sender_user = frappe.db.get_value("Contact", sender_contact, "user")
+
+	# Handle SMS subscription keywords (Twilio opt-out/opt-in)
+	if sender_contact and body:
+		_handle_subscription_keywords(body, sender_contact)
 
 	# Create communication
 	communication = frappe.get_doc(
@@ -57,7 +63,7 @@ def sms():
 			"communication_date": now(),
 			"communication_medium": "SMS",
 			"communication_type": "Communication",
-			"content": frappe.request.form.get("Body"),
+			"content": body,
 			"doctype": "Communication",
 			"message_id": frappe.request.form.get("MessageSid"),
 			"phone_no": sender_number,
@@ -67,7 +73,7 @@ def sms():
 			"sent_or_received": "Received",
 			"status": "Open",
 			"subject": f"SMS from {sender_number}",
-			"text_content": frappe.request.form.get("Body"),
+			"text_content": body,
 			"user": sender_user,
 		}
 	)
@@ -76,3 +82,27 @@ def sms():
 	# Return 204 No Content status code
 	frappe.response.http_status_code = 204
 	return None
+
+
+# Twilio standard opt-out / opt-in keywords
+# https://www.twilio.com/docs/messaging/guides/opt-out-keywords
+_OPT_OUT_KEYWORDS = {"stop", "stopall", "unsubscribe", "cancel", "end", "quit"}
+_OPT_IN_KEYWORDS = {"start", "yes", "unstop"}
+
+
+def _handle_subscription_keywords(body: str, contact_name: str) -> None:
+	"""Update Contact consent flags based on standard SMS opt-out/opt-in keywords."""
+	keyword = body.strip().upper()
+
+	if keyword.lower() in _OPT_OUT_KEYWORDS:
+		frappe.db.set_value("Contact", contact_name, "consent_sms", 0)
+		frappe.db.set_value("Contact", contact_name, "unsubscribed", 1)
+		frappe.get_doc("Contact", contact_name).add_comment(
+			"Info", f"SMS opt-out received (keyword: {keyword})"
+		)
+	elif keyword.lower() in _OPT_IN_KEYWORDS:
+		frappe.db.set_value("Contact", contact_name, "consent_sms", 1)
+		frappe.db.set_value("Contact", contact_name, "unsubscribed", 0)
+		frappe.get_doc("Contact", contact_name).add_comment(
+			"Info", f"SMS opt-in received (keyword: {keyword})"
+		)

@@ -91,13 +91,12 @@ def handle_twilio_error(error: TwilioRestException, phone_number: str) -> None:
 	if error.code == UNSUBSCRIBED_RECIPIENT:
 		contact_name = get_contact_from_phone(phone_number)
 		if contact_name:
-			frappe.db.set_value("Contact", contact_name, "unsubscribed", 1)
 			frappe.db.set_value("Contact", contact_name, "consent_sms", 0)
 			frappe.log_error(
 				title=f"SMS unsubscribe: {phone_number}",
 				message=(
 					f"Contact {contact_name} auto-unsubscribed (Twilio {UNSUBSCRIBED_RECIPIENT}). "
-					f"Set unsubscribed=1 and consent_sms=0."
+					f"Set consent_sms=0."
 				),
 			)
 		else:
