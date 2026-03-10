@@ -119,8 +119,8 @@ class GroupTextMessage(Document):
 			frappe.db.commit()
 
 		except Exception as e:
-			frappe.log_error(f"Error sending group text message: {e}", "Group Text Message")
-			self.add_comment("Error", f"Error sending message: {e}")
+			frappe.log_error(title="Error sending group text message", message=str(e))
+			self.add_comment("Bot", f"Error sending message: {e}")
 			self.status = "Error"
 			self.save()
 			frappe.db.commit()
