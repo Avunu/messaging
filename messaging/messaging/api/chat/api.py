@@ -362,7 +362,8 @@ def _handle_sms_opt_out(doc: Any) -> None:
 	frappe.db.commit()
 
 	# Send confirmation SMS
-	_send_opt_out_confirmation(phone_no)
+	# temporarily disabled since Twilio blocks messages that contain "STOP" in the content, even if it's just a confirmation message. We can re-enable this once we have a workaround for Twilio's filtering of opt-out related content.
+	# _send_opt_out_confirmation(phone_no)
 
 
 def _send_opt_out_confirmation(phone_no: str) -> None:
