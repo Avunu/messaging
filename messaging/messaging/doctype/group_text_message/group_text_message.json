@@ -43,7 +43,7 @@
    "hidden": 1,
    "in_list_view": 1,
    "label": "Status",
-   "options": "Draft\nSent\nScheduled"
+   "options": "Draft\nSent\nScheduled\nError"
   },
   {
    "fieldname": "amended_from",
@@ -107,7 +107,7 @@
  ],
  "is_submittable": 1,
  "links": [],
- "modified": "2026-02-06 12:28:14.369267",
+ "modified": "2026-03-10 13:11:17.076453",
  "modified_by": "kevin@avu.nu",
  "module": "Messaging",
  "name": "Group Text Message",

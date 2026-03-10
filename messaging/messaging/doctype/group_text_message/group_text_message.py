@@ -33,7 +33,7 @@ class GroupTextMessage(Document):
 		message_title: DF.SmallText
 		messaging_group: DF.TableMultiSelect[GroupTextMessagingGroup]
 		schedule: DF.Check
-		status: DF.Literal["Draft", "Sent", "Scheduled"]
+		status: DF.Literal["Draft", "Sent", "Scheduled", "Error"]
 	# end: auto-generated types
 
 	def validate(self):
@@ -67,52 +67,61 @@ class GroupTextMessage(Document):
 
 	@frappe.whitelist()
 	def send_text_message(self):
-		# get the messaging group
-		messaging_groups = [group.messaging_group for group in self.messaging_group]
-		excluded_groups = [group.messaging_group for group in self.exclude_groups]
+		try:
+			# get the messaging group
+			messaging_groups = [group.messaging_group for group in self.messaging_group]
+			excluded_groups = [group.messaging_group for group in self.exclude_groups]
 
-		# Base contact query, exclude contacts who do not have sms consent
-		contact_query = (
-			frappe.qb.from_(MessagingGroupMember)
-			.join(Contact)
-			.on(Contact.name == MessagingGroupMember.contact)
-			.select(MessagingGroupMember.contact)
-			.where(MessagingGroupMember.parent.isin(messaging_groups))
-			.where(MessagingGroupMember.parenttype == "Messaging Group")
-			.where(Contact.consent_sms == 1)
-		)
-
-		# Conditionally add exclusion
-		if excluded_groups:
-			contacts_in_excluded_groups_query = (
+			# Base contact query, exclude contacts who do not have sms consent
+			contact_query = (
 				frappe.qb.from_(MessagingGroupMember)
+				.join(Contact)
+				.on(Contact.name == MessagingGroupMember.contact)
 				.select(MessagingGroupMember.contact)
-				.where(MessagingGroupMember.parent.isin(excluded_groups))
+				.where(MessagingGroupMember.parent.isin(messaging_groups))
 				.where(MessagingGroupMember.parenttype == "Messaging Group")
-			)
-			contact_query = contact_query.where(
-				MessagingGroupMember.contact.notin(contacts_in_excluded_groups_query)
+				.where(Contact.consent_sms == 1)
 			)
 
-		# Finalize the phone number query
-		contact_phone_numbers_query = (
-			frappe.qb.from_(ContactPhone)
-			.select(ContactPhone.phone)
-			.where(ContactPhone.parent.isin(contact_query))
-			.where(ContactPhone.is_primary_mobile_no == 1)
-			.where(ContactPhone.is_valid == 1)  # Only send to validated numbers (Twilio)
-		)
+			# Conditionally add exclusion
+			if excluded_groups:
+				contacts_in_excluded_groups_query = (
+					frappe.qb.from_(MessagingGroupMember)
+					.select(MessagingGroupMember.contact)
+					.where(MessagingGroupMember.parent.isin(excluded_groups))
+					.where(MessagingGroupMember.parenttype == "Messaging Group")
+				)
+				contact_query = contact_query.where(
+					MessagingGroupMember.contact.notin(contacts_in_excluded_groups_query)
+				)
 
-		contact_phone_numbers = contact_phone_numbers_query.run(pluck="phone")
+			# Finalize the phone number query
+			contact_phone_numbers_query = (
+				frappe.qb.from_(ContactPhone)
+				.select(ContactPhone.phone)
+				.where(ContactPhone.parent.isin(contact_query))
+				.where(ContactPhone.is_primary_mobile_no == 1)
+				.where(ContactPhone.is_valid == 1)  # Only send to validated numbers (Twilio)
+			)
 
-		# send the text message to the contact phone numbers
-		send_sms(contact_phone_numbers, self.message)
+			contact_phone_numbers = contact_phone_numbers_query.run(pluck="phone")
 
-		comment = f"Sent to {len(contact_phone_numbers)} contacts: {', '.join(contact_phone_numbers)}"
-		self.add_comment("Info", comment)
+			# send the text message to the contact phone numbers
+			send_sms(contact_phone_numbers, self.message)
 
-		# set the status of the group text message to sent
-		self.delivery_datetime = now_datetime()
-		self.status = "Sent"
-		self.save()
-		frappe.db.commit()
+			comment = f"Sent to {len(contact_phone_numbers)} contacts: {', '.join(contact_phone_numbers)}"
+			self.add_comment("Info", comment)
+
+			# set the status of the group text message to sent
+			self.delivery_datetime = now_datetime()
+			self.status = "Sent"
+			self.save()
+			frappe.db.commit()
+
+		except Exception as e:
+			frappe.log_error(f"Error sending group text message: {e}", "Group Text Message")
+			self.add_comment("Error", f"Error sending message: {e}")
+			self.status = "Error"
+			self.save()
+			frappe.db.commit()
+			return
