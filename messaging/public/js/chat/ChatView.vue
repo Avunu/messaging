@@ -259,79 +259,82 @@ export default defineComponent({
 		];
 
 		// Custom styles
+		// Colors are Frappe CSS variables (resolved inline via the vendor's
+		// cssThemeVars); they flip automatically on [data-theme], so no
+		// isDarkMode ternaries are needed for color values.
 		const customStyles = computed(() => ({
 			general: {
-				color: isDarkMode.value ? "#fff" : "#0a0a0a",
-				colorButtonClear: isDarkMode.value ? "#fff" : "#1976d2",
-				colorButton: isDarkMode.value ? "#fff" : "#1976d2",
+				color: "var(--text-color)",
+				colorButtonClear: "var(--primary)",
+				colorButton: "var(--primary)",
 				backgroundColorButton: "transparent",
-				borderStyle: "1px solid #e1e4e8",
+				borderStyle: "1px solid var(--border-color)",
 			},
 			container: {
 				borderRadius: "8px",
-				boxShadow: "0 2px 8px rgba(0, 0, 0, 0.08)",
+				boxShadow: "var(--shadow-sm)",
 			},
 			header: {
-				background: isDarkMode.value ? "#1e1e1e" : "#f8f9fa",
+				background: "var(--card-bg)",
 			},
 			footer: {
-				background: isDarkMode.value ? "#1e1e1e" : "#f8f9fa",
-				borderTop: "1px solid #e1e4e8",
+				background: "var(--card-bg)",
+				borderTop: "1px solid var(--border-color)",
 			},
 			content: {
-				background: isDarkMode.value ? "#121212" : "#fff",
+				background: "var(--fg-color)",
 			},
 			sidemenu: {
-				background: isDarkMode.value ? "#1e1e1e" : "#f8f9fa",
-				borderRight: "1px solid #e1e4e8",
+				background: "var(--card-bg)",
+				borderRight: "1px solid var(--border-color)",
 			},
 			room: {
-				colorMessage: isDarkMode.value ? "#e0e0e0" : "#67717a",
-				colorTimestamp: isDarkMode.value ? "#9e9e9e" : "#9ca6af",
-				colorStateOnline: "#4caf50",
-				colorStateOffline: "#9e9e9e",
+				colorMessage: "var(--text-muted)",
+				colorTimestamp: "var(--text-light)",
+				colorStateOnline: "var(--green-500)",
+				colorStateOffline: "var(--gray-500)",
 			},
 			message: {
-				background: isDarkMode.value ? "#2d2d2d" : "#f0f2f5",
-				backgroundMe: isDarkMode.value ? "#0d47a1" : "#dcf8c6",
-				color: isDarkMode.value ? "#fff" : "#0a0a0a",
-				colorMe: isDarkMode.value ? "#fff" : "#0a0a0a",
-				colorStarted: isDarkMode.value ? "#9e9e9e" : "#9ca6af",
-				backgroundDeleted: isDarkMode.value ? "#1e1e1e" : "#e8e8e8",
-				colorDeleted: isDarkMode.value ? "#757575" : "#757575",
-				colorTimestamp: isDarkMode.value ? "#bdbdbd" : "#828282",
-				backgroundDate: isDarkMode.value ? "#424242" : "#e5efff",
-				colorDate: isDarkMode.value ? "#fff" : "#505a62",
-				backgroundReply: isDarkMode.value ? "#3d3d3d" : "#e8f4fd",
-				colorReply: isDarkMode.value ? "#e0e0e0" : "#185a9d",
-				colorReplyUsername: isDarkMode.value ? "#64b5f6" : "#185a9d",
-				backgroundImage: isDarkMode.value ? "#3d3d3d" : "#ddd",
-				colorNewMessages: "#1976d2",
-				backgroundNewMessages: isDarkMode.value ? "#0d47a1" : "#e3f2fd",
+				background: "var(--surface-gray-2)",
+				backgroundMe: "var(--blue-100)",
+				color: "var(--text-color)",
+				colorMe: "var(--text-color)",
+				colorStarted: "var(--text-light)",
+				backgroundDeleted: "var(--subtle-fg)",
+				colorDeleted: "var(--text-muted)",
+				colorTimestamp: "var(--text-muted)",
+				backgroundDate: "var(--surface-gray-2)",
+				colorDate: "var(--text-muted)",
+				backgroundReply: "var(--subtle-fg)",
+				colorReply: "var(--text-color)",
+				colorReplyUsername: "var(--primary)",
+				backgroundImage: "var(--surface-gray-2)",
+				colorNewMessages: "var(--primary)",
+				backgroundNewMessages: "var(--blue-100)",
 			},
 			icons: {
-				search: isDarkMode.value ? "#bdbdbd" : "#9ca6af",
-				add: isDarkMode.value ? "#64b5f6" : "#1976d2",
-				toggle: isDarkMode.value ? "#bdbdbd" : "#0a0a0a",
-				menu: isDarkMode.value ? "#bdbdbd" : "#0a0a0a",
-				close: isDarkMode.value ? "#bdbdbd" : "#9ca6af",
-				closeImage: isDarkMode.value ? "#fff" : "#fff",
-				file: isDarkMode.value ? "#64b5f6" : "#1976d2",
-				paperclip: isDarkMode.value ? "#bdbdbd" : "#9ca6af",
-				closeOutline: isDarkMode.value ? "#bdbdbd" : "#000",
-				closePreview: isDarkMode.value ? "#bdbdbd" : "#fff",
-				send: isDarkMode.value ? "#64b5f6" : "#1976d2",
-				sendDisabled: isDarkMode.value ? "#616161" : "#9ca6af",
-				emoji: isDarkMode.value ? "#bdbdbd" : "#9ca6af",
-				emojiReaction: isDarkMode.value ? "#bdbdbd" : "#828282",
-				document: isDarkMode.value ? "#64b5f6" : "#1976d2",
-				pencil: isDarkMode.value ? "#bdbdbd" : "#9e9e9e",
-				checkmark: isDarkMode.value ? "#4caf50" : "#9e9e9e",
-				checkmarkSeen: isDarkMode.value ? "#64b5f6" : "#0d6efd",
-				eye: isDarkMode.value ? "#64b5f6" : "#fff",
-				dropdownMessage: isDarkMode.value ? "#bdbdbd" : "#fff",
-				dropdownRoom: isDarkMode.value ? "#bdbdbd" : "#9e9e9e",
-				dropdownScroll: isDarkMode.value ? "#64b5f6" : "#0a0a0a",
+				search: "var(--text-muted)",
+				add: "var(--primary)",
+				toggle: "var(--text-color)",
+				menu: "var(--text-color)",
+				close: "var(--text-muted)",
+				closeImage: "var(--white)",
+				file: "var(--primary)",
+				paperclip: "var(--text-muted)",
+				closeOutline: "var(--text-color)",
+				closePreview: "var(--white)",
+				send: "var(--primary)",
+				sendDisabled: "var(--text-light)",
+				emoji: "var(--text-muted)",
+				emojiReaction: "var(--text-muted)",
+				document: "var(--primary)",
+				pencil: "var(--text-muted)",
+				checkmark: "var(--text-muted)",
+				checkmarkSeen: "var(--primary)",
+				eye: "var(--white)",
+				dropdownMessage: "var(--text-muted)",
+				dropdownRoom: "var(--text-muted)",
+				dropdownScroll: "var(--text-color)",
 			},
 		}));
 
@@ -703,7 +706,7 @@ export default defineComponent({
 	height: calc(100vh - 46px);
 	display: flex;
 	flex-direction: column;
-	background: var(--bg-color, #fff);
+	background: var(--bg-color);
 }
 
 /* ChatWindow fills remaining space below toolbar */
@@ -713,22 +716,13 @@ export default defineComponent({
 	overflow: hidden;
 }
 
-.chat-dark {
-	--bg-color: #121212;
-}
-
 .chat-toolbar {
 	display: flex;
 	justify-content: space-between;
 	align-items: center;
 	padding: 12px 16px;
-	background: var(--card-bg, #f8f9fa);
-	border-bottom: 1px solid var(--border-color, #e1e4e8);
-}
-
-.chat-dark .chat-toolbar {
-	--card-bg: #1e1e1e;
-	--border-color: #333;
+	background: var(--card-bg);
+	border-bottom: 1px solid var(--border-color);
 }
 
 .toolbar-left {
@@ -745,40 +739,30 @@ export default defineComponent({
 
 .toolbar-title {
 	margin: 0;
-	font-size: 18px;
-	font-weight: 600;
-	color: var(--text-color, #0a0a0a);
-}
-
-.chat-dark .toolbar-title {
-	--text-color: #fff;
+	font-size: var(--text-xl);
+	font-weight: var(--weight-semibold);
+	color: var(--text-color);
 }
 
 .unread-badge {
-	background: #dc3545;
-	color: #fff;
-	font-size: 12px;
-	font-weight: 600;
+	background: var(--bg-red);
+	color: var(--text-on-red);
+	font-size: var(--text-xs);
+	font-weight: var(--weight-semibold);
 	padding: 2px 8px;
-	border-radius: 10px;
+	border-radius: var(--border-radius-md);
 	min-width: 20px;
 	text-align: center;
 }
 
 .medium-filter {
 	padding: 6px 12px;
-	border: 1px solid var(--border-color, #e1e4e8);
-	border-radius: 6px;
-	background: var(--input-bg, #fff);
-	color: var(--text-color, #0a0a0a);
-	font-size: 14px;
+	border: 1px solid var(--border-color);
+	border-radius: var(--border-radius);
+	background: var(--control-bg);
+	color: var(--text-color);
+	font-size: var(--text-md);
 	cursor: pointer;
-}
-
-.chat-dark .medium-filter {
-	--input-bg: #2d2d2d;
-	--text-color: #fff;
-	--border-color: #444;
 }
 
 /* Room header customization */
@@ -799,34 +783,34 @@ export default defineComponent({
 }
 
 .room-medium {
-	font-size: 11px;
+	font-size: var(--text-tiny);
 	padding: 2px 8px;
-	border-radius: 4px;
-	background: #e3f2fd;
-	color: #1976d2;
+	border-radius: var(--border-radius-tiny);
+	background: var(--bg-blue);
+	color: var(--text-on-blue);
 }
 
 .medium-email {
-	background: #e3f2fd;
-	color: #1976d2;
+	background: var(--bg-blue);
+	color: var(--text-on-blue);
 }
 
 .medium-sms {
-	background: #e8f5e9;
-	color: #388e3c;
+	background: var(--bg-green);
+	color: var(--text-on-green);
 }
 
 .medium-phone {
-	background: #fff3e0;
-	color: #f57c00;
+	background: var(--bg-orange);
+	color: var(--text-on-orange);
 }
 
 .room-reference {
-	font-size: 12px;
+	font-size: var(--text-xs);
 }
 
 .reference-link {
-	color: #1976d2;
+	color: var(--primary);
 	text-decoration: none;
 }
 
@@ -844,14 +828,14 @@ export default defineComponent({
 }
 
 .message-subject {
-	font-size: 12px;
+	font-size: var(--text-xs);
 	margin-bottom: 4px;
-	color: #666;
+	color: var(--text-muted);
 }
 
 .message-reference {
 	margin-top: 8px;
-	font-size: 11px;
+	font-size: var(--text-tiny);
 }
 
 /* Room list item customization */
@@ -865,7 +849,7 @@ export default defineComponent({
 }
 
 .custom-room-item:hover {
-	background: rgba(0, 0, 0, 0.04);
+	background: var(--black-overlay-50);
 }
 
 .room-item-avatar {
@@ -888,13 +872,13 @@ export default defineComponent({
 	right: 2px;
 	width: 10px;
 	height: 10px;
-	border-radius: 50%;
-	background: #9e9e9e;
-	border: 2px solid #fff;
+	border-radius: var(--border-radius-full);
+	background: var(--gray-500);
+	border: 2px solid var(--white);
 }
 
 .online-indicator.is-online {
-	background: #4caf50;
+	background: var(--green-500);
 }
 
 .room-item-content {
@@ -910,16 +894,16 @@ export default defineComponent({
 }
 
 .room-item-name {
-	font-weight: 600;
-	color: var(--text-color, #0a0a0a);
+	font-weight: var(--weight-semibold);
+	color: var(--text-color);
 	white-space: nowrap;
 	overflow: hidden;
 	text-overflow: ellipsis;
 }
 
 .room-item-time {
-	font-size: 12px;
-	color: #9ca6af;
+	font-size: var(--text-xs);
+	color: var(--text-light);
 	flex-shrink: 0;
 }
 
@@ -930,26 +914,26 @@ export default defineComponent({
 }
 
 .room-item-medium {
-	font-size: 12px;
+	font-size: var(--text-xs);
 	flex-shrink: 0;
 }
 
 .room-item-preview {
 	flex: 1;
-	font-size: 13px;
-	color: #67717a;
+	font-size: var(--text-sm);
+	color: var(--text-muted);
 	white-space: nowrap;
 	overflow: hidden;
 	text-overflow: ellipsis;
 }
 
 .room-item-unread {
-	background: #1976d2;
-	color: #fff;
-	font-size: 11px;
-	font-weight: 600;
+	background: var(--primary);
+	color: var(--white);
+	font-size: var(--text-tiny);
+	font-weight: var(--weight-semibold);
 	padding: 2px 6px;
-	border-radius: 10px;
+	border-radius: var(--border-radius-md);
 	min-width: 18px;
 	text-align: center;
 	flex-shrink: 0;
@@ -962,7 +946,7 @@ export default defineComponent({
 	left: 0;
 	right: 0;
 	bottom: 0;
-	background: rgba(0, 0, 0, 0.5);
+	background: var(--black-overlay-500);
 	z-index: 1000;
 	display: flex;
 	justify-content: flex-end;
@@ -971,16 +955,11 @@ export default defineComponent({
 .comm-panel {
 	width: 400px;
 	max-width: 90vw;
-	background: #fff;
+	background: var(--fg-color);
 	height: 100%;
-	box-shadow: -2px 0 8px rgba(0, 0, 0, 0.15);
+	box-shadow: var(--shadow-lg);
 	display: flex;
 	flex-direction: column;
-}
-
-.chat-dark .comm-panel {
-	background: #1e1e1e;
-	color: #fff;
 }
 
 .comm-panel-header {
@@ -988,11 +967,7 @@ export default defineComponent({
 	justify-content: space-between;
 	align-items: center;
 	padding: 16px;
-	border-bottom: 1px solid #e1e4e8;
-}
-
-.chat-dark .comm-panel-header {
-	border-color: #333;
+	border-bottom: 1px solid var(--border-color);
 }
 
 .comm-panel-header h4 {
@@ -1002,15 +977,11 @@ export default defineComponent({
 .close-btn {
 	background: none;
 	border: none;
-	font-size: 24px;
+	font-size: var(--text-3xl);
 	cursor: pointer;
-	color: #666;
+	color: var(--text-muted);
 	line-height: 1;
 	padding: 0;
-}
-
-.chat-dark .close-btn {
-	color: #bbb;
 }
 
 .comm-panel-body {
@@ -1032,14 +1003,10 @@ export default defineComponent({
 }
 
 .detail-row label {
-	font-size: 12px;
-	font-weight: 600;
-	color: #666;
+	font-size: var(--text-xs);
+	font-weight: var(--weight-semibold);
+	color: var(--text-muted);
 	text-transform: uppercase;
-}
-
-.chat-dark .detail-row label {
-	color: #999;
 }
 
 .detail-row.actions {
@@ -1053,32 +1020,15 @@ export default defineComponent({
 .chat-container .btn {
 	display: inline-block;
 	padding: 8px 16px;
-	border-radius: 6px;
+	border-radius: var(--border-radius);
 	text-decoration: none;
-	font-size: 14px;
+	font-size: var(--text-md);
 	cursor: pointer;
 	transition: all 0.2s;
 }
 
-.chat-container .btn-default {
-	background: #f0f0f0;
-	color: #333;
-	border: 1px solid #ddd;
-}
-
-.chat-container .btn-default:hover {
-	background: #e0e0e0;
-}
-
-.chat-container.chat-dark .btn-default {
-	background: #333;
-	color: #fff;
-	border-color: #444;
-}
-
-.chat-container.chat-dark .btn-default:hover {
-	background: #444;
-}
+/* .btn-default color overrides removed: let Frappe/carbon style desk buttons
+   natively so they follow the active theme. */
 
 /* Responsive */
 @media (max-width: 768px) {

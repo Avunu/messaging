@@ -350,15 +350,22 @@ export default defineComponent({
    ============================================ */
 
 .chat-footer-wrapper {
-	border-top: 1px solid var(--chat-border-color, #e1e4e8);
-	background: var(--chat-footer-bg, #f8f9fa);
-	padding: 8px 12px;
-}
+	/* Private --chat-* token layer, defined once as Frappe equivalents so it
+	   follows the active theme automatically (no .chat-dark overrides). */
+	--chat-footer-bg: var(--card-bg);
+	--chat-input-bg: var(--control-bg);
+	--chat-file-bg: var(--subtle-fg);
+	--chat-reply-bg: var(--surface-gray-2);
+	--chat-text-color: var(--text-color);
+	--chat-text-muted: var(--text-muted);
+	--chat-border-color: var(--border-color);
+	--chat-icon-color: var(--text-muted);
+	--chat-icon-hover-color: var(--text-color);
+	--chat-btn-hover-bg: var(--fg-hover-color);
 
-.chat-dark .chat-footer-wrapper,
-.chat-footer-wrapper.chat-dark {
-	--chat-footer-bg: #1e1e1e;
-	--chat-border-color: #333;
+	border-top: 1px solid var(--chat-border-color);
+	background: var(--chat-footer-bg);
+	padding: 8px 12px;
 }
 
 /* Reply preview */
@@ -368,19 +375,15 @@ export default defineComponent({
 	gap: 8px;
 	padding: 8px;
 	margin-bottom: 8px;
-	background: var(--chat-reply-bg, #e8f4fd);
-	border-radius: 6px;
-}
-
-.chat-dark .reply-preview {
-	--chat-reply-bg: #2d3748;
+	background: var(--chat-reply-bg);
+	border-radius: var(--border-radius);
 }
 
 .reply-preview-bar {
 	width: 3px;
 	min-height: 100%;
 	align-self: stretch;
-	background: #1976d2;
+	background: var(--primary);
 	border-radius: 2px;
 	flex-shrink: 0;
 }
@@ -392,39 +395,35 @@ export default defineComponent({
 }
 
 .reply-preview-sender {
-	font-size: 12px;
-	font-weight: 600;
-	color: #1976d2;
+	font-size: var(--text-xs);
+	font-weight: var(--weight-semibold);
+	color: var(--primary);
 	display: block;
 	margin-bottom: 2px;
 }
 
 .reply-preview-text {
 	margin: 0;
-	font-size: 13px;
-	color: var(--chat-text-muted, #666);
+	font-size: var(--text-sm);
+	color: var(--chat-text-muted);
 	white-space: nowrap;
 	overflow: hidden;
 	text-overflow: ellipsis;
 }
 
-.chat-dark .reply-preview-text {
-	--chat-text-muted: #a0aec0;
-}
-
 .reply-preview-close {
 	background: none;
 	border: none;
-	font-size: 18px;
+	font-size: var(--text-xl);
 	cursor: pointer;
-	color: var(--chat-text-muted, #666);
+	color: var(--chat-text-muted);
 	padding: 0 4px;
 	line-height: 1;
 	flex-shrink: 0;
 }
 
 .reply-preview-close:hover {
-	color: #dc3545;
+	color: var(--red-500);
 }
 
 /* File previews */
@@ -440,24 +439,20 @@ export default defineComponent({
 	align-items: center;
 	gap: 6px;
 	padding: 4px 8px;
-	background: var(--chat-file-bg, #e9ecef);
-	border-radius: 6px;
-	font-size: 13px;
-}
-
-.chat-dark .file-preview-item {
-	--chat-file-bg: #2d3748;
+	background: var(--chat-file-bg);
+	border-radius: var(--border-radius);
+	font-size: var(--text-sm);
 }
 
 .file-preview-thumb {
 	width: 28px;
 	height: 28px;
 	object-fit: cover;
-	border-radius: 4px;
+	border-radius: var(--border-radius-tiny);
 }
 
 .file-preview-icon {
-	font-size: 16px;
+	font-size: var(--text-lg);
 }
 
 .file-preview-name {
@@ -465,25 +460,21 @@ export default defineComponent({
 	overflow: hidden;
 	text-overflow: ellipsis;
 	white-space: nowrap;
-	color: var(--chat-text-color, #333);
-}
-
-.chat-dark .file-preview-name {
-	--chat-text-color: #e2e8f0;
+	color: var(--chat-text-color);
 }
 
 .file-preview-remove {
 	background: none;
 	border: none;
-	font-size: 16px;
+	font-size: var(--text-lg);
 	cursor: pointer;
-	color: var(--chat-text-muted, #666);
+	color: var(--chat-text-muted);
 	padding: 0 2px;
 	line-height: 1;
 }
 
 .file-preview-remove:hover {
-	color: #dc3545;
+	color: var(--red-500);
 }
 
 /* Editor + actions row */
@@ -496,15 +487,10 @@ export default defineComponent({
 .editor-container {
 	flex: 1;
 	min-width: 0;
-	border: 1px solid var(--chat-border-color, #e1e4e8);
-	border-radius: 8px;
+	border: 1px solid var(--chat-border-color);
+	border-radius: var(--border-radius);
 	overflow: hidden;
-	background: var(--chat-input-bg, #fff);
-}
-
-.chat-dark .editor-container {
-	--chat-input-bg: #2d2d2d;
-	--chat-border-color: #444;
+	background: var(--chat-input-bg);
 }
 
 /* TextEditor overrides for chat context */
@@ -515,7 +501,7 @@ export default defineComponent({
 	min-height: 36px;
 	overflow-y: auto;
 	padding: 8px 12px;
-	font-size: 14px;
+	font-size: var(--text-md);
 	line-height: 1.4;
 }
 
@@ -534,7 +520,7 @@ export default defineComponent({
 	.chat-editor-content
 	.ProseMirror
 	p.is-editor-empty:first-child::before {
-	color: #adb5bd;
+	color: var(--text-light);
 	content: attr(data-placeholder);
 	float: left;
 	height: 0;
@@ -554,8 +540,8 @@ export default defineComponent({
 	border: none;
 	cursor: pointer;
 	padding: 6px;
-	border-radius: 6px;
-	color: var(--chat-icon-color, #9ca6af);
+	border-radius: var(--border-radius);
+	color: var(--chat-icon-color);
 	transition: all 0.15s ease;
 	display: flex;
 	align-items: center;
@@ -563,30 +549,17 @@ export default defineComponent({
 }
 
 .footer-action-btn:hover {
-	background: var(--chat-btn-hover-bg, rgba(0, 0, 0, 0.06));
-	color: var(--chat-icon-hover-color, #1976d2);
-}
-
-.chat-dark .footer-action-btn {
-	--chat-icon-color: #bdbdbd;
-}
-
-.chat-dark .footer-action-btn:hover {
-	--chat-btn-hover-bg: rgba(255, 255, 255, 0.08);
-	--chat-icon-hover-color: #64b5f6;
+	background: var(--chat-btn-hover-bg);
+	color: var(--chat-icon-hover-color);
 }
 
 .send-btn:not(.send-disabled) {
-	color: #1976d2;
+	color: var(--primary);
 }
 
 .send-btn.send-disabled {
 	opacity: 0.4;
 	cursor: not-allowed;
-}
-
-.chat-dark .send-btn:not(.send-disabled) {
-	color: #64b5f6;
 }
 
 /* Hide TextEditor bubble menu border/fixed menu if accidentally rendered */

@@ -695,7 +695,7 @@ function composeEmail(): void {
 .contact-panel-overlay {
 	position: fixed;
 	inset: 0;
-	background-color: rgba(0, 0, 0, 0.3);
+	background-color: var(--black-overlay-300);
 	z-index: 1050;
 	display: flex;
 	justify-content: flex-end;
@@ -705,8 +705,8 @@ function composeEmail(): void {
 	width: 380px;
 	max-width: 100vw;
 	height: 100%;
-	background: var(--fg-color, #fff);
-	box-shadow: -4px 0 20px rgba(0, 0, 0, 0.15);
+	background: var(--fg-color);
+	box-shadow: var(--shadow-lg);
 	display: flex;
 	flex-direction: column;
 	overflow: hidden;
@@ -717,8 +717,8 @@ function composeEmail(): void {
 	align-items: flex-start;
 	justify-content: space-between;
 	padding: 1.25rem;
-	border-bottom: 1px solid var(--border-color, #e5e7eb);
-	background: var(--subtle-fg, #f9fafb);
+	border-bottom: 1px solid var(--border-color);
+	background: var(--subtle-fg);
 }
 
 .header-info {
@@ -732,10 +732,10 @@ function composeEmail(): void {
 .avatar-wrapper {
 	width: 48px;
 	height: 48px;
-	border-radius: 50%;
+	border-radius: var(--border-radius-full);
 	overflow: hidden;
 	flex-shrink: 0;
-	background: var(--gray-200, #e5e7eb);
+	background: var(--surface-gray-2);
 }
 
 .avatar-img {
@@ -750,10 +750,10 @@ function composeEmail(): void {
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	font-size: 1.25rem;
-	font-weight: 600;
-	color: var(--text-muted, #6b7280);
-	background: var(--gray-200, #e5e7eb);
+	font-size: var(--text-2xl);
+	font-weight: var(--weight-semibold);
+	color: var(--text-muted);
+	background: var(--surface-gray-2);
 }
 
 .header-text {
@@ -762,9 +762,9 @@ function composeEmail(): void {
 }
 
 .panel-title {
-	font-size: 1.125rem;
-	font-weight: 600;
-	color: var(--text-color, #111827);
+	font-size: var(--text-xl);
+	font-weight: var(--weight-semibold);
+	color: var(--text-color);
 	margin: 0 0 0.25rem 0;
 	white-space: nowrap;
 	overflow: hidden;
@@ -772,8 +772,8 @@ function composeEmail(): void {
 }
 
 .panel-subtitle {
-	font-size: 0.875rem;
-	color: var(--text-muted, #6b7280);
+	font-size: var(--text-md);
+	color: var(--text-muted);
 	margin: 0;
 	white-space: nowrap;
 	overflow: hidden;
@@ -785,16 +785,16 @@ function composeEmail(): void {
 	border: none;
 	padding: 0.5rem;
 	cursor: pointer;
-	border-radius: 0.375rem;
-	color: var(--text-muted, #6b7280);
+	border-radius: var(--border-radius);
+	color: var(--text-muted);
 	transition:
 		background-color 0.15s,
 		color 0.15s;
 }
 
 .close-btn:hover {
-	background: var(--gray-200, #e5e7eb);
-	color: var(--text-color, #111827);
+	background: var(--fg-hover-color);
+	color: var(--text-color);
 }
 
 .contact-panel-body {
@@ -805,7 +805,7 @@ function composeEmail(): void {
 
 .contact-panel-footer {
 	padding: 1rem;
-	border-top: 1px solid var(--border-color, #e5e7eb);
+	border-top: 1px solid var(--border-color);
 	display: flex;
 	flex-direction: column;
 	gap: 0.5rem;
@@ -816,11 +816,11 @@ function composeEmail(): void {
 }
 
 .section-title {
-	font-size: 0.75rem;
-	font-weight: 600;
+	font-size: var(--text-xs);
+	font-weight: var(--weight-semibold);
 	text-transform: uppercase;
 	letter-spacing: 0.05em;
-	color: var(--text-muted, #6b7280);
+	color: var(--text-muted);
 	margin: 0 0 0.75rem 0;
 }
 
@@ -838,9 +838,9 @@ function composeEmail(): void {
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	background: var(--subtle-fg, #f3f4f6);
-	border-radius: 0.375rem;
-	color: var(--text-muted, #6b7280);
+	background: var(--subtle-fg);
+	border-radius: var(--border-radius);
+	color: var(--text-muted);
 }
 
 .icon {
@@ -857,32 +857,32 @@ function composeEmail(): void {
 	display: flex;
 	align-items: center;
 	gap: 0.375rem;
-	font-size: 0.75rem;
-	color: var(--text-muted, #6b7280);
+	font-size: var(--text-xs);
+	color: var(--text-muted);
 	margin-bottom: 0.125rem;
 }
 
 .primary-badge {
 	display: inline-block;
 	padding: 0.0625rem 0.375rem;
-	border-radius: 0.25rem;
+	border-radius: var(--border-radius-tiny);
 	font-size: 0.625rem;
-	font-weight: 600;
+	font-weight: var(--weight-semibold);
 	text-transform: uppercase;
 	letter-spacing: 0.025em;
-	background: var(--primary-light, #e0f2fe);
-	color: var(--primary, #2490ef);
+	background: var(--blue-100);
+	color: var(--primary);
 }
 
 .info-value {
 	display: block;
-	font-size: 0.875rem;
-	color: var(--text-color, #111827);
+	font-size: var(--text-md);
+	color: var(--text-color);
 	word-break: break-word;
 }
 
 .info-value.link {
-	color: var(--primary, #2490ef);
+	color: var(--primary);
 	text-decoration: none;
 }
 
@@ -893,41 +893,41 @@ function composeEmail(): void {
 .badge {
 	display: inline-block;
 	padding: 0.125rem 0.5rem;
-	border-radius: 9999px;
-	font-size: 0.75rem;
-	font-weight: 500;
+	border-radius: var(--border-radius-full);
+	font-size: var(--text-xs);
+	font-weight: var(--weight-medium);
 }
 
 .badge-blue {
-	background: var(--blue-100, #dbeafe);
-	color: var(--blue-700, #1d4ed8);
+	background: var(--bg-blue);
+	color: var(--text-on-blue);
 }
 
 .badge-green {
-	background: var(--green-100, #dcfce7);
-	color: var(--green-700, #15803d);
+	background: var(--bg-green);
+	color: var(--text-on-green);
 }
 
 .badge-orange {
-	background: var(--orange-100, #ffedd5);
-	color: var(--orange-700, #c2410c);
+	background: var(--bg-orange);
+	color: var(--text-on-orange);
 }
 
 .badge-gray {
-	background: var(--gray-100, #f3f4f6);
-	color: var(--gray-700, #374151);
+	background: var(--bg-gray);
+	color: var(--text-on-gray);
 }
 
 .no-contact-notice {
 	padding: 1rem;
-	background: var(--subtle-fg, #f9fafb);
-	border-radius: 0.5rem;
+	background: var(--subtle-fg);
+	border-radius: var(--border-radius);
 	text-align: center;
 }
 
 .notice-text {
-	font-size: 0.875rem;
-	color: var(--text-muted, #6b7280);
+	font-size: var(--text-md);
+	color: var(--text-muted);
 	margin: 0 0 0.75rem 0;
 }
 
@@ -938,9 +938,9 @@ function composeEmail(): void {
 	justify-content: center;
 	gap: 0.5rem;
 	padding: 0.5rem 1rem;
-	font-size: 0.875rem;
-	font-weight: 500;
-	border-radius: 0.375rem;
+	font-size: var(--text-md);
+	font-weight: var(--weight-medium);
+	border-radius: var(--border-radius);
 	cursor: pointer;
 	transition:
 		background-color 0.15s,
@@ -955,25 +955,25 @@ function composeEmail(): void {
 }
 
 .btn-primary {
-	background: var(--primary, #2490ef);
-	color: white;
-	border-color: var(--primary, #2490ef);
+	background: var(--primary);
+	color: var(--white);
+	border-color: var(--primary);
 }
 
 .btn-primary:hover {
-	background: var(--primary-dark, #1d7ad8);
-	border-color: var(--primary-dark, #1d7ad8);
+	background: var(--blue-600);
+	border-color: var(--blue-600);
 }
 
 .btn-secondary {
-	background: var(--fg-color, #fff);
-	color: var(--text-color, #111827);
-	border-color: var(--border-color, #d1d5db);
+	background: var(--fg-color);
+	color: var(--text-color);
+	border-color: var(--border-color);
 }
 
 .btn-secondary:hover {
-	background: var(--subtle-fg, #f9fafb);
-	border-color: var(--gray-400, #9ca3af);
+	background: var(--subtle-fg);
+	border-color: var(--border-color);
 }
 
 /* Slide transition */
@@ -1007,12 +1007,12 @@ function composeEmail(): void {
 }
 
 .group-title {
-	font-size: 0.8125rem;
-	font-weight: 600;
-	color: var(--text-color, #111827);
+	font-size: var(--text-sm);
+	font-weight: var(--weight-semibold);
+	color: var(--text-color);
 	margin: 0 0 0.5rem 0;
 	padding-bottom: 0.25rem;
-	border-bottom: 1px solid var(--border-color, #e5e7eb);
+	border-bottom: 1px solid var(--border-color);
 }
 
 .linked-list {
@@ -1029,7 +1029,7 @@ function composeEmail(): void {
 }
 
 .linked-item:not(:last-child) {
-	border-bottom: 1px solid var(--border-color-light, #f3f4f6);
+	border-bottom: 1px solid var(--border-color);
 }
 
 .info-icon.small {
@@ -1049,16 +1049,16 @@ function composeEmail(): void {
 
 .linked-doctype {
 	display: block;
-	font-size: 0.6875rem;
-	color: var(--text-muted, #6b7280);
+	font-size: var(--text-tiny);
+	color: var(--text-muted);
 	text-transform: uppercase;
 	letter-spacing: 0.025em;
 }
 
 .linked-link {
 	display: block;
-	font-size: 0.8125rem;
-	color: var(--primary, #2490ef);
+	font-size: var(--text-sm);
+	color: var(--primary);
 	text-decoration: none;
 	white-space: nowrap;
 	overflow: hidden;
@@ -1071,14 +1071,14 @@ function composeEmail(): void {
 
 .no-linked-notice {
 	padding: 0.75rem;
-	background: var(--subtle-fg, #f9fafb);
-	border-radius: 0.375rem;
+	background: var(--subtle-fg);
+	border-radius: var(--border-radius);
 	text-align: center;
 }
 
 .no-linked-notice .notice-text {
 	margin: 0;
-	font-size: 0.8125rem;
+	font-size: var(--text-sm);
 }
 
 /* Loading state */
@@ -1088,63 +1088,22 @@ function composeEmail(): void {
 	justify-content: center;
 	gap: 0.5rem;
 	padding: 1rem;
-	color: var(--text-muted, #6b7280);
-	font-size: 0.875rem;
+	color: var(--text-muted);
+	font-size: var(--text-md);
 }
 
 .spinner {
 	width: 1rem;
 	height: 1rem;
-	border: 2px solid var(--border-color, #e5e7eb);
-	border-top-color: var(--primary, #2490ef);
-	border-radius: 50%;
+	border: 2px solid var(--border-color);
+	border-top-color: var(--primary);
+	border-radius: var(--border-radius-full);
 	animation: spin 0.8s linear infinite;
 }
 
 @keyframes spin {
 	to {
 		transform: rotate(360deg);
-	}
-}
-
-/* Dark mode support */
-@media (prefers-color-scheme: dark) {
-	.contact-panel {
-		background: var(--fg-color, #1f2937);
-	}
-
-	.contact-panel-header {
-		background: var(--subtle-fg, #111827);
-		border-color: var(--border-color, #374151);
-	}
-
-	.contact-panel-footer {
-		border-color: var(--border-color, #374151);
-	}
-
-	.info-icon {
-		background: var(--subtle-fg, #374151);
-	}
-
-	.no-contact-notice {
-		background: var(--subtle-fg, #374151);
-	}
-
-	.avatar-wrapper,
-	.avatar-placeholder {
-		background: var(--gray-700, #374151);
-	}
-
-	.group-title {
-		border-color: var(--border-color, #374151);
-	}
-
-	.linked-item:not(:last-child) {
-		border-color: var(--border-color-light, #1f2937);
-	}
-
-	.no-linked-notice {
-		background: var(--subtle-fg, #374151);
 	}
 }
 </style>

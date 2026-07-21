@@ -333,8 +333,8 @@ class ChatView {
     banner.className = 'push-notification-banner';
     banner.style.cssText =
       'display:flex; align-items:center; justify-content:center; gap:12px; ' +
-      'padding:10px 16px; background:var(--alert-bg-info, #e3f2fd); ' +
-      'border-bottom:1px solid var(--alert-border-info, #bbdefb); font-size:14px; color:var(--alert-text-info, #1565c0);';
+      'padding:10px 16px; background:var(--alert-bg-info); ' +
+      'border-bottom:1px solid var(--border-color); font-size:var(--text-md); color:var(--alert-text-info);';
     banner.innerHTML =
       `<span>\uD83D\uDD14 ${__('Get notified when new messages arrive.')}</span>` +
       `<button class="btn btn-xs btn-primary push-banner-enable">${__('Enable')}</button>` +
