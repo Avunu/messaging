@@ -1046,7 +1046,11 @@ export default defineComponent({
 	margin-top: 16px;
 }
 
-.btn {
+/* Scoped to .chat-container: this <style> is not `scoped`, so bare `.btn` /
+   `.btn-default` selectors leak out and override the desk's core Bootstrap
+   buttons wherever this bundle loads. Namespacing under the component root keeps
+   the chat's own buttons styled without touching core `.btn`. */
+.chat-container .btn {
 	display: inline-block;
 	padding: 8px 16px;
 	border-radius: 6px;
@@ -1056,23 +1060,23 @@ export default defineComponent({
 	transition: all 0.2s;
 }
 
-.btn-default {
+.chat-container .btn-default {
 	background: #f0f0f0;
 	color: #333;
 	border: 1px solid #ddd;
 }
 
-.btn-default:hover {
+.chat-container .btn-default:hover {
 	background: #e0e0e0;
 }
 
-.chat-dark .btn-default {
+.chat-container.chat-dark .btn-default {
 	background: #333;
 	color: #fff;
 	border-color: #444;
 }
 
-.chat-dark .btn-default:hover {
+.chat-container.chat-dark .btn-default:hover {
 	background: #444;
 }
 
