@@ -27,8 +27,11 @@ class MessagingGroup(Document):
 		title: DF.Data | None
 	# end: auto-generated types
 
-	# on validate, unlink any removed contacts from the messaging group
+	# on validate, prune orphaned members and unlink any removed contacts
 	def validate(self):
+		# drop member rows whose Contact no longer exists before Frappe's
+		# _validate_links() runs on save
+		self.prune_orphaned_members()
 		# get the messaging group members from before the update
 		previous_members = frappe.get_all(
 			"Messaging Group Member",
@@ -43,6 +46,28 @@ class MessagingGroup(Document):
 				messaging_group_member.contact for messaging_group_member in self.members
 			]:
 				self.unlink_contact_from_messaging_group(previous_member)
+
+	def prune_orphaned_members(self):
+		"""Remove member rows that reference a Contact which no longer exists.
+
+		Frappe's _validate_links() re-validates every row in the members table on
+		save, so a single dangling reference (e.g. a Contact removed via raw SQL or
+		a force delete that skips Contact.on_trash) would otherwise block ALL saves
+		of this group -- including adding new members -- with a LinkValidationError.
+		"""
+		valid_members = [
+			member
+			for member in self.members
+			if member.contact and frappe.db.exists("Contact", member.contact)
+		]
+		if len(valid_members) != len(self.members):
+			for member in self.members:
+				if member not in valid_members:
+					frappe.logger("messaging").warning(
+						f"Messaging Group {self.name!r}: pruning orphaned member "
+						f"referencing missing Contact {member.contact!r}"
+					)
+			self.members = valid_members
 
 	def on_update(self):
 		# if there are no members left, end function
