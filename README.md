@@ -1,6 +1,6 @@
 # Messaging App
 
-Lightweight messaging extension for Frappe/ERPNext providing SMS delivery, contact enrichment, mail-merge capable newsletters, and a **modern chat-like messaging interface**.
+Messaging app for Frappe/ERPNext: Twilio SMS with an inbound webhook and consent handling, group texts, newsletters with merge tags, and a chat-style unified inbox for email and SMS.
 
 ## Features
 - **Chat Interface**: Modern, real-time chat view for all Communications (Email & SMS) powered by vue-advanced-chat
@@ -49,10 +49,11 @@ After installation, navigate to **Communication** in Frappe desk. The default vi
 4. Grant appropriate roles (System Manager / Newsletter Manager).
 
 ## Twilio Inbound Webhook
-Endpoint: /api/method/messaging.messaging.messaging.api.twilio_webhook.sms
+Endpoint: /api/method/messaging.messaging.api.twilio_webhook.sms
 - Validates X-Twilio-Signature.
 - Creates a Communication (sent_or_received = Received).
 - Returns HTTP 204 on success.
+- Handles SMS consent keywords from known contacts: STOP, STOPALL, UNSUBSCRIBE, CANCEL, END and QUIT clear `consent_sms` and set `unsubscribed`; START, YES and UNSTOP restore consent.
 
 ## Outbound Group SMS
 1. Create Group Text Message.
@@ -69,7 +70,7 @@ Sending logic filters:
 - Has a primary mobile (is_primary_mobile_no == 1) that is validated (is_valid == 1).
 
 ## Phone Number Processing
-Hook: messaging.messaging.messaging.hooks.contact.validate
+Hook: `Contact.validate` in messaging.messaging.custom.contact (registered through `extend_doctype_class`)
 - Deduplicate emails and phones.
 - Convert to E.164 using phonenumbers library (country fallback: Address country → System Settings).
 - Optional Twilio Lookup (line_type_intelligence) sets is_valid + carrier_type.
@@ -116,4 +117,5 @@ Group broadcast:
 - Merge tags blank: recipient not matched to a Contact record.
 
 ## License
-mit
+
+MIT. See [license.txt](license.txt).
