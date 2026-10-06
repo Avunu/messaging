@@ -1,5 +1,5 @@
 # Copyright (c) 2025, Avunu LLC
-# License: MIT. See LICENSE
+# License: MIT. See license.txt
 """
 Helper utilities for the Chat API.
 
