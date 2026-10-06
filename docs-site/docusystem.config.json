@@ -1,0 +1,10 @@
+{
+  "$schema": "./node_modules/@avunu/docusystem/config.schema.json",
+  "name": "Messaging",
+  "tagline": "A unified chat-style inbox for email and SMS in Frappe and ERPNext, with Twilio texting, group broadcasts, and mail-merge newsletters.",
+  "slug": "messaging",
+  "platform": "frappe",
+  "repo": "https://github.com/Avunu/messaging",
+  "domain": "messaging.avunu.net",
+  "license": "MIT"
+}
