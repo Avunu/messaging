@@ -10,10 +10,23 @@ from datetime import datetime, timedelta
 from typing import Any
 
 import frappe
+from frappe.permissions import get_role_permissions
 from frappe.query_builder import DocType
 from frappe.utils import get_datetime, get_url, now_datetime
 
 from messaging.messaging.api.chat.types import LastMessage, Room, RoomUser, UserStatus
+
+
+def has_unrestricted_permission(ptype: str, user: str | None = None) -> bool:
+	"""Whether `user` may `ptype` every Communication, not only the ones they own.
+
+	frappe grants the "All" role read and delete on the Communications a user owns, so a
+	doctype-level frappe.has_permission is true for every user. The chat lists and changes
+	the whole site's conversations, so it needs a role that has `ptype` without "if owner"
+	(System Manager, or Inbox User for read, create and delete).
+	"""
+	perms = get_role_permissions("Communication", user=user)
+	return bool(perms.get(ptype)) and ptype not in perms.get("if_owner", {})
 
 
 def get_user_avatar(user: str | None) -> str:

@@ -17,7 +17,10 @@ import re
 from typing import Any
 
 import frappe
+from frappe import _
 from frappe.realtime import get_doctype_room
+
+from messaging.messaging.api.chat.helpers import has_unrestricted_permission
 
 from messaging.messaging.api.chat.retrieve import get_current_user as _get_current_user
 from messaging.messaging.api.chat.retrieve import get_messages as _get_messages
@@ -38,6 +41,18 @@ from messaging.messaging.api.chat.types import (
 )
 
 
+def _require(ptype: str) -> None:
+	"""Throw unless the session user may `ptype` every Communication.
+
+	The chat reads and changes the site's Communications with the query builder, which
+	applies no permissions, so each endpoint checks the role permission it needs first.
+	"""
+	if not has_unrestricted_permission(ptype):
+		frappe.throw(
+			_("You are not permitted to {0} conversations").format(_(ptype)), frappe.PermissionError
+		)
+
+
 @frappe.whitelist()
 def get_current_user() -> CurrentUser:
 	"""
@@ -46,6 +61,7 @@ def get_current_user() -> CurrentUser:
 	Returns:
 		CurrentUser dict with user details for vue-advanced-chat
 	"""
+	_require("read")
 	return _get_current_user()
 
 
@@ -68,6 +84,7 @@ def get_rooms(
 	Returns:
 		RoomsResponse with list of rooms and pagination info
 	"""
+	_require("read")
 	return _get_rooms(page=page, limit=limit, search=search, medium=medium)
 
 
@@ -90,6 +107,7 @@ def get_messages(
 	Returns:
 		MessagesResponse with list of messages and pagination info
 	"""
+	_require("read")
 	return _get_messages(room_id=room_id, page=page, limit=limit, before_id=before_id)
 
 
@@ -114,6 +132,7 @@ def send_message(
 	Returns:
 		SendMessageResponse with the created message or error
 	"""
+	_require("create")
 	return _send_message(
 		room_id=room_id,
 		content=content,
@@ -134,6 +153,7 @@ def mark_messages_seen(room_id: str) -> MarkSeenResponse:
 	Returns:
 		MarkSeenResponse with success status and count of updated messages
 	"""
+	_require("write")
 	return _mark_messages_seen(room_id=room_id)
 
 
@@ -149,6 +169,7 @@ def search_rooms(query: str, limit: int = 10) -> list[Room]:
 	Returns:
 		List of matching Room objects
 	"""
+	_require("read")
 	return _get_rooms(page=1, limit=limit, search=query)["rooms"]
 
 
@@ -160,6 +181,7 @@ def get_unread_count() -> int:
 	Returns:
 		Total unread message count
 	"""
+	_require("read")
 	return _get_unread_count()
 
 
@@ -174,6 +196,7 @@ def archive_room(room_id: str) -> RoomActionResponse:
 	Returns:
 		RoomActionResponse with success status and count of updated messages
 	"""
+	_require("write")
 	return _archive_room(room_id=room_id)
 
 
@@ -188,6 +211,7 @@ def delete_room(room_id: str) -> RoomActionResponse:
 	Returns:
 		RoomActionResponse with success status and count of deleted messages
 	"""
+	_require("delete")
 	return _delete_room(room_id=room_id)
 
 
@@ -242,7 +266,8 @@ def _send_push_for_received(
 
 	for row in subscribed_users:
 		user = row["user"]
-		if user == "Guest":
+		# The notification carries the message, so only users who may read it get one.
+		if user == "Guest" or not has_unrestricted_permission("read", user=user):
 			continue
 
 		try:

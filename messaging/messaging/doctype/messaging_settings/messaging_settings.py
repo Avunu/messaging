@@ -29,8 +29,13 @@ class MessagingSettings(Document):
 
 	@frappe.whitelist(methods=["POST"])
 	def generate_vapid_keys(self) -> None:
-		"""Generate a new VAPID key pair for push notifications."""
+		"""Generate a new VAPID key pair for push notifications.
+
+		A new pair invalidates every browser's subscription, so this needs write permission:
+		frappe's run_doc_method asks only for read.
+		"""
 		from messaging.messaging.api.chat.push import _generate_vapid_keys
 
+		self.check_permission("write")
 		_generate_vapid_keys(self)
 		frappe.msgprint(_("VAPID keys generated successfully."), indicator="green")

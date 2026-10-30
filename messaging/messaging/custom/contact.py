@@ -254,31 +254,40 @@ class Contact(BaseContact):
 
 	# messaging group methods
 
-	@frappe.whitelist()
+	@frappe.whitelist(methods=["POST"])
 	def add_to_group(self, group_name: str) -> None:
 		"""Add this contact to a messaging group.
 
 		Args:
 			group_name: The name of the messaging group to add this contact to.
 		"""
-		mg = cast("MessagingGroup", frappe.get_doc("Messaging Group", group_name))
-		mg.add_contact(self.name)
+		_group_to_change(group_name).add_contact(self.name)
 
-	@frappe.whitelist()
+	@frappe.whitelist(methods=["POST"])
 	def remove_from_group(self, group_name: str) -> None:
 		"""Remove this contact from a messaging group.
 
 		Args:
 			group_name: The name of the messaging group to remove this contact from.
 		"""
-		mg = cast("MessagingGroup", frappe.get_doc("Messaging Group", group_name))
-		mg.remove_contact(self.name)
+		_group_to_change(group_name).remove_contact(self.name)
 
 
 # Module-level functions for bulk operations and validation
 
 
-@frappe.whitelist()
+def _group_to_change(group_name: str) -> MessagingGroup:
+	"""The Messaging Group a caller asked to change, once they may write it.
+
+	MessagingGroup.add_contact and remove_contact save with ignore_permissions, so the
+	whitelisted entry points check write permission on the group first.
+	"""
+	group = cast("MessagingGroup", frappe.get_doc("Messaging Group", group_name))
+	group.check_permission("write")
+	return group
+
+
+@frappe.whitelist(methods=["POST"])
 def bulk_add_to_group(doc_names: str, group_name: str) -> dict[str, str]:
 	"""Add multiple contacts to a messaging group.
 
@@ -290,15 +299,14 @@ def bulk_add_to_group(doc_names: str, group_name: str) -> dict[str, str]:
 		A dict with status and message keys.
 	"""
 	doc_names_list: list[str] = json.loads(doc_names)
-	mg = cast("MessagingGroup", frappe.get_doc("Messaging Group", group_name))
-	mg.add_contacts(doc_names_list)
+	_group_to_change(group_name).add_contacts(doc_names_list)
 	return {
 		"status": "Success",
 		"message": frappe._("Added contacts to group"),
 	}
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST"])
 def bulk_remove_from_group(doc_names: str, group_name: str) -> dict[str, str]:
 	"""Remove multiple contacts from a messaging group.
 
@@ -310,8 +318,7 @@ def bulk_remove_from_group(doc_names: str, group_name: str) -> dict[str, str]:
 		A dict with status and message keys.
 	"""
 	doc_names_list: list[str] = json.loads(doc_names)
-	mg = cast("MessagingGroup", frappe.get_doc("Messaging Group", group_name))
-	mg.remove_contacts(doc_names_list)
+	_group_to_change(group_name).remove_contacts(doc_names_list)
 	return {
 		"status": "Success",
 		"message": frappe._("Removed contacts from group"),
@@ -321,6 +328,9 @@ def bulk_remove_from_group(doc_names: str, group_name: str) -> dict[str, str]:
 def add_to_all_contacts_group(doc: Contact, method: str | None = None) -> None:
 	"""Add contact to the default all contacts group on creation.
 
+	Runs on every Contact save, by whoever saves it, so it skips the group's permission
+	check: the group is the one Messaging Settings names for every contact.
+
 	Args:
 		doc: The Contact document being saved.
 		method: The hook method name (unused, for Frappe hook compatibility).
@@ -329,4 +339,4 @@ def add_to_all_contacts_group(doc: Contact, method: str | None = None) -> None:
 		str | None, frappe.db.get_single_value("Messaging Settings", "all_contacts_group")
 	)
 	if all_contacts_group:
-		doc.add_to_group(all_contacts_group)
+		cast("MessagingGroup", frappe.get_doc("Messaging Group", all_contacts_group)).add_contact(doc.name)

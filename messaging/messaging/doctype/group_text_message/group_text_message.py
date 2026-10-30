@@ -67,7 +67,13 @@ class GroupTextMessage(Document):
 
 	@frappe.whitelist(methods=["POST"])
 	def send_text_message(self):
-		"""Send the message to every eligible member of its groups, then record the result."""
+		"""Send the message to every eligible member of its groups, then record the result.
+
+		frappe's run_doc_method asks only for read permission, so a direct call must also be
+		allowed to submit this message.
+		"""
+		if not self.flags.ignore_permissions:
+			self.check_permission("submit")
 		try:
 			# get the messaging group
 			messaging_groups = [group.messaging_group for group in self.messaging_group]
