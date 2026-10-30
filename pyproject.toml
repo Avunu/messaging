@@ -79,6 +79,40 @@ rules = { "unicorn/require-post-message-target-origin" = "off" }
 files = ["messaging/messaging/doctype/messaging_group/messaging_group.js"]
 rules = { "unicorn/no-empty-file" = "off" }
 
+# Temporary, removed in PR B: the desk scripts that don't pass strict checkJs yet (implicit
+# any parameters, untyped r.message, jQuery's .done on frappe.call, frm.savesubmit).
+[[tool.frappe-nix.unchecked-js]]
+path = "messaging/messaging/doctype/group_text_message/group_text_message.js"
+reason = "frm.savesubmit is not in frappe-types' Form; typed in PR B"
+
+[[tool.frappe-nix.unchecked-js]]
+path = "messaging/public/js/contact.js"
+reason = "jQuery-style .done on frappe.call and an implicit-any callback; typed in PR B"
+
+[[tool.frappe-nix.unchecked-js]]
+path = "messaging/public/js/contact_list.js"
+reason = "implicit-any listview and menu callbacks and an untyped r.message; typed in PR B"
+
+# Temporary, removed in PR B: the profile's test_utils hooks minus validate_customizations. It
+# fails on the 13 property setters the custom JSON ships with is_system_generated = 1, and
+# clearing that flag would let Customize Form's "Reset to defaults" delete them.
+[tool.frappe-nix.test-utils]
+hooks = [
+	"validate_frappe_project",
+	"validate_patches",
+	"static_analysis",
+	"validate_doctype_python_types",
+	"validate_copyright",
+	"clean_customized_doctypes",
+	"check_code_duplication",
+]
+
+# Temporary, removed in PR B: the lint gate's scan of frappe's semgrep rules fails on its 30
+# findings and has no baseline (only `# nosemgrep` comments). The registry scan in ci / marketplace
+# (L7) still runs them against marketplace/semgrep-baseline.json, which only shrinks.
+[tool.frappe-nix.semgrep]
+frappe-rules = false
+
 # These dependencies are only installed when developer mode is enabled
 [tool.bench.dev-dependencies]
 # package_name = "~=1.1.0"

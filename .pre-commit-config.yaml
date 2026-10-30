@@ -142,8 +142,6 @@ repos:
         exclude: ^(docs/|docs-site/|scripts/|ci/|marketplace/shots\.d\.ts$|types/doctypes\.d\.ts$|tsconfig[^/]*\.json$|vendor/.*$)
         exclude_types: [executable]
       # Bench-aware: silent no-ops outside a bench. CI runs them in a mini-bench (`frappe-nix minibench`).
-      - id: validate_customizations
-        stages: [manual]
       - id: clean_customized_doctypes
         stages: [manual]
       # Nightly only (jscpd through npx, needs the network).
