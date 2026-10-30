@@ -98,7 +98,7 @@ class MessagingGroup(Document):
 			email_group_members = frappe.get_all(
 				"Email Group Member",
 				filters={"email_group": self.email_group},
-				fields=["email"],
+				fields=["name", "email"],
 			)
 
 			# get the contact for each messaging group member
