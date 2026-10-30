@@ -5,13 +5,9 @@ frappe.ui.form.on("Messaging Settings", {
 	refresh(frm) {
 		// Show helper text based on VAPID key status
 		if (!frm.doc.vapid_public_key) {
-			frm.dashboard.set_headline(
-				__('Click "Generate VAPID Keys" to enable push notifications.'),
-			);
+			frm.dashboard.set_headline(__('Click "Generate VAPID Keys" to enable push notifications.'));
 		} else {
-			frm.dashboard.set_headline(
-				__("VAPID keys are configured. Push notifications are ready."),
-			);
+			frm.dashboard.set_headline(__("VAPID keys are configured. Push notifications are ready."));
 		}
 	},
 

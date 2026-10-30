@@ -1,3 +1,6 @@
+# Copyright (c) 2026, Avunu LLC and contributors
+# For license information, please see license.txt
+
 import frappe
 from frappe.utils import get_formatted_email, md_to_html
 from newsletter.newsletter.doctype.newsletter.newsletter import (
@@ -6,6 +9,18 @@ from newsletter.newsletter.doctype.newsletter.newsletter import (
 
 
 class Newsletter(BaseNewsletter):
+	def _get_default_contact(self, email: str) -> dict:
+		"""Return default contact dict for emails not in Contact database"""
+		return {
+			"first_name": "",
+			"last_name": "",
+			"full_name": email.split("@")[0] if email else "",
+			"company_name": "",
+			"designation": "",
+			"gender": "",
+			"salutation": "",
+		}
+
 	def send_newsletter(self, emails: list[str], test_email: bool = False):
 		"""Trigger email generation for `emails` and add it in Email Queue with contact mailmerge."""
 		attachments = self.get_newsletter_attachments()
@@ -57,18 +72,6 @@ class Newsletter(BaseNewsletter):
 			)
 
 		frappe.db.auto_commit_on_many_writes = is_auto_commit_set
-
-	def _get_default_contact(self, email: str) -> dict:
-		"""Return default contact dict for emails not in Contact database"""
-		return {
-			"first_name": "",
-			"last_name": "",
-			"full_name": email.split("@")[0] if email else "",
-			"company_name": "",
-			"designation": "",
-			"gender": "",
-			"salutation": "",
-		}
 
 	def get_contact_map(self, emails: list[str]) -> dict[str, dict]:
 		"""Get contact information for mailmerge fields using Query Builder"""

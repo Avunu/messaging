@@ -1,0 +1,110 @@
+{
+	"$schema": "./node_modules/oxlint/configuration_schema.json",
+	"plugins": ["typescript", "unicorn", "oxc", "import"],
+	"categories": {
+		"correctness": "error",
+		"suspicious": "error",
+		"perf": "warn",
+		"pedantic": "off"
+	},
+	"env": {
+		"builtin": true,
+		"es2024": true,
+		"browser": true
+	},
+	"rules": {
+		"typescript/no-explicit-any": "error",
+		"typescript/ban-ts-comment": "error",
+		"typescript/consistent-type-imports": "error",
+		"no-console": [
+			"warn",
+			{
+				"allow": ["error", "warn"]
+			}
+		],
+		"import/no-cycle": "off",
+		"no-underscore-dangle": "off",
+		"unicorn/consistent-function-scoping": "off",
+		"unicorn/no-array-sort": "off"
+	},
+	"ignorePatterns": [
+		"messaging/public/dist/**",
+		".frappe-nix/**",
+		".dev-dist/**",
+		"nix/**",
+		"docs-site/**",
+		"types/doctypes.d.ts",
+		"vendor/**"
+	],
+	"overrides": [
+		{
+			"files": ["scripts/**", "marketplace/**", "ci/**", "test/**"],
+			"env": {
+				"node": true
+			},
+			"rules": {
+				"no-console": "off",
+				"no-await-in-loop": "off",
+				"import/no-unassigned-import": "off"
+			}
+		},
+		{
+			"files": ["messaging/public/js/*.bundle.ts", "messaging/public/js/*.bundle.js"],
+			"rules": {
+				"import/no-unassigned-import": "off"
+			}
+		},
+		{
+			"files": [
+				"messaging/messaging/doctype/group_text_message/group_text_message.js",
+				"messaging/messaging/doctype/messaging_group/messaging_group.js",
+				"messaging/messaging/doctype/messaging_settings/messaging_settings.js",
+				"messaging/public/js/communication.js",
+				"messaging/public/js/contact.js",
+				"messaging/public/js/contact_list.js"
+			],
+			"globals": {
+				"frappe": "readonly",
+				"__": "readonly",
+				"cur_frm": "readonly",
+				"cur_list": "readonly",
+				"locals": "readonly",
+				"$": "readonly",
+				"jQuery": "readonly",
+				"moment": "readonly"
+			}
+		},
+		{
+			"files": ["messaging/public/js/chat/ChatView.vue"],
+			"rules": {
+				"typescript/no-explicit-any": "off",
+				"no-shadow": "off"
+			}
+		},
+		{
+			"files": ["messaging/public/js/chat/bundle.ts"],
+			"rules": {
+				"import/no-unassigned-import": "off",
+				"no-new": "off"
+			}
+		},
+		{
+			"files": ["messaging/public/js/chat/ChatFooter.vue"],
+			"rules": {
+				"unicorn/prefer-add-event-listener": "off"
+			}
+		},
+		{
+			"files": ["messaging/public/js/chat/sw-messaging.js"],
+			"rules": {
+				"unicorn/require-post-message-target-origin": "off"
+			}
+		},
+		{
+			"files": ["messaging/messaging/doctype/messaging_group/messaging_group.js"],
+			"rules": {
+				"unicorn/no-empty-file": "off"
+			}
+		}
+	]
+}

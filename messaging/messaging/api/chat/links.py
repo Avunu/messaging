@@ -10,6 +10,26 @@ import frappe
 from frappe.query_builder import DocType, Order
 
 
+def get_document_title(doctype: str, name: str) -> str:
+	"""
+	Get a display title for a document.
+
+	Uses the title field if defined, otherwise falls back to name.
+	"""
+	try:
+		meta = frappe.get_meta(doctype)
+		title_field = meta.title_field
+
+		if title_field and title_field != "name":
+			title = frappe.db.get_value(doctype, name, title_field)
+			if title:
+				return str(title)
+
+		return name
+	except Exception:
+		return name
+
+
 @frappe.whitelist()
 def get_linked_documents(doctype: str, docname: str) -> dict[str, list[dict[str, Any]]]:
 	"""
@@ -132,23 +152,3 @@ def get_linked_documents(doctype: str, docname: str) -> dict[str, list[dict[str,
 			continue
 
 	return result
-
-
-def get_document_title(doctype: str, name: str) -> str:
-	"""
-	Get a display title for a document.
-
-	Uses the title field if defined, otherwise falls back to name.
-	"""
-	try:
-		meta = frappe.get_meta(doctype)
-		title_field = meta.title_field
-
-		if title_field and title_field != "name":
-			title = frappe.db.get_value(doctype, name, title_field)
-			if title:
-				return str(title)
-
-		return name
-	except Exception:
-		return name

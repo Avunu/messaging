@@ -103,6 +103,7 @@ send_message(
 Room IDs follow the pattern: `{medium}:{identifier}[:ref_dt:ref_name]`
 
 Examples:
+
 - `SMS:+15551234567` - SMS conversation with a phone number
 - `Email:user@example.com` - Email thread with an email address
 - `Email:user@example.com:Lead:LEAD-00001` - Email linked to a Lead

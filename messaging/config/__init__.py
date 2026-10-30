@@ -11,42 +11,15 @@ from frappe.types.frappedict import _dict
 class PropertySetterValue(_dict):
 	"""Dict-like object for sales quote rule data that exposes keys as attributes"""
 
-	def __init__(self, data: dict[str, Any] | None = None):
-		super().__init__(data or {})
-
 	name: DF.Data
 	value: DF.SmallText
+
+	def __init__(self, data: dict[str, Any] | None = None):
+		super().__init__(data or {})
 
 
 # DocType View for Chat audit trail
 DOCVIEW = ["Chat"]
-
-
-def after_install():
-	"""Run after esign app is installed."""
-	add_doctype_views()
-
-
-def after_migrate():
-	"""Run after migrations to ensure DocType Views exist."""
-	add_doctype_views()
-
-
-def after_uninstall():
-	"""Clean up DocType Views on uninstall."""
-	remove_doctype_views()
-
-
-def add_doctype_views():
-	"""Add Chat as a valid doctype view option."""
-	add_field_options("DocType", "default_view", DOCVIEW)
-	add_field_options("Workspace Shortcut", "doc_view", DOCVIEW)
-
-
-def remove_doctype_views():
-	"""Remove Chat doctype view option."""
-	revert_field_options("DocType", "default_view", DOCVIEW)
-	revert_field_options("Workspace Shortcut", "doc_view", DOCVIEW)
 
 
 def add_field_options(doctype: str, field_name: str, options_to_add: list[str]):
@@ -98,6 +71,22 @@ def add_field_options(doctype: str, field_name: str, options_to_add: list[str]):
 			)
 
 
+def add_doctype_views():
+	"""Add Chat as a valid doctype view option."""
+	add_field_options("DocType", "default_view", DOCVIEW)
+	add_field_options("Workspace Shortcut", "doc_view", DOCVIEW)
+
+
+def after_install():
+	"""Run after esign app is installed."""
+	add_doctype_views()
+
+
+def after_migrate():
+	"""Run after migrations to ensure DocType Views exist."""
+	add_doctype_views()
+
+
 def revert_field_options(doctype: str, field_name: str, options_to_remove: list[str]):
 	"""Remove options from a Select field's Property Setter."""
 	existing_setter = cast(
@@ -128,3 +117,14 @@ def revert_field_options(doctype: str, field_name: str, options_to_remove: list[
 			else:
 				# If no options left, delete the property setter
 				frappe.delete_doc("Property Setter", existing_setter.name)
+
+
+def remove_doctype_views():
+	"""Remove Chat doctype view option."""
+	revert_field_options("DocType", "default_view", DOCVIEW)
+	revert_field_options("Workspace Shortcut", "doc_view", DOCVIEW)
+
+
+def after_uninstall():
+	"""Clean up DocType Views on uninstall."""
+	remove_doctype_views()

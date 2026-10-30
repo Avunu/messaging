@@ -1,34 +1,20 @@
 <template>
-	<div
-		v-if="roomId"
-		class="chat-footer-wrapper"
-		:class="{ 'chat-dark': isDark }"
-	>
+	<div v-if="roomId" class="chat-footer-wrapper" :class="{ 'chat-dark': isDark }">
 		<!-- Reply preview -->
 		<div v-if="replyMessage" class="reply-preview">
 			<div class="reply-preview-bar" />
 			<div class="reply-preview-content">
-				<span class="reply-preview-sender">{{
-					replyMessage.username || replyMessage.senderId
-				}}</span>
+				<span class="reply-preview-sender">{{ replyMessage.username || replyMessage.senderId }}</span>
 				<p class="reply-preview-text" v-html="truncatedReplyContent" />
 			</div>
-			<button
-				class="reply-preview-close"
-				@click="$emit('clear-reply')"
-				:title="__('Cancel reply')"
-			>
+			<button class="reply-preview-close" @click="$emit('clear-reply')" :title="__('Cancel reply')">
 				&times;
 			</button>
 		</div>
 
 		<!-- File previews -->
 		<div v-if="files.length" class="file-preview-list">
-			<div
-				v-for="(file, index) in files"
-				:key="index"
-				class="file-preview-item"
-			>
+			<div v-for="(file, index) in files" :key="index" class="file-preview-item">
 				<img
 					v-if="file.preview && file.type?.startsWith('image/')"
 					:src="file.preview"
@@ -37,9 +23,7 @@
 				/>
 				<span v-else class="file-preview-icon">📎</span>
 				<span class="file-preview-name">{{ file.name }}</span>
-				<button class="file-preview-remove" @click="removeFile(index)">
-					&times;
-				</button>
+				<button class="file-preview-remove" @click="removeFile(index)">&times;</button>
 			</div>
 		</div>
 
@@ -60,11 +44,7 @@
 				/>
 			</div>
 			<div class="chat-footer-actions">
-				<button
-					class="footer-action-btn attach-btn"
-					@click="triggerFileUpload"
-					:title="__('Attach file')"
-				>
+				<button class="footer-action-btn attach-btn" @click="triggerFileUpload" :title="__('Attach file')">
 					<svg
 						width="20"
 						height="20"
@@ -102,13 +82,7 @@
 					</svg>
 				</button>
 			</div>
-			<input
-				ref="fileInputRef"
-				type="file"
-				multiple
-				style="display: none"
-				@change="onFileSelect"
-			/>
+			<input ref="fileInputRef" type="file" multiple style="display: none" @change="onFileSelect" />
 		</div>
 	</div>
 </template>
@@ -213,9 +187,7 @@ export default defineComponent({
 					// by looking for the suggestion-active class or tippy popups
 					const rootEl = editorRef.value?.rootRef;
 					if (rootEl) {
-						const popup = document.querySelector(
-							".tippy-box, .suggestion-list, .slash-commands-list",
-						);
+						const popup = document.querySelector(".tippy-box, .suggestion-list, .slash-commands-list");
 						if (popup) return; // Let the suggestion handle Enter
 					}
 				}
@@ -516,10 +488,7 @@ export default defineComponent({
 	margin: 0;
 }
 
-.editor-container
-	.chat-editor-content
-	.ProseMirror
-	p.is-editor-empty:first-child::before {
+.editor-container .chat-editor-content .ProseMirror p.is-editor-empty:first-child::before {
 	color: var(--text-light);
 	content: attr(data-placeholder);
 	float: left;

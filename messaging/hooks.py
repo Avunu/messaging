@@ -1,3 +1,6 @@
+# Copyright (c) 2026, Avunu LLC and contributors
+# For license information, please see license.txt
+
 app_description = "Additional messaging functionality for Frappe Sites"
 app_email = "mail@avu.nu"
 app_license = "mit"

@@ -15,20 +15,22 @@ frappe.ui.form.on("Contact", {
 						reqd: 1,
 					},
 					function (data) {
-						frm.call({
-							doc: frm.doc,
-							method: "add_to_group",
-							args: {
-								group_name: data.group_name,
-							},
-							freeze: true,
-						}).done((r) => {
-							frm.reload_doc();
-							// frappe.show_alert(r.message).then(() => {
-							//     frm.reload_doc();
-							// }
-							// );
-						});
+						frm
+							.call({
+								doc: frm.doc,
+								method: "add_to_group",
+								args: {
+									group_name: data.group_name,
+								},
+								freeze: true,
+							})
+							.done((_r) => {
+								frm.reload_doc();
+								// frappe.show_alert(r.message).then(() => {
+								//     frm.reload_doc();
+								// }
+								// );
+							});
 					},
 				);
 			});
