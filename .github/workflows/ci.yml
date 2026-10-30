@@ -5,7 +5,7 @@
 name: ci
 on:
   push:
-    branches: [main]
+    branches: [develop]
   pull_request:
   schedule:
     # The integration branch, daily: a GITHUB_TOKEN auto-merge raises no push.
@@ -24,7 +24,7 @@ jobs:
     uses: Avunu/frappe-nix/.github/workflows/app-lint.yml@fe7724052a3be7995971325add0fa130dcad2efc # v1.5.0
     with:
       app: messaging
-      integration-branch: main
+      integration-branch: develop
       runs-on: '["self-hosted","nixos"]'
     secrets:
       FETCH_TOKEN: ${{ secrets.FRAPPE_NIX_FETCH_TOKEN }}
@@ -36,7 +36,7 @@ jobs:
     uses: Avunu/frappe-nix/.github/workflows/app-typecheck.yml@fe7724052a3be7995971325add0fa130dcad2efc # v1.5.0
     with:
       app: messaging
-      integration-branch: main
+      integration-branch: develop
       runs-on: '["self-hosted","nixos"]'
     secrets:
       FETCH_TOKEN: ${{ secrets.FRAPPE_NIX_FETCH_TOKEN }}
@@ -48,7 +48,7 @@ jobs:
     uses: Avunu/frappe-nix/.github/workflows/app-test.yml@fe7724052a3be7995971325add0fa130dcad2efc # v1.5.0
     with:
       app: messaging
-      integration-branch: main
+      integration-branch: develop
       runs-on: '["self-hosted","nixos"]'
       nix-cache: ${{ vars.FRAPPE_NIX_CACHE || '' }}
       test-timeout-minutes: 120
@@ -64,7 +64,7 @@ jobs:
     uses: Avunu/frappe-nix/.github/workflows/app-marketplace.yml@fe7724052a3be7995971325add0fa130dcad2efc # v1.5.0
     with:
       app: messaging
-      integration-branch: main
+      integration-branch: develop
       runs-on: '["self-hosted","nixos"]'
     secrets:
       FETCH_TOKEN: ${{ secrets.FRAPPE_NIX_FETCH_TOKEN }}

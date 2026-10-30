@@ -22,7 +22,6 @@ schema = 1
 profile = "github:Avunu/frappe-standards-profile/main"
 frappe-major = 16
 siblings = ["newsletter"]
-integration-branch = "main"
 # vue-advanced-chat's source, committed unchanged from upstream (see its README.md): kept out of
 # formatting and linting so it stays byte-identical to the release it was copied from.
 generated = ["vendor/**"]
