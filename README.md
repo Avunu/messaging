@@ -116,8 +116,9 @@ Contact creation:
 ## Developer Notes
 
 - Dynamic Link used to associate Messaging Groups to Contacts.
-- Email Group synchronization ensures parity with messaging membership.
-- Validation commits only when necessary; avoids redundant Twilio lookups.
+- Email Group synchronization adds each member's contact to the linked Email Group; it never removes the Email Group's own subscribers.
+- Deleting a Messaging Group (from its form or the list) asks whether to delete its linked Email Group too; by default the Email Group is kept. Deleting it needs delete permission on Email Group.
+- Validation avoids redundant Twilio lookups: a number already validated is not looked up again.
 - Error handling logs Twilio lookup issues without blocking save.
 
 ## Security

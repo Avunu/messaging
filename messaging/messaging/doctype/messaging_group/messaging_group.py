@@ -2,7 +2,10 @@
 # For license information, please see license.txt
 
 
+import json
+
 import frappe
+from frappe import _
 from frappe.contacts.doctype.contact.contact import Contact
 from frappe.email.doctype.email_group_member.email_group_member import EmailGroupMember
 from frappe.model.document import Document
@@ -137,10 +140,14 @@ class MessagingGroup(Document):
 			# check if the contact has a link to the messaging group
 			self.unlink_contact_from_messaging_group(messaging_group_member.contact)
 
-		# check if the messaging group has a linked email group
-		if self.email_group:
-			# delete the email group
-			frappe.delete_doc("Email Group", self.name)
+	def after_delete(self):
+		"""Delete the linked Email Group too, when the deleting caller asked for it.
+
+		It runs once this group is gone, so frappe's link check does not count this group's
+		link to the Email Group; frappe.delete_doc checks the user's delete permission on it.
+		"""
+		if self.flags.delete_email_group and self.email_group:
+			frappe.delete_doc("Email Group", self.email_group)
 
 	# action function to add contact to "Messaging Group"
 	def add_contact(self, contact_name):
@@ -188,3 +195,43 @@ class MessagingGroup(Document):
 		if doc_exists:
 			# save the contact to update the links
 			frappe.get_doc("Contact", contact_name).notify_update()
+
+
+@frappe.whitelist(methods=["POST"])
+def delete_messaging_groups(names: str | list[str], delete_email_group: bool = False) -> list[str]:
+	"""Delete Messaging Groups and, when `delete_email_group` is set, each one's linked Email Group.
+
+	The desk's delete, from the form and from the list, asks whether to delete the linked Email
+	Group and calls this with the answer; by default the Email Group is kept. Every permission is
+	checked before anything is deleted, and the request is one transaction, so a refusal deletes
+	nothing.
+
+	Args:
+		names: The Messaging Groups, as a list or a JSON-encoded list.
+		delete_email_group: Delete each group's linked Email Group as well.
+
+	Returns:
+		The names of the Email Groups that were deleted.
+	"""
+	group_names: list[str] = json.loads(names) if isinstance(names, str) else list(names)
+	also_email_groups = frappe.utils.sbool(delete_email_group)
+
+	email_groups: dict[str, str] = {}
+	for name in group_names:
+		frappe.has_permission("Messaging Group", "delete", name, throw=True)
+		email_group = frappe.db.get_value("Messaging Group", name, "email_group")
+		if also_email_groups and email_group:
+			frappe.has_permission("Email Group", "delete", email_group, throw=True)
+			email_groups[name] = str(email_group)
+
+	for name in group_names:
+		frappe.delete_doc(
+			"Messaging Group", name, flags=frappe._dict(delete_email_group=name in email_groups)
+		)
+
+	if email_groups:
+		frappe.msgprint(
+			_("Deleted the Email Groups {0} too").format(", ".join(sorted(email_groups.values()))),
+			alert=True,
+		)
+	return sorted(email_groups.values())

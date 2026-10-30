@@ -57,6 +57,8 @@
 		{
 			"files": [
 				"messaging/messaging/doctype/group_text_message/group_text_message.js",
+				"messaging/messaging/doctype/messaging_group/messaging_group.js",
+				"messaging/messaging/doctype/messaging_group/messaging_group_list.js",
 				"messaging/messaging/doctype/messaging_settings/messaging_settings.js",
 				"messaging/public/js/communication.js",
 				"messaging/public/js/contact.js",
