@@ -191,7 +191,7 @@ def send_push_to_user(
 		frappe.log_error("VAPID keys not configured", "Push Notification Failed")
 		return 0
 
-	vapid_private_key = settings.get_password("vapid_private_key_secret")
+	vapid_private_key = settings.get_password("vapid_private_key_secret", raise_exception=False)
 	if not vapid_private_key:
 		frappe.log_error("VAPID private key not set", "Push Notification Failed")
 		return 0
