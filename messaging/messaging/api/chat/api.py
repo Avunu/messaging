@@ -21,7 +21,6 @@ from frappe import _
 from frappe.realtime import get_doctype_room
 
 from messaging.messaging.api.chat.helpers import has_unrestricted_permission
-
 from messaging.messaging.api.chat.retrieve import get_current_user as _get_current_user
 from messaging.messaging.api.chat.retrieve import get_messages as _get_messages
 from messaging.messaging.api.chat.retrieve import get_rooms as _get_rooms
@@ -48,9 +47,7 @@ def _require(ptype: str) -> None:
 	applies no permissions, so each endpoint checks the role permission it needs first.
 	"""
 	if not has_unrestricted_permission(ptype):
-		frappe.throw(
-			_("You are not permitted to {0} conversations").format(_(ptype)), frappe.PermissionError
-		)
+		frappe.throw(_("You are not permitted to {0} conversations").format(_(ptype)), frappe.PermissionError)
 
 
 @frappe.whitelist()
