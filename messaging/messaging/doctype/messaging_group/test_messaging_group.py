@@ -4,12 +4,16 @@
 """Messaging Group: its members, their contacts' links to it, and its mirrored Email Group."""
 
 from typing import Any, cast
+from unittest.mock import patch
 
 import frappe
 from frappe.tests.classes import IntegrationTestCase
 
-from messaging.messaging.doctype.messaging_group.messaging_group import MessagingGroup
-from messaging.tests.utils import make_contact
+from messaging.messaging.doctype.messaging_group.messaging_group import (
+	MessagingGroup,
+	delete_messaging_groups,
+)
+from messaging.tests.utils import as_user, make_contact, make_user
 
 
 def linked(contact: str, group: str) -> bool:
@@ -37,7 +41,24 @@ class TestMessagingGroup(IntegrationTestCase):
 		)
 
 	def tearDown(self) -> None:
+		frappe.set_user("Administrator")
 		frappe.db.rollback()
+
+	def email_group(self, title: str | None = None) -> str:
+		return str(
+			frappe.get_doc(
+				{"doctype": "Email Group", "title": title or f"Mailing {frappe.generate_hash(length=6)}"}
+			)
+			.insert(ignore_permissions=True)
+			.name
+		)
+
+	def linked_group(self) -> tuple[str, str]:
+		"""A Messaging Group with a linked Email Group of another name; returns both names."""
+		email_group = self.email_group()
+		self.group.email_group = email_group
+		self.group.save()
+		return str(self.group.name), email_group
 
 	def test_members_get_a_link_to_the_group_and_lose_it_when_removed(self) -> None:
 		a, b = make_contact(), make_contact()
@@ -101,3 +122,68 @@ class TestMessagingGroup(IntegrationTestCase):
 	def test_an_empty_group_can_be_deleted(self) -> None:
 		self.group.delete()
 		self.assertFalse(frappe.db.exists("Messaging Group", self.group.name))
+
+	def test_deleting_keeps_the_linked_email_group_by_default(self) -> None:
+		name, email_group = self.linked_group()
+		# an Email Group named like the Messaging Group is never touched either
+		same_name = self.email_group(title=name)
+
+		self.assertEqual(delete_messaging_groups(frappe.as_json([name])), [])
+
+		self.assertFalse(frappe.db.exists("Messaging Group", name))
+		self.assertTrue(frappe.db.exists("Email Group", email_group))
+		self.assertTrue(frappe.db.exists("Email Group", same_name))
+
+	def test_frappes_own_delete_keeps_the_linked_email_group(self) -> None:
+		name, email_group = self.linked_group()
+		frappe.delete_doc("Messaging Group", name)
+		self.assertTrue(frappe.db.exists("Email Group", email_group))
+
+	def test_asked_to_it_deletes_the_linked_email_groups_only(self) -> None:
+		name, email_group = self.linked_group()
+		frappe.get_doc(
+			{"doctype": "Email Group Member", "email_group": email_group, "email": "a@example.com"}
+		).insert(ignore_permissions=True)
+		unlinked = cast(
+			MessagingGroup,
+			frappe.get_doc(
+				{"doctype": "Messaging Group", "title": f"Plain {frappe.generate_hash(length=6)}"}
+			).insert(),
+		)
+		same_name = self.email_group(title=str(unlinked.name))
+
+		with patch("frappe.msgprint") as msgprint:
+			deleted = delete_messaging_groups([name, str(unlinked.name)], delete_email_group=True)
+
+		self.assertEqual(deleted, [email_group])
+		msgprint.assert_called_once()
+		for doctype, doc in (
+			("Messaging Group", name),
+			("Messaging Group", unlinked.name),
+			("Email Group", email_group),
+		):
+			self.assertFalse(frappe.db.exists(doctype, doc), (doctype, doc))
+		self.assertFalse(frappe.db.exists("Email Group Member", {"email_group": email_group}))
+		self.assertTrue(frappe.db.exists("Email Group", same_name))
+
+	def test_the_email_group_delete_needs_its_own_permission(self) -> None:
+		name, email_group = self.linked_group()
+		# Marketing Manager may delete a Messaging Group, but not an Email Group
+		user = make_user(roles=("Marketing Manager",))
+		with as_user(user):
+			with self.assertRaises(frappe.PermissionError):
+				delete_messaging_groups([name], delete_email_group=True)
+			self.assertTrue(frappe.db.exists("Messaging Group", name))
+			self.assertTrue(frappe.db.exists("Email Group", email_group))
+
+			delete_messaging_groups([name], delete_email_group=False)
+		self.assertFalse(frappe.db.exists("Messaging Group", name))
+		self.assertTrue(frappe.db.exists("Email Group", email_group))
+
+	def test_the_group_delete_needs_delete_permission(self) -> None:
+		with as_user(make_user(roles=("Accounts User",))), self.assertRaises(frappe.PermissionError):
+			delete_messaging_groups([str(self.group.name)])
+		self.assertTrue(frappe.db.exists("Messaging Group", self.group.name))
+
+	def test_the_delete_is_post_only(self) -> None:
+		self.assertEqual(frappe.allowed_http_methods_for_whitelisted_func[delete_messaging_groups], ["POST"])
