@@ -102,7 +102,7 @@ class MessagingGroup(Document):
 			)
 
 			# get the contact for each messaging group member
-			self.members_contacts = [
+			members_contacts = [
 				Contact(
 					"Contact",
 					messaging_group_member.contact,
@@ -115,7 +115,7 @@ class MessagingGroup(Document):
 			for email_group_member in email_group_members:
 				# if the email group member is not in the messaging group, delete it
 				if email_group_member.email not in [
-					messaging_group_member.email_id for messaging_group_member in self.members_contacts
+					messaging_group_member.email_id for messaging_group_member in members_contacts
 				]:
 					frappe.delete_doc(
 						"Email Group Member",
@@ -123,7 +123,7 @@ class MessagingGroup(Document):
 						ignore_permissions=True,
 					)
 			# if the messaging group member is not in the email group, add it
-			for contact in self.members_contacts:
+			for contact in members_contacts:
 				if contact.email_id and str(contact.email_id).strip().lower() not in [
 					str(email_group_member.email).strip().lower()
 					for email_group_member in email_group_members
@@ -139,8 +139,6 @@ class MessagingGroup(Document):
 
 	# on trash, remove the link to the messaging group from the associated contacts
 	def on_trash(self):
-		# get the messaging group members
-		self.members = self.members
 		if not self.members:
 			return
 
@@ -200,18 +198,3 @@ class MessagingGroup(Document):
 		if doc_exists:
 			# save the contact to update the links
 			frappe.get_doc("Contact", contact_name).notify_update()
-
-
-def get_messaging_group(group_name: str) -> MessagingGroup:
-	# see if the group already exists, where the messaging group id is the group name
-	group_exists: bool | None = bool(frappe.db.exists("Messaging Group", group_name))
-	group: MessagingGroup
-	if group_exists:
-		# get the group
-		group = MessagingGroup("Messaging Group", group_name)
-	else:
-		# create the group
-		group = MessagingGroup({"doctype": "Messaging Group", "title": group_name})
-		group.insert(ignore_permissions=True)
-		frappe.db.commit()
-	return group

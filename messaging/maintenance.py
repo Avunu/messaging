@@ -1,7 +1,11 @@
 # Copyright (c) 2026, Avunu LLC and contributors
 # For license information, please see license.txt
 
-"""One-off maintenance helpers for contact data, run with `bench execute messaging.maintenance.<function>`."""
+"""One-off maintenance helpers for contact data, run with `bench execute messaging.maintenance.<function>`.
+
+`bench execute` commits once the function returns, so each helper is one transaction: it
+applies all of its changes or, if it fails, none of them. Progress goes to the "messaging" log.
+"""
 
 from typing import cast
 
@@ -12,12 +16,14 @@ from frappe.query_builder.functions import Count
 
 from messaging.messaging.custom.contact import Contact
 
+logger = frappe.logger("messaging")
+
 
 def clean_number(number: str | None) -> str | None:
 	if not number:
 		return None
 	# Remove spaces, dashes, and parentheses
-	number = "".join(filter(lambda x: x.isdigit(), number))
+	number = "".join(c for c in number if c.isdigit())
 	# remove any 1 at the beginning
 	if number[0] == "1":
 		number = number[1:]
@@ -35,8 +41,6 @@ def clean_phone_numbers() -> None:
 		# Update the Contact Phone entry if the number has changed
 		if phone_cleaned != entry.get("phone"):
 			frappe.db.set_value("Contact Phone", entry.get("name"), "phone", phone_cleaned)
-
-	frappe.db.commit()
 
 
 def prefix_usa_country_code(number: str) -> str:
@@ -58,8 +62,6 @@ def clean_email_addresses() -> None:
 		# Update the Contact Email entry if the email has changed
 		if email_cleaned != entry.get("email_id"):
 			frappe.db.set_value("Contact Email", entry.get("name"), "email_id", email_cleaned)
-
-	frappe.db.commit()
 
 
 def consolidate_contact_data(primary_contact_name: str, other_contact_entries: list[str]) -> None:
@@ -100,7 +102,7 @@ def consolidate_duplicate_contacts() -> None:
 
 	for phone_number_tuple in duplicate_phone_numbers:
 		phone_number = phone_number_tuple[0]
-		print(f"Consolidating contacts for phone number: {phone_number}")
+		logger.info(f"Consolidating contacts for phone number: {phone_number}")
 		contacts = frappe.get_all(
 			"Contact Phone",
 			filters={"phone": phone_number},
@@ -113,8 +115,6 @@ def consolidate_duplicate_contacts() -> None:
 			first_contact = contacts[0].parent
 			consolidate_contact_data(first_contact, contacts[1:])
 
-	frappe.db.commit()
-
 	ContactEmail = DocType("Contact Email")
 	duplicate_emails = (
 		frappe.qb.from_(ContactEmail)
@@ -126,7 +126,7 @@ def consolidate_duplicate_contacts() -> None:
 
 	for email_tuple in duplicate_emails:
 		email = email_tuple[0]
-		print(f"Consolidating contacts for email: {email}")
+		logger.info(f"Consolidating contacts for email: {email}")
 		contacts = frappe.get_all(
 			"Contact Email",
 			filters={"email_id": email},
@@ -139,8 +139,6 @@ def consolidate_duplicate_contacts() -> None:
 			first_contact = contacts[0].parent
 			consolidate_contact_data(first_contact, contacts[1:])
 
-	frappe.db.commit()
-
 
 def deduplicate_contact_links() -> None:
 	contacts = frappe.get_all("Contact", fields=["name"])
@@ -148,8 +146,6 @@ def deduplicate_contact_links() -> None:
 		contact_doc = frappe.get_doc("Contact", contact.get("name"))
 		deduplicate_dynamic_links(contact_doc)
 		contact_doc.save(ignore_permissions=True)
-
-	frappe.db.commit()
 
 
 def refresh_primary_contact_fields() -> None:
@@ -160,5 +156,3 @@ def refresh_primary_contact_fields() -> None:
 		contact_doc.set_primary("phone")
 		contact_doc.set_primary("mobile_no")
 		contact_doc.save(ignore_permissions=True)
-
-	frappe.db.commit()

@@ -120,6 +120,10 @@ class Newsletter(BaseNewsletter):
 		if contact:
 			template_context.update(contact)
 
-		html = str(frappe.render_template(message, template_context))
+		# The template is this Newsletter's own message, written by a user who may write
+		# Newsletters, and frappe renders it in its sandboxed Jinja environment, as the
+		# newsletter app's own get_message does. Recipient data (the contact fields) only
+		# enters as context values, never as template source; test_newsletter checks both.
+		html = str(frappe.render_template(message, template_context))  # nosemgrep: frappe-ssti
 
 		return self.add_source(html, medium=medium)

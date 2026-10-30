@@ -374,6 +374,9 @@ export function useChat(): UseChatReturn {
 
 	// Realtime listeners for new messages
 	function setupRealtimeListeners(): void {
+		// new_communication is published to the Communication doctype room, which frappe lets
+		// a socket join only when its user can read Communication.
+		frappe.realtime.doctype_subscribe("Communication");
 		// Listen for new communications
 		frappe.realtime.on("new_communication", handleNewCommunication);
 	}

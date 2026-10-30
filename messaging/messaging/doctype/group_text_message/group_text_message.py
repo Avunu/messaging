@@ -2,6 +2,7 @@
 # For license information, please see license.txt
 
 import frappe
+from frappe import _
 from frappe.model.document import Document
 from frappe.query_builder import DocType
 from frappe.utils.data import get_datetime, now_datetime
@@ -44,18 +45,16 @@ class GroupTextMessage(Document):
 			and self.delivery_datetime
 			and (get_datetime(self.delivery_datetime) or now_datetime()) < now_datetime()
 		):
-			frappe.throw("Scheduled delivery must be in the future.")
-			self.status = "Scheduled"
+			frappe.throw(_("Scheduled delivery must be in the future."))
 
 	def after_insert(self):
 		if frappe.flags.in_web_form:
 			self.submit()
 
 	def on_submit(self):
-		# if the group text message is scheduled, don't send it
+		# if the group text message is scheduled, don't send it: send_scheduled_messages will
 		if self.schedule:
-			self.status = "Scheduled"
-			self.save()
+			self.db_set("status", "Scheduled")
 
 		# if the group text message is not scheduled, send it
 		else:
@@ -66,9 +65,9 @@ class GroupTextMessage(Document):
 		if self.schedule:
 			self.status = "Draft"
 
-	@frappe.whitelist()
+	@frappe.whitelist(methods=["POST"])
 	def send_text_message(self):
-		assert isinstance(self.name, str), "Expected self.name to be a string"
+		"""Send the message to every eligible member of its groups, then record the result."""
 		try:
 			# get the messaging group
 			messaging_groups = [group.messaging_group for group in self.messaging_group]
@@ -110,9 +109,8 @@ class GroupTextMessage(Document):
 			contact_phone_numbers = contact_phone_numbers_query.run(pluck="phone")
 
 			if not contact_phone_numbers:
-				self.add_comment("Info", "No eligible recipients found.")
-				self.status = "Error"
-				self.save()
+				self.add_comment("Info", _("No eligible recipients found."))
+				self.db_set("status", "Error")
 				return
 
 			# Send via Twilio with per-recipient error handling
@@ -137,13 +135,11 @@ class GroupTextMessage(Document):
 
 			self.add_comment("Info", "<br>".join(parts))
 
-			# set the status of the group text message
-			self.delivery_datetime = now_datetime()
-			self.status = "Sent" if success else "Error"
-			self.save()
-			frappe.db.commit()
+			# set the status of the group text message; the request, the scheduler job or the
+			# submit that called this commits it
+			self.db_set({"delivery_datetime": now_datetime(), "status": "Sent" if success else "Error"})
 
 		except Exception as e:
 			frappe.log_error(title="Error sending group text message", message=str(e))
 			self.add_comment("Bot", f"Error sending message: {e}")
-			frappe.db.set_value("Group Text Message", self.name, "status", "Error")
+			self.db_set("status", "Error")

@@ -2,6 +2,7 @@
 # For license information, please see license.txt
 
 import frappe
+from frappe import _
 from frappe.model.document import Document
 
 
@@ -26,10 +27,10 @@ class MessagingSettings(Document):
 		vapid_public_key: DF.SmallText | None
 	# end: auto-generated types
 
-	@frappe.whitelist()
+	@frappe.whitelist(methods=["POST"])
 	def generate_vapid_keys(self) -> None:
 		"""Generate a new VAPID key pair for push notifications."""
 		from messaging.messaging.api.chat.push import _generate_vapid_keys
 
 		_generate_vapid_keys(self)
-		frappe.msgprint("VAPID keys generated successfully.", indicator="green")
+		frappe.msgprint(_("VAPID keys generated successfully."), indicator="green")

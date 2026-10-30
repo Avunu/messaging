@@ -6,7 +6,7 @@ frappe.listview_settings["Contact"] = {
 		listview.page.add_action_item(__("Add to Group"), function () {
 			var docnames = listview.get_checked_items();
 			if (docnames.length === 0) {
-				frappe.throw("Please select at least one Contact.");
+				frappe.throw(__("Please select at least one Contact."));
 			}
 			// pluck the docnames from the listview
 			// and pass them to the server-side method

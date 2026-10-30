@@ -115,12 +115,6 @@ hooks = [
 	"check_code_duplication",
 ]
 
-# Temporary, removed in PR B: the lint gate's scan of frappe's semgrep rules fails on its 30
-# findings and has no baseline (only `# nosemgrep` comments). The registry scan in ci / marketplace
-# (L7) still runs them against marketplace/semgrep-baseline.json, which only shrinks.
-[tool.frappe-nix.semgrep]
-frappe-rules = false
-
 # Temporary, removed in PR B: the whitelisted methods and hooks the test map finds untested.
 [[tool.frappe-nix.untested]]
 target = "messaging.messaging.api.chat.api.get_current_user"
@@ -250,10 +244,6 @@ ignore = [
 	"W191", # indentation contains tabs
 ]
 typing-modules = ["frappe.types.DF"]
-
-# Temporary: the maintenance helpers report progress with print() under `bench execute`.
-[tool.ruff.lint.per-file-ignores]
-"messaging/maintenance.py" = ["T201"]
 
 [tool.ruff.format]
 quote-style = "double"
