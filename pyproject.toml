@@ -7,7 +7,15 @@ readme = "README.md"
 license = { text = "MIT" }
 classifiers = ["License :: OSI Approved :: MIT License"]
 dynamic = ["version"]
-dependencies = ["phonenumbers", "pywebpush", "twilio"]
+# frappe and newsletter come from the bench ([tool.bench.frappe-dependencies]); these are the
+# libraries the app imports itself, within the ranges frappe v16 pins where it pins them.
+dependencies = [
+	"cryptography>=50.0,<51",
+	"email-reply-parser>=0.5.12,<0.6",
+	"phonenumbers>=9.0,<10",
+	"pywebpush>=2.5,<3",
+	"twilio>=9.12,<10",
+]
 
 [build-system]
 requires = ["flit_core >=3.4,<4"]
@@ -46,185 +54,18 @@ include = ["messaging/public/js/chat/**"]
 tsconfig = "tsconfig.json"
 check = "node scripts/vue-tsc.cjs --noEmit -p tsconfig.json"
 
-# Temporary, until the chat code is typed against frappe-types: the managed oxlint rules the
-# desk code doesn't meet yet, each per file. Turning off no-explicit-any needs locked-rules = false.
-[tool.frappe-nix.js]
-locked-rules = false
-
-# `(window as any).frappe?.csrf_token` in two fetch calls, and two `catch (error)` that shadow
-# useChat's `error` ref.
-[[tool.frappe-nix.js.oxlint.overrides]]
-files = ["messaging/public/js/chat/ChatView.vue"]
-rules = { "typescript/no-explicit-any" = "off", "no-shadow" = "off" }
-
 # Stylesheet imports are side-effect imports by nature: Vite pulls frappe-ui's CSS into the
-# bundle in import order. And frappe's CommunicationComposer opens its dialog from its constructor.
+# bundle in import order. Exempt exactly the module that imports a stylesheet from
+# import/no-unassigned-import.
 [[tool.frappe-nix.js.oxlint.overrides]]
 files = ["messaging/public/js/chat/bundle.ts"]
-rules = { "import/no-unassigned-import" = "off", "no-new" = "off" }
-
-# FileReader's `onload` in the attachment preview.
-[[tool.frappe-nix.js.oxlint.overrides]]
-files = ["messaging/public/js/chat/ChatFooter.vue"]
-rules = { "unicorn/prefer-add-event-listener" = "off" }
+rules = { "import/no-unassigned-import" = "off" }
 
 # A false positive: the service worker calls Client.postMessage(), which has no targetOrigin
 # argument (that is Window.postMessage()).
 [[tool.frappe-nix.js.oxlint.overrides]]
 files = ["messaging/public/js/chat/sw-messaging.js"]
 rules = { "unicorn/require-post-message-target-origin" = "off" }
-
-# Frappe's doctype boilerplate, all comments.
-[[tool.frappe-nix.js.oxlint.overrides]]
-files = ["messaging/messaging/doctype/messaging_group/messaging_group.js"]
-rules = { "unicorn/no-empty-file" = "off" }
-
-# Temporary, removed in PR B: the desk scripts that don't pass strict checkJs yet (implicit
-# any parameters, untyped r.message, jQuery's .done on frappe.call, frm.savesubmit).
-[[tool.frappe-nix.unchecked-js]]
-path = "messaging/messaging/doctype/group_text_message/group_text_message.js"
-reason = "frm.savesubmit is not in frappe-types' Form; typed in PR B"
-
-[[tool.frappe-nix.unchecked-js]]
-path = "messaging/public/js/contact.js"
-reason = "jQuery-style .done on frappe.call and an implicit-any callback; typed in PR B"
-
-[[tool.frappe-nix.unchecked-js]]
-path = "messaging/public/js/contact_list.js"
-reason = "implicit-any listview and menu callbacks and an untyped r.message; typed in PR B"
-
-# Temporary, removed in PR B: the profile's test_utils hooks minus validate_customizations. It
-# fails on the 13 property setters the custom JSON ships with is_system_generated = 1, and
-# clearing that flag would let Customize Form's "Reset to defaults" delete them.
-[tool.frappe-nix.test-utils]
-hooks = [
-	"validate_frappe_project",
-	"validate_patches",
-	"static_analysis",
-	"validate_doctype_python_types",
-	"validate_copyright",
-	"clean_customized_doctypes",
-	"check_code_duplication",
-]
-
-# Temporary, removed in PR B: the lint gate's scan of frappe's semgrep rules fails on its 30
-# findings and has no baseline (only `# nosemgrep` comments). The registry scan in ci / marketplace
-# (L7) still runs them against marketplace/semgrep-baseline.json, which only shrinks.
-[tool.frappe-nix.semgrep]
-frappe-rules = false
-
-# Temporary, removed in PR B: the whitelisted methods and hooks the test map finds untested.
-[[tool.frappe-nix.untested]]
-target = "messaging.messaging.api.chat.api.get_current_user"
-reason = "Covered in PR B; chat view: the signed-in user's id and name"
-
-[[tool.frappe-nix.untested]]
-target = "messaging.messaging.api.chat.api.get_rooms"
-reason = "Covered in PR B; chat view: lists conversation rooms"
-
-[[tool.frappe-nix.untested]]
-target = "messaging.messaging.api.chat.api.get_messages"
-reason = "Covered in PR B; chat view: loads a room's messages"
-
-[[tool.frappe-nix.untested]]
-target = "messaging.messaging.api.chat.api.send_message"
-reason = "Covered in PR B; chat view: sends an email or SMS reply"
-
-[[tool.frappe-nix.untested]]
-target = "messaging.messaging.api.chat.api.mark_messages_seen"
-reason = "Covered in PR B; chat view: marks a room's messages seen"
-
-[[tool.frappe-nix.untested]]
-target = "messaging.messaging.api.chat.api.search_rooms"
-reason = "Covered in PR B; chat view: searches rooms"
-
-[[tool.frappe-nix.untested]]
-target = "messaging.messaging.api.chat.api.get_unread_count"
-reason = "Covered in PR B; chat view: unread message count"
-
-[[tool.frappe-nix.untested]]
-target = "messaging.messaging.api.chat.api.archive_room"
-reason = "Covered in PR B; chat view: archives a conversation"
-
-[[tool.frappe-nix.untested]]
-target = "messaging.messaging.api.chat.api.delete_room"
-reason = "Covered in PR B; chat view: deletes a conversation"
-
-[[tool.frappe-nix.untested]]
-target = "messaging.messaging.api.chat.links.get_linked_documents"
-reason = "Covered in PR B; chat view: documents linked to a contact"
-
-[[tool.frappe-nix.untested]]
-target = "messaging.messaging.api.chat.push.get_vapid_public_key"
-reason = "Covered in PR B; web push: returns the VAPID public key"
-
-[[tool.frappe-nix.untested]]
-target = "messaging.messaging.api.chat.push.save_push_subscription"
-reason = "Covered in PR B; web push: stores a browser subscription"
-
-[[tool.frappe-nix.untested]]
-target = "messaging.messaging.api.chat.push.remove_push_subscription"
-reason = "Covered in PR B; web push: removes a browser subscription"
-
-[[tool.frappe-nix.untested]]
-target = "messaging.messaging.api.chat.push.get_push_subscription_status"
-reason = "Covered in PR B; web push: reports subscription state"
-
-[[tool.frappe-nix.untested]]
-target = "messaging.messaging.api.twilio_webhook.sms"
-reason = "Covered in PR B; Twilio inbound SMS webhook"
-
-[[tool.frappe-nix.untested]]
-target = "messaging.messaging.custom.contact.bulk_add_to_group"
-reason = "Covered in PR B; Contact list action: adds contacts to a Messaging Group"
-
-[[tool.frappe-nix.untested]]
-target = "messaging.messaging.custom.contact.bulk_remove_from_group"
-reason = "Covered in PR B; Contact list action: removes contacts from a Messaging Group"
-
-[[tool.frappe-nix.untested]]
-target = "messaging.messaging.doctype.group_text_message.group_text_message.GroupTextMessage.send_text_message"
-reason = "Covered in PR B; sends a Group Text Message"
-
-[[tool.frappe-nix.untested]]
-target = "messaging.messaging.doctype.messaging_settings.messaging_settings.MessagingSettings.generate_vapid_keys"
-reason = "Covered in PR B; Messaging Settings: generates VAPID keys"
-
-[[tool.frappe-nix.untested]]
-target = "messaging.messaging.doctype.group_text_message.send_scheduled_messages"
-reason = "Covered in PR B; scheduler: sends scheduled group texts"
-
-[[tool.frappe-nix.untested]]
-target = "messaging.messaging.api.chat.api.notify_new_communication"
-reason = "Covered in PR B; Communication after_insert hook: realtime chat notification"
-
-[[tool.frappe-nix.untested]]
-target = "messaging.messaging.custom.contact.Contact.validate_phone_numbers"
-reason = "Covered in PR B; Contact controller: phone number validation"
-
-[[tool.frappe-nix.untested]]
-target = "messaging.messaging.custom.contact.Contact.set_primary_numbers"
-reason = "Covered in PR B; Contact controller: primary phone and mobile"
-
-[[tool.frappe-nix.untested]]
-target = "messaging.messaging.custom.newsletter.Newsletter.send_newsletter"
-reason = "Covered in PR B; Newsletter controller: sends by email and SMS"
-
-[[tool.frappe-nix.untested]]
-target = "messaging.messaging.custom.newsletter.Newsletter.get_contact_map"
-reason = "Covered in PR B; Newsletter controller: recipient contact map"
-
-[[tool.frappe-nix.untested]]
-target = "messaging.messaging.custom.newsletter.Newsletter.get_message"
-reason = "Covered in PR B; Newsletter controller: renders the message with merge tags"
-
-[[tool.frappe-nix.untested]]
-target = "messaging.config.after_install"
-reason = "Covered in PR B; install hook"
-
-[[tool.frappe-nix.untested]]
-target = "messaging.config.after_migrate"
-reason = "Covered in PR B; migrate hook"
 
 # These dependencies are only installed when developer mode is enabled
 [tool.bench.dev-dependencies]
@@ -242,10 +83,6 @@ ignore = [
 	"W191", # indentation contains tabs
 ]
 typing-modules = ["frappe.types.DF"]
-
-# Temporary: the maintenance helpers report progress with print() under `bench execute`.
-[tool.ruff.lint.per-file-ignores]
-"messaging/maintenance.py" = ["T201"]
 
 [tool.ruff.format]
 quote-style = "double"
@@ -269,7 +106,7 @@ show_missing = true
 skip_covered = true
 precision = 1
 exclude_also = ["if TYPE_CHECKING:", "raise NotImplementedError", "@(abc\\.)?abstractmethod"]
-fail_under = 39
+fail_under = 93
 
 [tool.vulture]
 exclude = [".venv/", "node_modules/", ".frappe-nix/", ".dev-dist/", ".devenv/", ".direnv/"]

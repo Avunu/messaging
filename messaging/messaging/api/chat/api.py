@@ -13,10 +13,14 @@ The implementation is split across several modules:
 - send.py: Message sending and status updates
 """
 
+import re
 from typing import Any
 
 import frappe
+from frappe import _
+from frappe.realtime import get_doctype_room
 
+from messaging.messaging.api.chat.helpers import has_unrestricted_permission
 from messaging.messaging.api.chat.retrieve import get_current_user as _get_current_user
 from messaging.messaging.api.chat.retrieve import get_messages as _get_messages
 from messaging.messaging.api.chat.retrieve import get_rooms as _get_rooms
@@ -36,6 +40,16 @@ from messaging.messaging.api.chat.types import (
 )
 
 
+def _require(ptype: str) -> None:
+	"""Throw unless the session user may `ptype` every Communication.
+
+	The chat reads and changes the site's Communications with the query builder, which
+	applies no permissions, so each endpoint checks the role permission it needs first.
+	"""
+	if not has_unrestricted_permission(ptype):
+		frappe.throw(_("You are not permitted to {0} conversations").format(_(ptype)), frappe.PermissionError)
+
+
 @frappe.whitelist()
 def get_current_user() -> CurrentUser:
 	"""
@@ -44,6 +58,7 @@ def get_current_user() -> CurrentUser:
 	Returns:
 		CurrentUser dict with user details for vue-advanced-chat
 	"""
+	_require("read")
 	return _get_current_user()
 
 
@@ -66,6 +81,7 @@ def get_rooms(
 	Returns:
 		RoomsResponse with list of rooms and pagination info
 	"""
+	_require("read")
 	return _get_rooms(page=page, limit=limit, search=search, medium=medium)
 
 
@@ -88,10 +104,11 @@ def get_messages(
 	Returns:
 		MessagesResponse with list of messages and pagination info
 	"""
+	_require("read")
 	return _get_messages(room_id=room_id, page=page, limit=limit, before_id=before_id)
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST"])
 def send_message(
 	room_id: str,
 	content: str,
@@ -112,6 +129,7 @@ def send_message(
 	Returns:
 		SendMessageResponse with the created message or error
 	"""
+	_require("create")
 	return _send_message(
 		room_id=room_id,
 		content=content,
@@ -121,7 +139,7 @@ def send_message(
 	)
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST"])
 def mark_messages_seen(room_id: str) -> MarkSeenResponse:
 	"""
 	Mark all messages in a room as seen.
@@ -132,6 +150,8 @@ def mark_messages_seen(room_id: str) -> MarkSeenResponse:
 	Returns:
 		MarkSeenResponse with success status and count of updated messages
 	"""
+	# Seeing a message is part of reading it, as when frappe marks one seen for its reader.
+	_require("read")
 	return _mark_messages_seen(room_id=room_id)
 
 
@@ -147,6 +167,7 @@ def search_rooms(query: str, limit: int = 10) -> list[Room]:
 	Returns:
 		List of matching Room objects
 	"""
+	_require("read")
 	return _get_rooms(page=1, limit=limit, search=query)["rooms"]
 
 
@@ -158,10 +179,11 @@ def get_unread_count() -> int:
 	Returns:
 		Total unread message count
 	"""
+	_require("read")
 	return _get_unread_count()
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST"])
 def archive_room(room_id: str) -> RoomActionResponse:
 	"""
 	Archive all messages in a room by setting status to 'Closed'.
@@ -172,10 +194,11 @@ def archive_room(room_id: str) -> RoomActionResponse:
 	Returns:
 		RoomActionResponse with success status and count of updated messages
 	"""
+	_require("write")
 	return _archive_room(room_id=room_id)
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST"])
 def delete_room(room_id: str) -> RoomActionResponse:
 	"""
 	Delete all messages in a room (moves to trash).
@@ -186,6 +209,7 @@ def delete_room(room_id: str) -> RoomActionResponse:
 	Returns:
 		RoomActionResponse with success status and count of deleted messages
 	"""
+	_require("delete")
 	return _delete_room(room_id=room_id)
 
 
@@ -216,14 +240,12 @@ def _send_push_for_received(
 	identifier = phone_no if medium in ("SMS", "Phone") else sender
 	room_id = f"{medium}:{identifier}"
 
-	contact = get_contact_from_identifier(identifier, medium)
-	sender_name = contact.get("contact_name") if contact else identifier
+	contact = get_contact_from_identifier(medium, identifier)
+	sender_name = (contact.get("full_name") or contact.get("name")) if contact else identifier
 
 	# Truncate body for notification
 	body = (content or "").strip()
 	# Strip HTML tags for notification body
-	import re
-
 	body = re.sub(r"<[^>]+>", "", body)
 	if len(body) > 200:
 		body = body[:200] + "..."
@@ -242,7 +264,8 @@ def _send_push_for_received(
 
 	for row in subscribed_users:
 		user = row["user"]
-		if user == "Guest":
+		# The notification carries the message, so only users who may read it get one.
+		if user == "Guest" or not has_unrestricted_permission("read", user=user):
 			continue
 
 		try:
@@ -261,111 +284,13 @@ def _send_push_for_received(
 			)
 
 
-# def _handle_sms_opt_out(doc: Any) -> None:
-# 	"""
-# 	Handle SMS opt-out requests.
-
-# 	If the message content is "STOP" (case-insensitive), unset the consent_sms
-# 	field for the contact associated with the phone number and send a confirmation.
-
-# 	Args:
-# 		doc: The Communication document
-# 	"""
-# 	# Get message content and check if it's a stop request
-# 	content = (doc.text_content or doc.content or "").strip().lower()
-
-# 	if content != "stop":
-# 		return
-
-# 	phone_no = doc.phone_no
-
-# 	# Find contacts with this phone number
-# 	from frappe.query_builder import DocType
-
-# 	Contact = DocType("Contact")
-# 	ContactPhone = DocType("Contact Phone")
-
-# 	contacts = (
-# 		frappe.qb.from_(Contact)
-# 		.join(ContactPhone)
-# 		.on(Contact.name == ContactPhone.parent)
-# 		.select(Contact.name)
-# 		.where(ContactPhone.phone == phone_no)
-# 		.run(as_dict=True)
-# 	)
-
-# 	if not contacts:
-# 		# No contact found, log and return
-# 		frappe.log_error(
-# 			f"SMS opt-out received from {phone_no} but no matching contact found",
-# 			"SMS Opt-Out - No Contact",
-# 		)
-# 		return
-
-# 	# Update consent_sms for all matching contacts
-# 	for contact in contacts:
-# 		frappe.db.set_value("Contact", contact["name"], "consent_sms", 0)
-# 		frappe.db.set_value("Contact", contact["name"], "unsubscribed", 1)
-# 		frappe.log_error(
-# 			f"SMS opt-out processed for contact {contact['name']} (phone: {phone_no})",
-# 			"SMS Opt-Out Processed",
-# 		)
-
-# 	frappe.db.commit()
-
-# 	# Send confirmation SMS
-# 	# temporarily disabled since Twilio blocks messages that contain "STOP" in the content, even if it's just a confirmation message. We can re-enable this once we have a workaround for Twilio's filtering of opt-out related content.
-# 	# _send_opt_out_confirmation(phone_no)
-
-
-# def _send_opt_out_confirmation(phone_no: str) -> None:
-# 	"""
-# 	Send SMS confirmation that the user has been removed from the broadcast list.
-
-# 	Args:
-# 		phone_no: The phone number to send confirmation to
-# 	"""
-# 	confirmation_message = "You have been removed from our broadcast list."
-
-# 	try:
-# 		# Create Communication record for the outgoing SMS
-# 		comm_doc = frappe.get_doc(
-# 			{
-# 				"doctype": "Communication",
-# 				"communication_type": "Communication",
-# 				"communication_medium": "SMS",
-# 				"subject": "SMS Opt-Out Confirmation",
-# 				"content": confirmation_message,
-# 				"text_content": confirmation_message,
-# 				"phone_no": phone_no,
-# 				"sender": frappe.session.user,
-# 				"recipients": phone_no,
-# 				"sent_or_received": "Sent",
-# 			}
-# 		)
-# 		comm_doc.insert(ignore_permissions=True)
-
-# 		# Send SMS via configured provider
-# 		from frappe.core.doctype.sms_settings.sms_settings import send_sms
-
-# 		send_sms([phone_no], confirmation_message)
-# 		comm_doc.db_set("delivery_status", "Sent")
-
-# 	except Exception as e:
-# 		frappe.log_error(
-# 			f"Failed to send SMS opt-out confirmation to {phone_no}: {e}",
-# 			"SMS Opt-Out Confirmation Failed",
-# 		)
-
-
 def notify_new_communication(doc: Any, method: str | None = None) -> None:
 	"""
 	Hook function to notify connected clients of new communications.
 
 	Called after a Communication is inserted to trigger realtime updates
 	in the chat interface, and send push notifications for received messages.
-
-	Also handles SMS opt-out requests when a user texts "STOP".
+	(SMS opt-out keywords are handled by the Twilio webhook.)
 
 	Args:
 		doc: The Communication document
@@ -385,6 +310,9 @@ def notify_new_communication(doc: Any, method: str | None = None) -> None:
 			"communication_medium": doc.communication_medium,
 			"sent_or_received": doc.sent_or_received,
 		},
+		# Only sockets that subscribed to Communication, which frappe allows only for users who
+		# can read it; the chat view subscribes when it starts listening.
+		room=get_doctype_room("Communication"),
 		after_commit=True,
 	)
 

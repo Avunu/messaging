@@ -1463,6 +1463,8 @@ wheels = [
 name = "messaging"
 source = { editable = "apps/messaging" }
 dependencies = [
+    { name = "cryptography" },
+    { name = "email-reply-parser" },
     { name = "phonenumbers" },
     { name = "pywebpush" },
     { name = "twilio" },
@@ -1470,9 +1472,11 @@ dependencies = [
 
 [package.metadata]
 requires-dist = [
-    { name = "phonenumbers" },
-    { name = "pywebpush" },
-    { name = "twilio" },
+    { name = "cryptography", specifier = ">=50.0,<51" },
+    { name = "email-reply-parser", specifier = ">=0.5.12,<0.6" },
+    { name = "phonenumbers", specifier = ">=9.0,<10" },
+    { name = "pywebpush", specifier = ">=2.5,<3" },
+    { name = "twilio", specifier = ">=9.12,<10" },
 ]
 
 [[package]]

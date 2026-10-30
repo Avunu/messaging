@@ -13,9 +13,6 @@
 		"**/web_form/**",
 		"messaging/templates/**",
 		"messaging/public/js/chat/**",
-		"vendor/**",
-		"messaging/messaging/doctype/group_text_message/group_text_message.js",
-		"messaging/public/js/contact.js",
-		"messaging/public/js/contact_list.js"
+		"vendor/**"
 	]
 }

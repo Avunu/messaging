@@ -45,7 +45,6 @@ export async function registerServiceWorker(): Promise<ServiceWorkerRegistration
 		swRegistration = await navigator.serviceWorker.register("/assets/messaging/js/chat/sw-messaging.js", {
 			scope: "/app/",
 		});
-		console.log("[Messaging] Service worker registered:", swRegistration.scope);
 
 		// Listen for messages from the SW (e.g. navigate-to-room)
 		navigator.serviceWorker.addEventListener("message", (event) => {
@@ -112,7 +111,6 @@ export async function subscribeToPush(): Promise<boolean> {
 	// 1. Request permission
 	const permission = await Notification.requestPermission();
 	if (permission !== "granted") {
-		console.log("[Messaging] Notification permission denied.");
 		return false;
 	}
 
@@ -141,7 +139,6 @@ export async function subscribeToPush(): Promise<boolean> {
 			subscription: JSON.stringify(subscription.toJSON()),
 		});
 
-		console.log("[Messaging] Push subscription saved.");
 		return true;
 	} catch (err) {
 		console.error("[Messaging] Push subscribe failed:", err);
@@ -167,7 +164,6 @@ export async function unsubscribeFromPush(): Promise<boolean> {
 				endpoint: subscription.endpoint,
 			});
 		}
-		console.log("[Messaging] Push unsubscribed.");
 		return true;
 	} catch (err) {
 		console.error("[Messaging] Push unsubscribe failed:", err);

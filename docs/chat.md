@@ -28,6 +28,7 @@ The backend API is located in `messaging/messaging/api/chat/`:
   - `get_current_user()`: Get current user info for chat
   - `search_rooms()`: Search conversations
   - `get_unread_count()`: Get total unread message count
+  - `archive_room()`, `delete_room()`: Close or delete every message of a conversation
 
 ### Frontend (TypeScript/Vue)
 
@@ -50,10 +51,22 @@ bench build --app messaging
 bench migrate
 ```
 
+## Who can use it
+
+The chat shows every Communication on the site, so it is for users whose role can read all of
+them, not only their own:
+
+- **System Manager** can do everything.
+- **Inbox User** can read conversations (which marks them seen), send messages and delete
+  conversations, but not archive them: archiving changes the messages, which needs write
+  permission on Communication.
+- Other users, Website Users among them, are refused. New-message notifications, live and
+  push, reach only the users who can read the conversations.
+
 ## Usage
 
 1. Navigate to **Communication** in Frappe desk
-2. The default view is now the Chat interface
+2. The default view is now the Chat interface; the view switcher offers it as **Chat View**
 3. Use the medium filter to show Email, SMS, or all messages
 4. Click a conversation to view and reply to messages
 5. Use the "New Message" button to start a new conversation

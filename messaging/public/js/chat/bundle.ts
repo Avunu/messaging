@@ -10,6 +10,14 @@
  * This follows the same pattern as KanbanView, CalendarView, etc.
  */
 
+import type {
+	FrappeGenerateRouteItem,
+	FrappeViewName,
+	ListViewSelect as FrappeListViewSelect,
+	ListViewSelectView,
+	Page,
+	PageContainerElement,
+} from "frappe-types";
 import { createApp, h, type Component, type App } from "vue";
 import ChatViewComponent from "./ChatView.vue";
 
@@ -29,76 +37,24 @@ import {
 // Type Declarations
 // ============================================================================
 
-interface JQueryElement {
-	find(selector: string): JQueryElement;
-	remove(): JQueryElement;
-	empty(): JQueryElement;
-	append(element: HTMLElement | string): JQueryElement;
-	appendTo(target: JQueryElement | HTMLElement): JQueryElement;
-	addClass(className: string): JQueryElement;
-	removeClass(className: string): JQueryElement;
-	css(styles: Record<string, string>): JQueryElement;
-	html(content?: string): string | JQueryElement;
-	hide(): JQueryElement;
-	show(): JQueryElement;
-	on(event: string, handler: (e: Event) => void): JQueryElement;
-	get(index: number): HTMLElement;
-}
-
-interface FrappePage {
-	set_title(title: string): void;
-	set_primary_action(label: string, callback: () => void, icon?: string): JQueryElement;
-	set_secondary_action(label: string, callback: () => void, icon?: string): JQueryElement;
-	add_inner_button(label: string, callback: () => void, group?: string): JQueryElement;
-	add_menu_item(label: string, callback: () => void): void;
-	clear_menu(): void;
-	clear_inner_toolbar(): void;
-	main: JQueryElement;
-	wrapper: JQueryElement;
-	inner_toolbar: JQueryElement;
-	custom_actions: JQueryElement;
-}
-
-// ListViewSelect type
-interface ListViewSelectBase {
-	doctype: string;
-	setup_views(): void;
-	add_view_to_menu(view: string, action: () => void): void;
-	set_current_view(): void;
-	current_view?: string;
-}
-
-type ListViewSelectConstructor = new (opts: unknown) => ListViewSelectBase;
-
+/** What frappe's ListFactory passes a list view's constructor. */
 interface BaseListOptions {
 	doctype: string;
 	parent: HTMLElement;
 }
 
-interface GenerateRouteItem {
-	type: string;
-	name: string;
-	doctype?: string;
-	link?: string;
-	doc_view?: string;
-	filters?: Record<string, unknown>;
-	kanban_board?: string;
-	tab?: string;
-	is_query_report?: boolean;
-	report_ref_doctype?: string;
-	route?: string;
+/**
+ * The "Chat" view mode: routed as `/desk/communication/view/chat` (registered with the router
+ * below) and offered by the view switcher on Communication. frappe-types closes
+ * `FrappeViewName` over frappe's own views, so the app's view is cast into it once, here.
+ */
+const CHAT_VIEW = "Chat" as FrappeViewName;
+
+/** generate_route's item, with the Chat view a workspace shortcut can name. */
+type ChatRouteItem = Omit<FrappeGenerateRouteItem, "doc_view"> & {
+	doc_view?: FrappeGenerateRouteItem["doc_view"] | "Chat";
 	route_options?: Record<string, string>;
-}
-
-declare const locals: {
-	DocType: Record<string, { module: string }>;
 };
-
-declare const $: {
-	(selector: string | HTMLElement): JQueryElement;
-};
-
-declare const __: (text: string, args?: unknown[]) => string;
 
 // ============================================================================
 // Namespaces
@@ -121,9 +77,11 @@ frappe.provide("frappe.router");
 class ChatView {
 	doctype: string;
 	page_name: string;
-	parent!: HTMLElement & { page: FrappePage };
-	page!: FrappePage;
-	body!: JQueryElement;
+	parent!: PageContainerElement;
+	page!: Page;
+	body!: JQuery<HTMLElement>;
+	/** The composer the "New Email" menu item opened last. */
+	composer: unknown = null;
 	vueApp: App | null = null;
 	container: HTMLElement | null = null;
 	menu_items: Array<{ label: string; action: () => void; standard?: boolean }> = [];
@@ -162,7 +120,7 @@ class ChatView {
 			single_column: true,
 		});
 
-		this.page = this.parent.page;
+		this.page = this.parent.page as Page;
 		frappe.container.change_to(this.page_name);
 
 		// Set page title
@@ -190,10 +148,12 @@ class ChatView {
 			frappe.set_route("List", this.doctype, "List");
 		});
 
-		// New Email option if CommunicationComposer is available
-		if (frappe.views.CommunicationComposer) {
+		// New Email option if CommunicationComposer is available (frappe's composer opens its
+		// dialog from the constructor)
+		const Composer = frappe.views.CommunicationComposer as (new () => unknown) | undefined;
+		if (Composer) {
 			this.page.add_menu_item(__("New Email"), () => {
-				new (frappe.views.CommunicationComposer as new () => unknown)();
+				this.composer = new Composer();
 			});
 		}
 
@@ -207,7 +167,7 @@ class ChatView {
 	// Push notification button in the page header
 	// -----------------------------------------------------------------------
 
-	private pushBtn: JQueryElement | null = null;
+	private pushBtn: JQuery<HTMLElement> | null = null;
 	private pushSubscribed = false;
 	private pushSubscribing = false;
 	private readonly BANNER_DISMISSED_KEY = "messaging_push_banner_dismissed";
@@ -405,7 +365,7 @@ class ChatView {
 // ============================================================================
 
 // Register ChatView class so ListFactory can find it
-frappe.views.ChatView = ChatView as unknown as new (opts: BaseListOptions) => ChatView;
+frappe.views.ChatView = ChatView;
 
 // Register 'chat' in list_views array (lowercase)
 if (!frappe.router.list_views.includes("chat")) {
@@ -425,10 +385,11 @@ frappe.router.list_views_route["chat"] = "Chat";
  */
 const originalGenerateRoute = frappe.utils.generate_route;
 
-frappe.utils.generate_route = function (item: GenerateRouteItem): string {
+frappe.utils.generate_route = function (this: unknown, routeItem: FrappeGenerateRouteItem): string {
+	const item = routeItem as ChatRouteItem;
 	// Handle Chat doc_view for doctype items
 	if (item.type?.toLowerCase() === "doctype" && item.doc_view === "Chat") {
-		const doctype_slug = frappe.router.slug(item.doctype || item.name);
+		const doctype_slug = frappe.router.slug(item.doctype || item.name || "");
 		let route = `${doctype_slug}/view/chat`;
 		if (item.tab) {
 			route += `#${item.tab}`;
@@ -444,47 +405,49 @@ frappe.utils.generate_route = function (item: GenerateRouteItem): string {
 	}
 
 	// Fall back to original implementation
-	return originalGenerateRoute.call(this, item);
+	return originalGenerateRoute.call(this, routeItem);
 };
 
 // ============================================================================
-// ListViewSelect Extension - Ensure Chat appears in view dropdown
+// The view switcher - offer Chat on Communication
 // ============================================================================
 
 /**
- * Extends ListViewSelect to ensure Chat view appears in the view selector
- * dropdown for Communication doctype.
+ * Offers the Chat view in frappe's view switcher.
+ *
+ * frappe 16's switcher lists the views `get_views()` returns, in the order of
+ * `frappe.views.view_modes`, and marks the one the route names as current, so the Chat view
+ * mode is registered in both, with its icon and label. (frappe 15's `setup_views` hook,
+ * which this used to override, no longer exists.) It extends whichever ListViewSelect is
+ * installed when this bundle loads, so another app's switcher keeps its own views.
  */
 function extendListViewSelect(): void {
-	const OriginalListViewSelect = frappe.views.ListViewSelect;
+	const BaseListViewSelect = frappe.views.ListViewSelect;
+	if (!BaseListViewSelect) return;
 
-	if (OriginalListViewSelect) {
-		const ChatViewSelect = class extends OriginalListViewSelect {
-			setup_views(): void {
-				super.setup_views();
+	class ChatViewSelect extends BaseListViewSelect {
+		override set_current_view(): void {
+			// The constructor calls this first, before it builds the switcher from the label map.
+			this.label_map[CHAT_VIEW] = __("Chat View");
+			super.set_current_view();
+		}
 
-				// Add Chat view for Communication doctype if not already added
-				if (this.doctype === "Communication") {
-					this.add_view_to_menu("Chat", () => {
-						frappe.set_route("List", this.doctype, "Chat");
-					});
-				}
-			}
-
-			set_current_view(): void {
-				super.set_current_view();
-
-				// Handle Chat view in the current view display
-				const route = frappe.get_route();
-				if (route[2]?.toLowerCase() === "chat") {
-					this.current_view = "Chat";
-				}
-			}
-		};
-
-		frappe.views.ListViewSelect = ChatViewSelect as unknown as ListViewSelectConstructor;
+		override get_views(): ReturnType<FrappeListViewSelect["get_views"]> {
+			const chat: ListViewSelectView = {
+				condition: this.doctype === "Communication",
+				action: () => this.set_route("chat"),
+			};
+			return { ...super.get_views(), [CHAT_VIEW]: chat };
+		}
 	}
+
+	frappe.views.ListViewSelect = ChatViewSelect;
 }
+
+if (!frappe.views.view_modes?.includes(CHAT_VIEW)) {
+	frappe.views.view_modes?.push(CHAT_VIEW);
+}
+if (frappe.views.view_icon_map) frappe.views.view_icon_map[CHAT_VIEW] = "message-circle";
 
 // Initialize ListViewSelect extension
 extendListViewSelect();

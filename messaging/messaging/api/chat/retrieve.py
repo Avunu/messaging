@@ -410,7 +410,7 @@ def get_messages(
 					Communication.sender,
 					Communication.sent_or_received,
 				)
-				.where(Communication.message_id == comm["in_reply_to"])
+				.where(Communication.name == comm["in_reply_to"])
 				.limit(1)
 				.run(as_dict=True)
 			)

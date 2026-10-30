@@ -477,9 +477,6 @@ def mark_messages_seen(room_id: str) -> MarkSeenResponse:
 		frappe.db.set_value("Communication", comm["name"], "seen", 1)
 		count += 1
 
-	if count > 0:
-		frappe.db.commit()
-
 	return {"success": True, "count": count}
 
 
@@ -523,9 +520,6 @@ def archive_room(room_id: str) -> RoomActionResponse:
 	for comm in comms:
 		frappe.db.set_value("Communication", comm["name"], "status", "Closed")
 		count += 1
-
-	if count > 0:
-		frappe.db.commit()
 
 	return {"success": True, "count": count, "error": None}
 
@@ -574,9 +568,6 @@ def delete_room(room_id: str) -> RoomActionResponse:
 			count += 1
 		except Exception as e:
 			errors.append(f"{comm['name']}: {e!s}")
-
-	if count > 0:
-		frappe.db.commit()
 
 	error_msg = "; ".join(errors) if errors else None
 	return {"success": len(errors) == 0, "count": count, "error": error_msg}

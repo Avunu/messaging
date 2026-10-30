@@ -11,6 +11,7 @@ import json
 from typing import Any, cast
 
 import frappe
+from frappe import _
 
 from messaging.messaging.doctype.messaging_settings.messaging_settings import (
 	MessagingSettings,
@@ -50,16 +51,16 @@ def _generate_vapid_keys(settings: Any = None) -> None:
 	settings.vapid_public_key = public_key
 	settings.vapid_private_key_secret = private_key
 	settings.save(ignore_permissions=True)
-	frappe.db.commit()
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST"])
 def get_vapid_public_key() -> str:
 	"""
 	Return the VAPID public key so the browser can subscribe to push.
 
 	The key pair is stored in Messaging Settings. If no keys exist yet,
-	a new pair is generated automatically.
+	a new pair is generated automatically, which is why this is POST-only:
+	frappe rolls back a GET request's writes.
 
 	Returns:
 		The VAPID public key (base64url-encoded).
@@ -74,7 +75,7 @@ def get_vapid_public_key() -> str:
 	return settings.vapid_public_key
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST"])
 def save_push_subscription(subscription: str) -> dict:
 	"""
 	Save or update a push subscription for the current user.
@@ -87,13 +88,13 @@ def save_push_subscription(subscription: str) -> dict:
 	"""
 	user = frappe.session.user
 	if user == "Guest":
-		frappe.throw("Authentication required")
+		frappe.throw(_("Authentication required"), frappe.PermissionError)
 
 	sub_data = json.loads(subscription) if isinstance(subscription, str) else subscription
 	endpoint = sub_data.get("endpoint", "")
 
 	if not endpoint:
-		frappe.throw("Invalid subscription: missing endpoint")
+		frappe.throw(_("Invalid subscription: missing endpoint"))
 
 	# Check if this endpoint already exists for this user
 	existing = frappe.db.exists(
@@ -121,11 +122,10 @@ def save_push_subscription(subscription: str) -> dict:
 		)
 		doc.insert(ignore_permissions=True)
 
-	frappe.db.commit()
 	return {"success": True}
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST"])
 def remove_push_subscription(endpoint: str) -> dict:
 	"""
 	Remove a push subscription (e.g. user revoked permission).
@@ -145,7 +145,6 @@ def remove_push_subscription(endpoint: str) -> dict:
 	for name in subs:
 		frappe.delete_doc("Push Subscription", name, ignore_permissions=True)
 
-	frappe.db.commit()
 	return {"success": True}
 
 
@@ -192,7 +191,7 @@ def send_push_to_user(
 		frappe.log_error("VAPID keys not configured", "Push Notification Failed")
 		return 0
 
-	vapid_private_key = settings.get_password("vapid_private_key_secret")
+	vapid_private_key = settings.get_password("vapid_private_key_secret", raise_exception=False)
 	if not vapid_private_key:
 		frappe.log_error("VAPID private key not set", "Push Notification Failed")
 		return 0
@@ -258,10 +257,8 @@ def send_push_to_user(
 			)
 
 	# Clean up stale subscriptions
+	# Runs in the push background job, which frappe commits when it succeeds.
 	for name in stale_subs:
 		frappe.delete_doc("Push Subscription", name, ignore_permissions=True)
-
-	if stale_subs:
-		frappe.db.commit()
 
 	return sent

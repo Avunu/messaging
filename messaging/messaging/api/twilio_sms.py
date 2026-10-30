@@ -68,7 +68,7 @@ def get_twilio_client() -> tuple[Client, str]:
 
 def get_contact_from_phone(phone_number: str) -> str | None:
 	"""Look up the Contact name that owns *phone_number*."""
-	return frappe.db.get_value("Contact Phone", {"phone": phone_number}, "parent")  # type: ignore[return-value]
+	return cast(str | None, frappe.db.get_value("Contact Phone", {"phone": phone_number}, "parent"))
 
 
 def handle_twilio_error(error: TwilioRestException, phone_number: str) -> None:
