@@ -71,20 +71,6 @@ def get_contact_from_phone(phone_number: str) -> str | None:
 	return frappe.db.get_value("Contact Phone", {"phone": phone_number}, "parent")  # type: ignore[return-value]
 
 
-# ── Per-recipient sending ────────────────────────────────────────────────────
-def send_single_sms(client: Client, from_number: str, to_number: str, message: str) -> SendResult:
-	"""Send one SMS via Twilio and return a result dict."""
-	try:
-		msg = client.messages.create(body=message, from_=from_number, to=to_number)
-		return SendResult(status="success", number=to_number, sid=msg.sid)
-	except TwilioRestException as exc:
-		handle_twilio_error(exc, to_number)
-		return SendResult(status="error", number=to_number, code=exc.code, message=str(exc))
-	except Exception as exc:
-		frappe.log_error(title=f"SMS send error: {to_number}", message=str(exc))
-		return SendResult(status="error", number=to_number, code=None, message=str(exc))
-
-
 def handle_twilio_error(error: TwilioRestException, phone_number: str) -> None:
 	"""Inspect a Twilio error code and take corrective action on the Contact."""
 
@@ -132,6 +118,20 @@ def handle_twilio_error(error: TwilioRestException, phone_number: str) -> None:
 			title=f"Twilio error {error.code}: {phone_number}",
 			message=str(error),
 		)
+
+
+# ── Per-recipient sending ────────────────────────────────────────────────────
+def send_single_sms(client: Client, from_number: str, to_number: str, message: str) -> SendResult:
+	"""Send one SMS via Twilio and return a result dict."""
+	try:
+		msg = client.messages.create(body=message, from_=from_number, to=to_number)
+		return SendResult(status="success", number=to_number, sid=msg.sid)
+	except TwilioRestException as exc:
+		handle_twilio_error(exc, to_number)
+		return SendResult(status="error", number=to_number, code=exc.code, message=str(exc))
+	except Exception as exc:
+		frappe.log_error(title=f"SMS send error: {to_number}", message=str(exc))
+		return SendResult(status="error", number=to_number, code=None, message=str(exc))
 
 
 # ── SMS Log ──────────────────────────────────────────────────────────────────

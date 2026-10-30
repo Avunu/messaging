@@ -229,10 +229,7 @@ def get_rooms(
 		has_unreplied = 0 if room_data.get("_has_unreplied", False) else 1
 
 		index_val = r.get("index")
-		if isinstance(index_val, datetime):
-			ts = index_val.timestamp()
-		else:
-			ts = 0.0
+		ts = index_val.timestamp() if isinstance(index_val, datetime) else 0.0
 
 		return (has_unreplied, -ts)
 
@@ -399,10 +396,7 @@ def get_messages(
 
 		# For emails, prepend subject as a header
 		subject = comm.get("subject", "")
-		if medium == "Email" and subject:
-			content = f"**{subject}**\n\n{raw_content}"
-		else:
-			content = raw_content
+		content = f"**{subject}**\n\n{raw_content}" if medium == "Email" and subject else raw_content
 
 		# Handle reply
 		reply_message = None

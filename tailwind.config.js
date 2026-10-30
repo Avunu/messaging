@@ -1,3 +1,6 @@
+// Copyright (c) 2026, Avunu LLC and contributors
+// For license information, please see license.txt
+
 // Tailwind CSS v3 config for frappe-ui component styling
 // Uses frappe-ui's preset for semantic colors, typography, etc.
 import frappeUIPreset from "frappe-ui/tailwind";

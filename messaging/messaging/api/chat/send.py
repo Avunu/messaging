@@ -72,6 +72,149 @@ def get_user_email_signature(user: str) -> str:
 	return f"--\n{full_name}"
 
 
+def _send_sms(
+	content: str,
+	identifier: str,
+	subject: str,
+	ref_dt: str | None,
+	ref_name: str | None,
+	reply_message_id: str,
+) -> Any:
+	"""Send SMS message and return Communication doc."""
+	current_user_id = frappe.session.user
+
+	comm_doc = frappe.get_doc(
+		{
+			"doctype": "Communication",
+			"communication_type": "Communication",
+			"communication_medium": "SMS",
+			"subject": subject,
+			"content": content,
+			"text_content": content,
+			"phone_no": identifier,
+			"sender": current_user_id,
+			"recipients": identifier,
+			"sent_or_received": "Sent",
+			"reference_doctype": ref_dt,
+			"reference_name": ref_name,
+			"in_reply_to": reply_message_id,
+		}
+	)
+	comm_doc.insert(ignore_permissions=True)
+
+	try:
+		from messaging.messaging.api.twilio_sms import send_sms
+
+		result = send_sms([identifier], content, success_msg=False)
+		if result["success"]:
+			comm_doc.db_set("delivery_status", "Sent")
+		else:
+			err = result["errors"][0] if result["errors"] else {}
+			code = err.get("code", "unknown")
+			frappe.log_error(f"SMS send failed for {identifier}: Twilio error {code}")
+			comm_doc.db_set("delivery_status", "Error")
+	except Exception as e:
+		frappe.log_error(f"SMS send failed: {e}")
+		comm_doc.db_set("delivery_status", "Error")
+
+	return comm_doc
+
+
+def _send_email(
+	content: str,
+	identifier: str,
+	subject: str,
+	ref_dt: str | None,
+	ref_name: str | None,
+	reply_message_id: str,
+	reply_content_for_quote: str | None,
+	reply_sender_for_quote: str | None,
+	reply_date_for_quote: Any,
+	email_signature: str = "",
+) -> Any:
+	"""Send email message and return Communication doc."""
+	from frappe.email.doctype.email_account.email_account import EmailAccount
+	from frappe.email.email_body import get_message_id
+
+	current_user_id = frappe.session.user
+
+	# Get the default incoming email account for reply-to address
+	reply_to_address = None
+	default_incoming = EmailAccount.find_default_incoming()
+	if default_incoming:
+		reply_to_address = default_incoming.email_id
+
+	# Build email content - start with the message
+	email_content = content
+
+	# Append email signature if available
+	if email_signature:
+		email_content = f"{email_content}\n\n{email_signature}"
+
+	# Add quoted reply if this is a reply
+	if reply_content_for_quote and reply_sender_for_quote:
+		reply_date_str = ""
+		if reply_date_for_quote:
+			if isinstance(reply_date_for_quote, datetime):
+				reply_date_str = reply_date_for_quote.strftime("%B %d, %Y at %I:%M %p")
+			else:
+				try:
+					dt = get_datetime(reply_date_for_quote) or reply_date_for_quote
+					reply_date_str = dt.strftime("%B %d, %Y at %I:%M %p")
+				except Exception:
+					reply_date_str = str(reply_date_for_quote)
+
+		# Build quoted reply and append to content (after signature)
+		quoted_reply = build_quoted_reply("", reply_content_for_quote, reply_sender_for_quote, reply_date_str)
+		# Remove the empty content prefix from build_quoted_reply
+		quoted_reply = quoted_reply.lstrip("\n")
+		email_content = f"{email_content}\n\n{quoted_reply}"
+
+	new_message_id = get_message_id().strip("<>")
+	html_content = plain_text_to_html(email_content)
+
+	comm_doc = frappe.get_doc(
+		{
+			"doctype": "Communication",
+			"communication_type": "Communication",
+			"communication_medium": "Email",
+			"subject": subject,
+			"content": html_content,
+			"text_content": email_content,
+			"sender": current_user_id,
+			"recipients": identifier,
+			"sent_or_received": "Sent",
+			"reference_doctype": ref_dt,
+			"reference_name": ref_name,
+			"message_id": new_message_id,
+			"in_reply_to": reply_message_id,
+			"status": "Linked",
+		}
+	)
+	comm_doc.insert(ignore_permissions=True)
+	comm_name = str(comm_doc.name)
+
+	try:
+		frappe.sendmail(
+			recipients=[identifier],
+			sender=str(current_user_id),
+			subject=subject,
+			message=html_content,
+			reference_doctype=ref_dt,
+			reference_name=ref_name,
+			message_id=new_message_id,
+			in_reply_to=reply_message_id,
+			communication=comm_name,
+			reply_to=reply_to_address,
+			delayed=True,
+		)
+	except Exception as e:
+		frappe.log_error(f"Email send failed: {e}")
+		frappe.db.set_value("Communication", comm_name, "delivery_status", "Error")
+
+	return comm_doc
+
+
 def send_message(
 	room_id: str,
 	content: str,
@@ -286,149 +429,6 @@ def send_message(
 	except Exception as e:
 		frappe.log_error(f"Send message failed: {e}")
 		return {"success": False, "message": None, "error": str(e)}
-
-
-def _send_sms(
-	content: str,
-	identifier: str,
-	subject: str,
-	ref_dt: str | None,
-	ref_name: str | None,
-	reply_message_id: str,
-) -> Any:
-	"""Send SMS message and return Communication doc."""
-	current_user_id = frappe.session.user
-
-	comm_doc = frappe.get_doc(
-		{
-			"doctype": "Communication",
-			"communication_type": "Communication",
-			"communication_medium": "SMS",
-			"subject": subject,
-			"content": content,
-			"text_content": content,
-			"phone_no": identifier,
-			"sender": current_user_id,
-			"recipients": identifier,
-			"sent_or_received": "Sent",
-			"reference_doctype": ref_dt,
-			"reference_name": ref_name,
-			"in_reply_to": reply_message_id,
-		}
-	)
-	comm_doc.insert(ignore_permissions=True)
-
-	try:
-		from messaging.messaging.api.twilio_sms import send_sms
-
-		result = send_sms([identifier], content, success_msg=False)
-		if result["success"]:
-			comm_doc.db_set("delivery_status", "Sent")
-		else:
-			err = result["errors"][0] if result["errors"] else {}
-			code = err.get("code", "unknown")
-			frappe.log_error(f"SMS send failed for {identifier}: Twilio error {code}")
-			comm_doc.db_set("delivery_status", "Error")
-	except Exception as e:
-		frappe.log_error(f"SMS send failed: {e}")
-		comm_doc.db_set("delivery_status", "Error")
-
-	return comm_doc
-
-
-def _send_email(
-	content: str,
-	identifier: str,
-	subject: str,
-	ref_dt: str | None,
-	ref_name: str | None,
-	reply_message_id: str,
-	reply_content_for_quote: str | None,
-	reply_sender_for_quote: str | None,
-	reply_date_for_quote: Any,
-	email_signature: str = "",
-) -> Any:
-	"""Send email message and return Communication doc."""
-	from frappe.email.doctype.email_account.email_account import EmailAccount
-	from frappe.email.email_body import get_message_id
-
-	current_user_id = frappe.session.user
-
-	# Get the default incoming email account for reply-to address
-	reply_to_address = None
-	default_incoming = EmailAccount.find_default_incoming()
-	if default_incoming:
-		reply_to_address = default_incoming.email_id
-
-	# Build email content - start with the message
-	email_content = content
-
-	# Append email signature if available
-	if email_signature:
-		email_content = f"{email_content}\n\n{email_signature}"
-
-	# Add quoted reply if this is a reply
-	if reply_content_for_quote and reply_sender_for_quote:
-		reply_date_str = ""
-		if reply_date_for_quote:
-			if isinstance(reply_date_for_quote, datetime):
-				reply_date_str = reply_date_for_quote.strftime("%B %d, %Y at %I:%M %p")
-			else:
-				try:
-					dt = get_datetime(reply_date_for_quote) or reply_date_for_quote
-					reply_date_str = dt.strftime("%B %d, %Y at %I:%M %p")
-				except Exception:
-					reply_date_str = str(reply_date_for_quote)
-
-		# Build quoted reply and append to content (after signature)
-		quoted_reply = build_quoted_reply("", reply_content_for_quote, reply_sender_for_quote, reply_date_str)
-		# Remove the empty content prefix from build_quoted_reply
-		quoted_reply = quoted_reply.lstrip("\n")
-		email_content = f"{email_content}\n\n{quoted_reply}"
-
-	new_message_id = get_message_id().strip("<>")
-	html_content = plain_text_to_html(email_content)
-
-	comm_doc = frappe.get_doc(
-		{
-			"doctype": "Communication",
-			"communication_type": "Communication",
-			"communication_medium": "Email",
-			"subject": subject,
-			"content": html_content,
-			"text_content": email_content,
-			"sender": current_user_id,
-			"recipients": identifier,
-			"sent_or_received": "Sent",
-			"reference_doctype": ref_dt,
-			"reference_name": ref_name,
-			"message_id": new_message_id,
-			"in_reply_to": reply_message_id,
-			"status": "Linked",
-		}
-	)
-	comm_doc.insert(ignore_permissions=True)
-	comm_name = str(comm_doc.name)
-
-	try:
-		frappe.sendmail(
-			recipients=[identifier],
-			sender=str(current_user_id),
-			subject=subject,
-			message=html_content,
-			reference_doctype=ref_dt,
-			reference_name=ref_name,
-			message_id=new_message_id,
-			in_reply_to=reply_message_id,
-			communication=comm_name,
-			reply_to=reply_to_address,
-			delayed=True,
-		)
-	except Exception as e:
-		frappe.log_error(f"Email send failed: {e}")
-		frappe.db.set_value("Communication", comm_name, "delivery_status", "Error")
-
-	return comm_doc
 
 
 def mark_messages_seen(room_id: str) -> MarkSeenResponse:

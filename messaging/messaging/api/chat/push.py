@@ -19,6 +19,39 @@ from messaging.messaging.doctype.push_subscription.push_subscription import (
 	PushSubscription,
 )
 
+# ---------------------------------------------------------------------------
+# Internal helpers (not whitelisted)
+# ---------------------------------------------------------------------------
+
+
+def _generate_vapid_keys(settings: Any = None) -> None:
+	"""Generate a new VAPID key pair and save to Messaging Settings."""
+	import base64
+
+	from cryptography.hazmat.primitives.serialization import Encoding, PublicFormat
+	from pywebpush import Vapid
+
+	vapid = Vapid()
+	vapid.generate_keys()
+
+	# Public key: uncompressed EC point, base64url-encoded (no padding)
+	assert vapid.public_key is not None
+	pub_bytes = vapid.public_key.public_bytes(Encoding.X962, PublicFormat.UncompressedPoint)
+	public_key = base64.urlsafe_b64encode(pub_bytes).rstrip(b"=").decode("ascii")
+
+	# Private key: raw 32-byte scalar, base64url-encoded (no padding)
+	priv_numbers = vapid.private_key.private_numbers()
+	priv_bytes = priv_numbers.private_value.to_bytes(32, "big")
+	private_key = base64.urlsafe_b64encode(priv_bytes).rstrip(b"=").decode("ascii")
+
+	if settings is None:
+		settings = frappe.get_single("Messaging Settings")
+
+	settings.vapid_public_key = public_key
+	settings.vapid_private_key_secret = private_key
+	settings.save(ignore_permissions=True)
+	frappe.db.commit()
+
 
 @frappe.whitelist()
 def get_vapid_public_key() -> str:
@@ -127,40 +160,6 @@ def get_push_subscription_status() -> dict:
 	user = frappe.session.user
 	count = frappe.db.count("Push Subscription", {"user": user})
 	return {"subscribed": count > 0, "count": count}
-
-
-# ---------------------------------------------------------------------------
-# Internal helpers (not whitelisted)
-# ---------------------------------------------------------------------------
-
-
-def _generate_vapid_keys(settings: Any = None) -> None:
-	"""Generate a new VAPID key pair and save to Messaging Settings."""
-	import base64
-
-	from cryptography.hazmat.primitives.serialization import Encoding, PublicFormat
-	from pywebpush import Vapid
-
-	vapid = Vapid()
-	vapid.generate_keys()
-
-	# Public key: uncompressed EC point, base64url-encoded (no padding)
-	assert vapid.public_key is not None
-	pub_bytes = vapid.public_key.public_bytes(Encoding.X962, PublicFormat.UncompressedPoint)
-	public_key = base64.urlsafe_b64encode(pub_bytes).rstrip(b"=").decode("ascii")
-
-	# Private key: raw 32-byte scalar, base64url-encoded (no padding)
-	priv_numbers = vapid.private_key.private_numbers()
-	priv_bytes = priv_numbers.private_value.to_bytes(32, "big")
-	private_key = base64.urlsafe_b64encode(priv_bytes).rstrip(b"=").decode("ascii")
-
-	if settings is None:
-		settings = frappe.get_single("Messaging Settings")
-
-	settings.vapid_public_key = public_key
-	settings.vapid_private_key_secret = private_key
-	settings.save(ignore_permissions=True)
-	frappe.db.commit()
 
 
 def send_push_to_user(

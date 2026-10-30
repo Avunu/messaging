@@ -189,51 +189,6 @@ def delete_room(room_id: str) -> RoomActionResponse:
 	return _delete_room(room_id=room_id)
 
 
-def notify_new_communication(doc: Any, method: str | None = None) -> None:
-	"""
-	Hook function to notify connected clients of new communications.
-
-	Called after a Communication is inserted to trigger realtime updates
-	in the chat interface, and send push notifications for received messages.
-
-	Also handles SMS opt-out requests when a user texts "STOP".
-
-	Args:
-		doc: The Communication document
-		method: The hook method name (unused)
-	"""
-	if doc.communication_type != "Communication":
-		return
-
-	# Publish realtime event for chat updates
-	frappe.publish_realtime(
-		"new_communication",
-		{
-			"name": doc.name,
-			"phone_no": doc.phone_no,
-			"sender": doc.sender,
-			"recipients": doc.recipients,
-			"communication_medium": doc.communication_medium,
-			"sent_or_received": doc.sent_or_received,
-		},
-		after_commit=True,
-	)
-
-	# Send push notifications for received messages
-	if doc.sent_or_received == "Received":
-		frappe.enqueue(
-			_send_push_for_received,
-			queue="short",
-			doc_name=doc.name,
-			sender=doc.sender,
-			phone_no=doc.phone_no,
-			content=doc.text_content or doc.content or "",
-			medium=doc.communication_medium,
-			subject=doc.subject,
-			now=getattr(frappe.flags, "in_test", False),
-		)
-
-
 def _send_push_for_received(
 	doc_name: str,
 	sender: str,
@@ -401,3 +356,48 @@ def _send_push_for_received(
 # 			f"Failed to send SMS opt-out confirmation to {phone_no}: {e}",
 # 			"SMS Opt-Out Confirmation Failed",
 # 		)
+
+
+def notify_new_communication(doc: Any, method: str | None = None) -> None:
+	"""
+	Hook function to notify connected clients of new communications.
+
+	Called after a Communication is inserted to trigger realtime updates
+	in the chat interface, and send push notifications for received messages.
+
+	Also handles SMS opt-out requests when a user texts "STOP".
+
+	Args:
+		doc: The Communication document
+		method: The hook method name (unused)
+	"""
+	if doc.communication_type != "Communication":
+		return
+
+	# Publish realtime event for chat updates
+	frappe.publish_realtime(
+		"new_communication",
+		{
+			"name": doc.name,
+			"phone_no": doc.phone_no,
+			"sender": doc.sender,
+			"recipients": doc.recipients,
+			"communication_medium": doc.communication_medium,
+			"sent_or_received": doc.sent_or_received,
+		},
+		after_commit=True,
+	)
+
+	# Send push notifications for received messages
+	if doc.sent_or_received == "Received":
+		frappe.enqueue(
+			_send_push_for_received,
+			queue="short",
+			doc_name=doc.name,
+			sender=doc.sender,
+			phone_no=doc.phone_no,
+			content=doc.text_content or doc.content or "",
+			medium=doc.communication_medium,
+			subject=doc.subject,
+			now=getattr(frappe.flags, "in_test", False),
+		)

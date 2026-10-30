@@ -31,9 +31,7 @@ self.addEventListener("push", (event) => {
 		body: payload.body || "",
 		icon: payload.icon || "/assets/messaging/images/message-icon.png",
 		badge: payload.badge || "/assets/messaging/images/badge-icon.png",
-		tag:
-			payload.tag ||
-			NOTIFICATION_TAG_PREFIX + (payload.room_id || "general"),
+		tag: payload.tag || NOTIFICATION_TAG_PREFIX + (payload.room_id || "general"),
 		renotify: true,
 		requireInteraction: false,
 		data: {
@@ -58,29 +56,26 @@ self.addEventListener("notificationclick", (event) => {
 
 	if (event.action === "dismiss") return;
 
-	const targetUrl =
-		event.notification.data?.url || "/app/communication/view/chat";
+	const targetUrl = event.notification.data?.url || "/app/communication/view/chat";
 
 	event.waitUntil(
-		clients
-			.matchAll({ type: "window", includeUncontrolled: true })
-			.then((windowClients) => {
-				// Try to focus an existing tab with the app open
-				for (const client of windowClients) {
-					if (client.url.includes("/app") && "focus" in client) {
-						client.focus();
-						client.postMessage({
-							type: "NAVIGATE_TO_CHAT",
-							room_id: event.notification.data?.room_id || "",
-						});
-						return;
-					}
+		clients.matchAll({ type: "window", includeUncontrolled: true }).then((windowClients) => {
+			// Try to focus an existing tab with the app open
+			for (const client of windowClients) {
+				if (client.url.includes("/app") && "focus" in client) {
+					client.focus();
+					client.postMessage({
+						type: "NAVIGATE_TO_CHAT",
+						room_id: event.notification.data?.room_id || "",
+					});
+					return;
 				}
-				// No existing tab — open a new one
-				if (clients.openWindow) {
-					return clients.openWindow(targetUrl);
-				}
-			}),
+			}
+			// No existing tab — open a new one
+			if (clients.openWindow) {
+				return clients.openWindow(targetUrl);
+			}
+		}),
 	);
 });
 
@@ -89,20 +84,15 @@ self.addEventListener("notificationclick", (event) => {
  */
 self.addEventListener("pushsubscriptionchange", (event) => {
 	event.waitUntil(
-		self.registration.pushManager
-			.subscribe(event.oldSubscription.options)
-			.then((subscription) => {
-				// Re-register with the server
-				return fetch(
-					"/api/method/messaging.messaging.api.chat.push.save_push_subscription",
-					{
-						method: "POST",
-						headers: { "Content-Type": "application/json" },
-						body: JSON.stringify({
-							subscription: JSON.stringify(subscription),
-						}),
-					},
-				);
-			}),
+		self.registration.pushManager.subscribe(event.oldSubscription.options).then((subscription) => {
+			// Re-register with the server
+			return fetch("/api/method/messaging.messaging.api.chat.push.save_push_subscription", {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({
+					subscription: JSON.stringify(subscription),
+				}),
+			});
+		}),
 	);
 });

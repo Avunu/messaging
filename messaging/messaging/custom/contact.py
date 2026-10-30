@@ -1,3 +1,6 @@
+# Copyright (c) 2026, Avunu LLC and contributors
+# For license information, please see license.txt
+
 from __future__ import annotations
 
 import json
@@ -17,6 +20,96 @@ if TYPE_CHECKING:
 	from messaging.messaging.doctype.messaging_settings.messaging_settings import (
 		MessagingSettings,
 	)
+
+
+# Phone number utility functions
+
+
+def is_valid_e164_number(number: str) -> bool:
+	"""Check if a phone number is in valid E.164 format.
+
+	Args:
+		number: The phone number string to validate.
+
+	Returns:
+		True if the number is valid E.164 format, False otherwise.
+	"""
+	# if the number does not begin with a +, it is not E.164
+	if not number.startswith("+"):
+		return False
+	try:
+		numobj = phonenumbers.parse(number, "")
+	except phonenumbers.NumberParseException:
+		return False
+	if phonenumbers.is_valid_number(numobj):
+		return phonenumbers.format_number(numobj, phonenumbers.PhoneNumberFormat.E164) == number
+	return False
+
+
+def convert_to_e164(number: str | None, country_code: str) -> str | None:
+	"""Convert a phone number to E.164 format.
+
+	Args:
+		number: The phone number to convert.
+		country_code: The ISO country code for parsing (e.g., "US", "GB").
+
+	Returns:
+		The E.164 formatted number, or None if conversion fails.
+	"""
+	if not number:
+		return None
+	try:
+		numobj = phonenumbers.parse(number, country_code)
+	except phonenumbers.NumberParseException:
+		return None
+	if phonenumbers.is_valid_number(numobj):
+		return phonenumbers.format_number(numobj, phonenumbers.PhoneNumberFormat.E164)
+	return None
+
+
+def validate_number(e164_number: str, client: Client) -> tuple[bool, str]:
+	"""Validate a phone number using Twilio Lookup API.
+
+	Args:
+		e164_number: The phone number in E.164 format.
+		client: An authenticated Twilio REST client.
+
+	Returns:
+		A tuple of (is_valid, carrier_type) where carrier_type is one of
+		"mobile", "landline", "voip", "unknown", or empty string if invalid.
+	"""
+	is_valid: bool = False
+	carrier_type: str = ""
+	try:
+		lookup = client.lookups.v2.phone_numbers(e164_number).fetch(fields=["line_type_intelligence"])
+
+		# The line_type_intelligence is a PhoneNumberInstance property
+		line_type_info = getattr(lookup, "line_type_intelligence", None)
+		if line_type_info and isinstance(line_type_info, dict):
+			carrier_type = str(line_type_info.get("type", ""))
+			is_valid = bool(carrier_type)  # Explicitly convert to boolean
+		elif line_type_info is not None:
+			# If we got a response but no line type dict, consider it valid but unknown type
+			is_valid = True
+			carrier_type = "unknown"
+		else:
+			# No line type intelligence available
+			is_valid = True
+			carrier_type = "unknown"
+
+	except TwilioRestException as e:
+		if e.code == 20404:  # Number not found
+			is_valid = False
+			frappe.logger().info(f"Number not found: {e164_number}")
+		else:
+			is_valid = False
+			frappe.log_error("Twilio Lookup Error", f"Number: {e164_number}, Error: {e!s}")
+	except Exception as e:
+		is_valid = False
+		frappe.log_error("Phone Validation Error", f"Number: {e164_number}, Error: {e!s}")
+
+	frappe.logger().debug(f"Validation result for {e164_number}: valid={is_valid}, type={carrier_type}")
+	return is_valid, carrier_type
 
 
 class Contact(BaseContact):
@@ -236,93 +329,3 @@ def add_to_all_contacts_group(doc: Contact, method: str | None = None) -> None:
 	)
 	if all_contacts_group:
 		doc.add_to_group(all_contacts_group)
-
-
-# Phone number utility functions
-
-
-def is_valid_e164_number(number: str) -> bool:
-	"""Check if a phone number is in valid E.164 format.
-
-	Args:
-		number: The phone number string to validate.
-
-	Returns:
-		True if the number is valid E.164 format, False otherwise.
-	"""
-	# if the number does not begin with a +, it is not E.164
-	if not number.startswith("+"):
-		return False
-	try:
-		numobj = phonenumbers.parse(number, "")
-	except phonenumbers.NumberParseException:
-		return False
-	if phonenumbers.is_valid_number(numobj):
-		return phonenumbers.format_number(numobj, phonenumbers.PhoneNumberFormat.E164) == number
-	return False
-
-
-def convert_to_e164(number: str | None, country_code: str) -> str | None:
-	"""Convert a phone number to E.164 format.
-
-	Args:
-		number: The phone number to convert.
-		country_code: The ISO country code for parsing (e.g., "US", "GB").
-
-	Returns:
-		The E.164 formatted number, or None if conversion fails.
-	"""
-	if not number:
-		return None
-	try:
-		numobj = phonenumbers.parse(number, country_code)
-	except phonenumbers.NumberParseException:
-		return None
-	if phonenumbers.is_valid_number(numobj):
-		return phonenumbers.format_number(numobj, phonenumbers.PhoneNumberFormat.E164)
-	return None
-
-
-def validate_number(e164_number: str, client: Client) -> tuple[bool, str]:
-	"""Validate a phone number using Twilio Lookup API.
-
-	Args:
-		e164_number: The phone number in E.164 format.
-		client: An authenticated Twilio REST client.
-
-	Returns:
-		A tuple of (is_valid, carrier_type) where carrier_type is one of
-		"mobile", "landline", "voip", "unknown", or empty string if invalid.
-	"""
-	is_valid: bool = False
-	carrier_type: str = ""
-	try:
-		lookup = client.lookups.v2.phone_numbers(e164_number).fetch(fields=["line_type_intelligence"])
-
-		# The line_type_intelligence is a PhoneNumberInstance property
-		line_type_info = getattr(lookup, "line_type_intelligence", None)
-		if line_type_info and isinstance(line_type_info, dict):
-			carrier_type = str(line_type_info.get("type", ""))
-			is_valid = bool(carrier_type)  # Explicitly convert to boolean
-		elif line_type_info is not None:
-			# If we got a response but no line type dict, consider it valid but unknown type
-			is_valid = True
-			carrier_type = "unknown"
-		else:
-			# No line type intelligence available
-			is_valid = True
-			carrier_type = "unknown"
-
-	except TwilioRestException as e:
-		if e.code == 20404:  # Number not found
-			is_valid = False
-			frappe.logger().info(f"Number not found: {e164_number}")
-		else:
-			is_valid = False
-			frappe.log_error("Twilio Lookup Error", f"Number: {e164_number}, Error: {e!s}")
-	except Exception as e:
-		is_valid = False
-		frappe.log_error("Phone Validation Error", f"Number: {e164_number}, Error: {e!s}")
-
-	frappe.logger().debug(f"Validation result for {e164_number}: valid={is_valid}, type={carrier_type}")
-	return is_valid, carrier_type

@@ -1,25 +1,14 @@
 <template>
 	<Teleport to="body">
 		<Transition name="panel-slide">
-			<div
-				v-if="show"
-				class="contact-panel-overlay"
-				@click="$emit('close')"
-			>
+			<div v-if="show" class="contact-panel-overlay" @click="$emit('close')">
 				<div class="contact-panel" @click.stop>
 					<!-- Header -->
 					<div class="contact-panel-header">
 						<div class="header-info">
 							<div class="avatar-wrapper">
-								<img
-									v-if="room?.avatar"
-									:src="room.avatar"
-									:alt="room?.roomName"
-									class="avatar-img"
-								/>
-								<span v-else class="avatar-placeholder">{{
-									avatarInitial
-								}}</span>
+								<img v-if="room?.avatar" :src="room.avatar" :alt="room?.roomName" class="avatar-img" />
+								<span v-else class="avatar-placeholder">{{ avatarInitial }}</span>
 							</div>
 							<div class="header-text">
 								<h3 class="panel-title">
@@ -30,17 +19,8 @@
 								</p>
 							</div>
 						</div>
-						<button
-							class="close-btn"
-							@click="$emit('close')"
-							:title="__('Close')"
-						>
-							<svg
-								class="icon"
-								fill="none"
-								stroke="currentColor"
-								viewBox="0 0 24 24"
-							>
+						<button class="close-btn" @click="$emit('close')" :title="__('Close')">
+							<svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 								<path
 									stroke-linecap="round"
 									stroke-linejoin="round"
@@ -60,10 +40,7 @@
 							</h4>
 
 							<!-- Loading state -->
-							<div
-								v-if="loadingContact && room?.contactName"
-								class="loading-state"
-							>
+							<div v-if="loadingContact && room?.contactName" class="loading-state">
 								<div class="spinner"></div>
 								<span>{{ __("Loading...") }}</span>
 							</div>
@@ -71,18 +48,9 @@
 							<!-- Contact details from Contact record -->
 							<template v-else-if="hasContactInfo">
 								<!-- All Email Addresses -->
-								<div
-									v-for="(emailInfo, idx) in allEmails"
-									:key="`email-${idx}`"
-									class="info-row"
-								>
+								<div v-for="(emailInfo, idx) in allEmails" :key="`email-${idx}`" class="info-row">
 									<div class="info-icon">
-										<svg
-											class="icon"
-											fill="none"
-											stroke="currentColor"
-											viewBox="0 0 24 24"
-										>
+										<svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 											<path
 												stroke-linecap="round"
 												stroke-linejoin="round"
@@ -94,34 +62,18 @@
 									<div class="info-content">
 										<span class="info-label">
 											{{ __("Email") }}
-											<span
-												v-if="emailInfo.isPrimary"
-												class="primary-badge"
-												>{{ __("Primary") }}</span
-											>
+											<span v-if="emailInfo.isPrimary" class="primary-badge">{{ __("Primary") }}</span>
 										</span>
-										<a
-											:href="`mailto:${emailInfo.email}`"
-											class="info-value link"
-										>
+										<a :href="`mailto:${emailInfo.email}`" class="info-value link">
 											{{ emailInfo.email }}
 										</a>
 									</div>
 								</div>
 
 								<!-- All Phone Numbers -->
-								<div
-									v-for="(phoneInfo, idx) in allPhones"
-									:key="`phone-${idx}`"
-									class="info-row"
-								>
+								<div v-for="(phoneInfo, idx) in allPhones" :key="`phone-${idx}`" class="info-row">
 									<div class="info-icon">
-										<svg
-											class="icon"
-											fill="none"
-											stroke="currentColor"
-											viewBox="0 0 24 24"
-										>
+										<svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 											<path
 												stroke-linecap="round"
 												stroke-linejoin="round"
@@ -132,21 +84,10 @@
 									</div>
 									<div class="info-content">
 										<span class="info-label">
-											{{
-												phoneInfo.isMobile
-													? __("Mobile")
-													: __("Phone")
-											}}
-											<span
-												v-if="phoneInfo.isPrimary"
-												class="primary-badge"
-												>{{ __("Primary") }}</span
-											>
+											{{ phoneInfo.isMobile ? __("Mobile") : __("Phone") }}
+											<span v-if="phoneInfo.isPrimary" class="primary-badge">{{ __("Primary") }}</span>
 										</span>
-										<a
-											:href="`tel:${phoneInfo.phone}`"
-											class="info-value link"
-										>
+										<a :href="`tel:${phoneInfo.phone}`" class="info-value link">
 											{{ phoneInfo.phone }}
 										</a>
 									</div>
@@ -157,12 +98,7 @@
 							<template v-else>
 								<div v-if="room?.emailId" class="info-row">
 									<div class="info-icon">
-										<svg
-											class="icon"
-											fill="none"
-											stroke="currentColor"
-											viewBox="0 0 24 24"
-										>
+										<svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 											<path
 												stroke-linecap="round"
 												stroke-linejoin="round"
@@ -172,13 +108,8 @@
 										</svg>
 									</div>
 									<div class="info-content">
-										<span class="info-label">{{
-											__("Email")
-										}}</span>
-										<a
-											:href="`mailto:${room.emailId}`"
-											class="info-value link"
-										>
+										<span class="info-label">{{ __("Email") }}</span>
+										<a :href="`mailto:${room.emailId}`" class="info-value link">
 											{{ room.emailId }}
 										</a>
 									</div>
@@ -186,12 +117,7 @@
 
 								<div v-if="room?.phoneNo" class="info-row">
 									<div class="info-icon">
-										<svg
-											class="icon"
-											fill="none"
-											stroke="currentColor"
-											viewBox="0 0 24 24"
-										>
+										<svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 											<path
 												stroke-linecap="round"
 												stroke-linejoin="round"
@@ -201,13 +127,8 @@
 										</svg>
 									</div>
 									<div class="info-content">
-										<span class="info-label">{{
-											__("Phone")
-										}}</span>
-										<a
-											:href="`tel:${room.phoneNo}`"
-											class="info-value link"
-										>
+										<span class="info-label">{{ __("Phone") }}</span>
+										<a :href="`tel:${room.phoneNo}`" class="info-value link">
 											{{ room.phoneNo }}
 										</a>
 									</div>
@@ -217,12 +138,7 @@
 							<!-- Current Thread Medium -->
 							<div class="info-row">
 								<div class="info-icon">
-									<svg
-										class="icon"
-										fill="none"
-										stroke="currentColor"
-										viewBox="0 0 24 24"
-									>
+									<svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 										<path
 											stroke-linecap="round"
 											stroke-linejoin="round"
@@ -232,37 +148,22 @@
 									</svg>
 								</div>
 								<div class="info-content">
-									<span class="info-label">{{
-										__("Current Thread")
-									}}</span>
-									<span
-										class="badge"
-										:class="mediumBadgeClass"
-									>
-										{{
-											room?.communicationMedium || "Email"
-										}}
+									<span class="info-label">{{ __("Current Thread") }}</span>
+									<span class="badge" :class="mediumBadgeClass">
+										{{ room?.communicationMedium || "Email" }}
 									</span>
 								</div>
 							</div>
 						</div>
 
 						<!-- Reference Section -->
-						<div
-							v-if="room?.referenceDoctype"
-							class="panel-section"
-						>
+						<div v-if="room?.referenceDoctype" class="panel-section">
 							<h4 class="section-title">
 								{{ __("Linked Document") }}
 							</h4>
 							<div class="info-row">
 								<div class="info-icon">
-									<svg
-										class="icon"
-										fill="none"
-										stroke="currentColor"
-										viewBox="0 0 24 24"
-									>
+									<svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 										<path
 											stroke-linecap="round"
 											stroke-linejoin="round"
@@ -272,9 +173,7 @@
 									</svg>
 								</div>
 								<div class="info-content">
-									<span class="info-label">{{
-										room.referenceDoctype
-									}}</span>
+									<span class="info-label">{{ room.referenceDoctype }}</span>
 									<a
 										:href="`/app/${encodeDoctype(room.referenceDoctype)}/${room.referenceName}`"
 										class="info-value link"
@@ -293,12 +192,7 @@
 							</h4>
 							<div v-if="room?.contactName" class="info-row">
 								<div class="info-icon">
-									<svg
-										class="icon"
-										fill="none"
-										stroke="currentColor"
-										viewBox="0 0 24 24"
-									>
+									<svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 										<path
 											stroke-linecap="round"
 											stroke-linejoin="round"
@@ -308,36 +202,18 @@
 									</svg>
 								</div>
 								<div class="info-content">
-									<span class="info-label">{{
-										__("Contact")
-									}}</span>
-									<a
-										:href="`/app/contact/${room.contactName}`"
-										class="info-value link"
-										target="_blank"
-									>
+									<span class="info-label">{{ __("Contact") }}</span>
+									<a :href="`/app/contact/${room.contactName}`" class="info-value link" target="_blank">
 										{{ room.contactName }}
 									</a>
 								</div>
 							</div>
 							<div v-else class="no-contact-notice">
 								<p class="notice-text">
-									{{
-										__(
-											"No contact record linked to this conversation.",
-										)
-									}}
+									{{ __("No contact record linked to this conversation.") }}
 								</p>
-								<button
-									class="btn btn-secondary"
-									@click="createContact"
-								>
-									<svg
-										class="icon"
-										fill="none"
-										stroke="currentColor"
-										viewBox="0 0 24 24"
-									>
+								<button class="btn btn-secondary" @click="createContact">
+									<svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 										<path
 											stroke-linecap="round"
 											stroke-linejoin="round"
@@ -362,27 +238,16 @@
 							</div>
 
 							<div v-else-if="hasLinkedDocuments">
-								<div
-									v-for="group in linkedGroups"
-									:key="group"
-									class="linked-group"
-								>
+								<div v-for="group in linkedGroups" :key="group" class="linked-group">
 									<h5 class="group-title">{{ group }}</h5>
 									<ul class="linked-list">
 										<li
-											v-for="doc in linkedDocuments[
-												group
-											]"
+											v-for="doc in linkedDocuments[group]"
 											:key="`${doc.doctype}-${doc.name}`"
 											class="linked-item"
 										>
 											<div class="info-icon small">
-												<svg
-													class="icon"
-													fill="none"
-													stroke="currentColor"
-													viewBox="0 0 24 24"
-												>
+												<svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 													<path
 														stroke-linecap="round"
 														stroke-linejoin="round"
@@ -392,9 +257,7 @@
 												</svg>
 											</div>
 											<div class="linked-content">
-												<span class="linked-doctype">{{
-													doc.doctype
-												}}</span>
+												<span class="linked-doctype">{{ doc.doctype }}</span>
 												<a
 													:href="`/app/${encodeDoctype(doc.doctype)}/${doc.name}`"
 													class="linked-link"
@@ -418,24 +281,11 @@
 
 					<!-- Footer Actions -->
 					<div class="contact-panel-footer">
-						<button
-							v-if="room?.contactName"
-							class="btn btn-primary"
-							@click="openContact"
-						>
+						<button v-if="room?.contactName" class="btn btn-primary" @click="openContact">
 							{{ __("Open Contact") }}
 						</button>
-						<button
-							v-if="room?.emailId"
-							class="btn btn-secondary"
-							@click="composeEmail"
-						>
-							<svg
-								class="icon"
-								fill="none"
-								stroke="currentColor"
-								viewBox="0 0 24 24"
-							>
+						<button v-if="room?.emailId" class="btn btn-secondary" @click="composeEmail">
+							<svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 								<path
 									stroke-linecap="round"
 									stroke-linejoin="round"
@@ -555,20 +405,14 @@ watch(
 		if (linkedResponse.status === "fulfilled") {
 			linkedDocuments.value = linkedResponse.value.message || {};
 		} else {
-			console.error(
-				"Error fetching linked documents:",
-				linkedResponse.reason,
-			);
+			console.error("Error fetching linked documents:", linkedResponse.reason);
 		}
 		loadingLinked.value = false;
 
 		if (contactResponse.status === "fulfilled") {
 			contactDetails.value = contactResponse.value.message || null;
 		} else {
-			console.error(
-				"Error fetching contact details:",
-				contactResponse.reason,
-			);
+			console.error("Error fetching contact details:", contactResponse.reason);
 		}
 		loadingContact.value = false;
 	},
@@ -593,8 +437,7 @@ const allEmails = computed(() => {
 
 const allPhones = computed(() => {
 	if (!contactDetails.value) return [];
-	const phones: { phone: string; isPrimary: boolean; isMobile: boolean }[] =
-		[];
+	const phones: { phone: string; isPrimary: boolean; isMobile: boolean }[] = [];
 
 	// Add phones from phone_nos child table
 	if (contactDetails.value.phone_nos?.length) {
@@ -665,9 +508,7 @@ function createContact(): void {
 		options.email_ids = [{ email_id: props.room.emailId, is_primary: 1 }];
 	}
 	if (props.room?.phoneNo) {
-		options.phone_nos = [
-			{ phone: props.room.phoneNo, is_primary_phone: 1 },
-		];
+		options.phone_nos = [{ phone: props.room.phoneNo, is_primary_phone: 1 }];
 	}
 	if (props.room?.roomName && !props.room.roomName.includes("@")) {
 		// Try to split name into first/last

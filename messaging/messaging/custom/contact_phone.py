@@ -1,3 +1,6 @@
+# Copyright (c) 2026, Avunu LLC and contributors
+# For license information, please see license.txt
+
 from frappe.contacts.doctype.contact_phone.contact_phone import ContactPhone as BaseContactPhone
 from frappe.types import DF
 

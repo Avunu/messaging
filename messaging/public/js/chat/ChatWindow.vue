@@ -83,9 +83,7 @@
 					@open-failed-message="openFailedMessage"
 					@menu-action-handler="menuActionHandler"
 					@message-action-handler="messageActionHandler"
-					@message-selection-action-handler="
-						messageSelectionActionHandler
-					"
+					@message-selection-action-handler="messageSelectionActionHandler"
 					@send-message-reaction="sendMessageReaction"
 					@typing-message="typingMessage"
 					@textarea-action-handler="textareaActionHandler"

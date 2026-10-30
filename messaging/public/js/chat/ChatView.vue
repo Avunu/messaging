@@ -4,16 +4,10 @@
 		<div class="chat-toolbar">
 			<div class="toolbar-left">
 				<h3 class="toolbar-title">{{ __("Messages") }}</h3>
-				<span v-if="unreadCount > 0" class="unread-badge">{{
-					unreadCount
-				}}</span>
+				<span v-if="unreadCount > 0" class="unread-badge">{{ unreadCount }}</span>
 			</div>
 			<div class="toolbar-right">
-				<select
-					v-model="selectedMedium"
-					class="medium-filter"
-					@change="onMediumChange"
-				>
+				<select v-model="selectedMedium" class="medium-filter" @change="onMediumChange">
 					<option value="All">{{ __("All Messages") }}</option>
 					<option value="Email">{{ __("Email") }}</option>
 					<option value="SMS">{{ __("SMS") }}</option>
@@ -58,50 +52,31 @@
 
 		<!-- Side panel for Communication details -->
 		<Teleport to="body">
-			<div
-				v-if="showCommPanel"
-				class="comm-panel-overlay"
-				@click="closeCommPanel"
-			>
+			<div v-if="showCommPanel" class="comm-panel-overlay" @click="closeCommPanel">
 				<div class="comm-panel" @click.stop>
 					<div class="comm-panel-header">
 						<h4>{{ __("Communication Details") }}</h4>
-						<button class="close-btn" @click="closeCommPanel">
-							&times;
-						</button>
+						<button class="close-btn" @click="closeCommPanel">&times;</button>
 					</div>
 					<div class="comm-panel-body">
 						<div v-if="selectedMessage" class="comm-details">
 							<div class="detail-row">
 								<label>{{ __("Type") }}:</label>
-								<span>{{
-									selectedMessage.communicationMedium
-								}}</span>
+								<span>{{ selectedMessage.communicationMedium }}</span>
 							</div>
 							<div class="detail-row">
 								<label>{{ __("Direction") }}:</label>
-								<span>{{
-									selectedMessage.sentOrReceived
-								}}</span>
+								<span>{{ selectedMessage.sentOrReceived }}</span>
 							</div>
-							<div
-								v-if="selectedMessage.subject"
-								class="detail-row"
-							>
+							<div v-if="selectedMessage.subject" class="detail-row">
 								<label>{{ __("Subject") }}:</label>
 								<span>{{ selectedMessage.subject }}</span>
 							</div>
 							<div class="detail-row">
 								<label>{{ __("Date") }}:</label>
-								<span
-									>{{ selectedMessage.date }}
-									{{ selectedMessage.timestamp }}</span
-								>
+								<span>{{ selectedMessage.date }} {{ selectedMessage.timestamp }}</span>
 							</div>
-							<div
-								v-if="selectedMessage.referenceDoctype"
-								class="detail-row"
-							>
+							<div v-if="selectedMessage.referenceDoctype" class="detail-row">
 								<label>{{ __("Reference") }}:</label>
 								<a
 									:href="`/app/${encodeDoctype(
@@ -129,11 +104,7 @@
 		</Teleport>
 
 		<!-- Contact Details Panel -->
-		<ContactPanel
-			:show="showContactPanel"
-			:room="selectedContactRoom"
-			@close="closeContactPanel"
-		/>
+		<ContactPanel :show="showContactPanel" :room="selectedContactRoom" @close="closeContactPanel" />
 	</div>
 </template>
 
@@ -361,10 +332,7 @@ export default defineComponent({
 		}
 
 		// Update onMenuAction to handle archive and delete
-		async function onMenuAction(data: {
-			roomId: string;
-			action: CustomAction;
-		}): Promise<void> {
+		async function onMenuAction(data: { roomId: string; action: CustomAction }): Promise<void> {
 			const room = rooms.value.find((r) => r.roomId === data?.roomId);
 			if (!room || !data?.action) return;
 
@@ -391,35 +359,27 @@ export default defineComponent({
 		async function archiveRoom(roomId: string): Promise<void> {
 			if (
 				!confirm(
-					__(
-						"Are you sure you want to archive this conversation? All messages will be marked as closed.",
-					),
+					__("Are you sure you want to archive this conversation? All messages will be marked as closed."),
 				)
 			) {
 				return;
 			}
 
 			try {
-				const response = await fetch(
-					"/api/method/messaging.messaging.api.chat.api.archive_room",
-					{
-						method: "POST",
-						headers: {
-							"Content-Type": "application/json",
-							"X-Frappe-CSRF-Token":
-								(window as any).frappe?.csrf_token || "",
-						},
-						body: JSON.stringify({ room_id: roomId }),
+				const response = await fetch("/api/method/messaging.messaging.api.chat.api.archive_room", {
+					method: "POST",
+					headers: {
+						"Content-Type": "application/json",
+						"X-Frappe-CSRF-Token": (window as any).frappe?.csrf_token || "",
 					},
-				);
+					body: JSON.stringify({ room_id: roomId }),
+				});
 
 				const result = await response.json();
 
 				if (result.message?.success) {
 					frappe.show_alert({
-						message: __("Conversation archived ({0} messages)", [
-							result.message.count,
-						]),
+						message: __("Conversation archived ({0} messages)", [result.message.count]),
 						indicator: "green",
 					});
 					// Remove the room from local state instead of refetching
@@ -427,9 +387,7 @@ export default defineComponent({
 					removeRoom(roomId);
 				} else {
 					frappe.show_alert({
-						message:
-							result.message?.error ||
-							__("Failed to archive conversation"),
+						message: result.message?.error || __("Failed to archive conversation"),
 						indicator: "red",
 					});
 				}
@@ -443,37 +401,25 @@ export default defineComponent({
 
 		// Add delete room function
 		async function deleteRoom(roomId: string): Promise<void> {
-			if (
-				!confirm(
-					__(
-						"Are you sure you want to delete this conversation? This action cannot be undone.",
-					),
-				)
-			) {
+			if (!confirm(__("Are you sure you want to delete this conversation? This action cannot be undone."))) {
 				return;
 			}
 
 			try {
-				const response = await fetch(
-					"/api/method/messaging.messaging.api.chat.api.delete_room",
-					{
-						method: "POST",
-						headers: {
-							"Content-Type": "application/json",
-							"X-Frappe-CSRF-Token":
-								(window as any).frappe?.csrf_token || "",
-						},
-						body: JSON.stringify({ room_id: roomId }),
+				const response = await fetch("/api/method/messaging.messaging.api.chat.api.delete_room", {
+					method: "POST",
+					headers: {
+						"Content-Type": "application/json",
+						"X-Frappe-CSRF-Token": (window as any).frappe?.csrf_token || "",
 					},
-				);
+					body: JSON.stringify({ room_id: roomId }),
+				});
 
 				const result = await response.json();
 
 				if (result.message?.success) {
 					frappe.show_alert({
-						message: __("Conversation deleted ({0} messages)", [
-							result.message.count,
-						]),
+						message: __("Conversation deleted ({0} messages)", [result.message.count]),
 						indicator: "green",
 					});
 					// Remove the room from local state instead of refetching
@@ -481,9 +427,7 @@ export default defineComponent({
 					removeRoom(roomId);
 				} else {
 					frappe.show_alert({
-						message:
-							result.message?.error ||
-							__("Failed to delete conversation"),
+						message: result.message?.error || __("Failed to delete conversation"),
 						indicator: "red",
 					});
 				}
@@ -495,11 +439,7 @@ export default defineComponent({
 			}
 		}
 
-		function onMessageAction(data: {
-			roomId: string;
-			action: MessageAction;
-			message: Message;
-		}): void {
+		function onMessageAction(data: { roomId: string; action: MessageAction; message: Message }): void {
 			if (!data?.action) return;
 
 			switch (data.action.name) {
@@ -524,10 +464,7 @@ export default defineComponent({
 					break;
 				case "openCommunication":
 					if (data.message?.communicationName) {
-						window.open(
-							`/app/communication/${data.message.communicationName}`,
-							"_blank",
-						);
+						window.open(`/app/communication/${data.message.communicationName}`, "_blank");
 					}
 					break;
 			}
@@ -545,19 +482,13 @@ export default defineComponent({
 			}
 		}
 
-		function onOpenFile(data: {
-			message: Message;
-			file: { url: string; action?: string };
-		}): void {
+		function onOpenFile(data: { message: Message; file: { url: string; action?: string } }): void {
 			if (data?.file?.url) {
 				window.open(data.file.url, "_blank");
 			}
 		}
 
-		function onTypingMessage(_data: {
-			roomId: string;
-			message: string;
-		}): void {
+		function onTypingMessage(_data: { roomId: string; message: string }): void {
 			// Could implement typing indicators here
 		}
 
@@ -592,14 +523,10 @@ export default defineComponent({
 		}
 
 		function isUserOnline(room: Room): boolean {
-			return (
-				room.users?.some((u) => u.status?.state === "online") ?? false
-			);
+			return room.users?.some((u) => u.status?.state === "online") ?? false;
 		}
 
-		function getMediumIcon(
-			medium: CommunicationMedium | undefined,
-		): string {
+		function getMediumIcon(medium: CommunicationMedium | undefined): string {
 			const icons: Record<string, string> = {
 				Email: "✉️",
 				SMS: "💬",
@@ -612,17 +539,14 @@ export default defineComponent({
 
 		// Theme detection
 		function updateTheme(): void {
-			const htmlTheme =
-				document.documentElement.getAttribute("data-theme-mode");
+			const htmlTheme = document.documentElement.getAttribute("data-theme-mode");
 			if (htmlTheme === "dark") {
 				isDarkMode.value = true;
 			} else if (htmlTheme === "light") {
 				isDarkMode.value = false;
 			} else {
 				// Automatic
-				isDarkMode.value = window.matchMedia(
-					"(prefers-color-scheme: dark)",
-				).matches;
+				isDarkMode.value = window.matchMedia("(prefers-color-scheme: dark)").matches;
 			}
 		}
 
@@ -642,9 +566,7 @@ export default defineComponent({
 
 			// Open initial room if provided
 			if (props.initialRoomId) {
-				const room = rooms.value.find(
-					(r) => r.roomId === props.initialRoomId,
-				);
+				const room = rooms.value.find((r) => r.roomId === props.initialRoomId);
 				if (room) {
 					selectRoom(room);
 				}

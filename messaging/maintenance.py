@@ -1,3 +1,6 @@
+# Copyright (c) 2026, Avunu LLC and contributors
+# For license information, please see license.txt
+
 """One-off maintenance helpers for contact data, run with `bench execute messaging.maintenance.<function>`."""
 
 from typing import cast
@@ -8,6 +11,17 @@ from frappe.query_builder import DocType
 from frappe.query_builder.functions import Count
 
 from messaging.messaging.custom.contact import Contact
+
+
+def clean_number(number: str | None) -> str | None:
+	if not number:
+		return None
+	# Remove spaces, dashes, and parentheses
+	number = "".join(filter(lambda x: x.isdigit(), number))
+	# remove any 1 at the beginning
+	if number[0] == "1":
+		number = number[1:]
+	return number
 
 
 def clean_phone_numbers() -> None:
@@ -23,17 +37,6 @@ def clean_phone_numbers() -> None:
 			frappe.db.set_value("Contact Phone", entry.get("name"), "phone", phone_cleaned)
 
 	frappe.db.commit()
-
-
-def clean_number(number: str | None) -> str | None:
-	if not number:
-		return None
-	# Remove spaces, dashes, and parentheses
-	number = "".join(filter(lambda x: x.isdigit(), number))
-	# remove any 1 at the beginning
-	if number[0] == "1":
-		number = number[1:]
-	return number
 
 
 def prefix_usa_country_code(number: str) -> str:
@@ -57,6 +60,31 @@ def clean_email_addresses() -> None:
 			frappe.db.set_value("Contact Email", entry.get("name"), "email_id", email_cleaned)
 
 	frappe.db.commit()
+
+
+def consolidate_contact_data(primary_contact_name: str, other_contact_entries: list[str]) -> None:
+	primary_contact = cast(Contact, frappe.get_doc("Contact", primary_contact_name))
+	fields_to_update = [
+		"phone_nos",
+		"email_ids",
+		"first_name",
+		"middle_name",
+		"last_name",
+		"designation",
+	]
+
+	for contact_entry in other_contact_entries:
+		other_contact = cast(Contact, frappe.get_doc("Contact", contact_entry))
+		for field in fields_to_update:
+			# Update primary_contact fields if they are empty and other_contact has data
+			if not getattr(primary_contact, field) and getattr(other_contact, field):
+				setattr(primary_contact, field, getattr(other_contact, field))
+
+	primary_contact.save(ignore_permissions=True)
+
+	# Now, merge the contacts
+	for contact_entry in other_contact_entries:
+		frappe.rename_doc("Contact", contact_entry, primary_contact_name, merge=True)
 
 
 # consolidate duplicate contacts
@@ -112,31 +140,6 @@ def consolidate_duplicate_contacts() -> None:
 			consolidate_contact_data(first_contact, contacts[1:])
 
 	frappe.db.commit()
-
-
-def consolidate_contact_data(primary_contact_name: str, other_contact_entries: list[str]) -> None:
-	primary_contact = cast(Contact, frappe.get_doc("Contact", primary_contact_name))
-	fields_to_update = [
-		"phone_nos",
-		"email_ids",
-		"first_name",
-		"middle_name",
-		"last_name",
-		"designation",
-	]
-
-	for contact_entry in other_contact_entries:
-		other_contact = cast(Contact, frappe.get_doc("Contact", contact_entry))
-		for field in fields_to_update:
-			# Update primary_contact fields if they are empty and other_contact has data
-			if not getattr(primary_contact, field) and getattr(other_contact, field):
-				setattr(primary_contact, field, getattr(other_contact, field))
-
-	primary_contact.save(ignore_permissions=True)
-
-	# Now, merge the contacts
-	for contact_entry in other_contact_entries:
-		frappe.rename_doc("Contact", contact_entry, primary_contact_name, merge=True)
 
 
 def deduplicate_contact_links() -> None:

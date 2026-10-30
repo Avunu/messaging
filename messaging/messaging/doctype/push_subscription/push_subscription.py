@@ -19,5 +19,3 @@ class PushSubscription(Document):
 		subscription_json: DF.LongText
 		user: DF.Link
 	# end: auto-generated types
-
-	pass
