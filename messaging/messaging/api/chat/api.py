@@ -242,8 +242,8 @@ def _send_push_for_received(
 	identifier = phone_no if medium in ("SMS", "Phone") else sender
 	room_id = f"{medium}:{identifier}"
 
-	contact = get_contact_from_identifier(identifier, medium)
-	sender_name = contact.get("contact_name") if contact else identifier
+	contact = get_contact_from_identifier(medium, identifier)
+	sender_name = (contact.get("full_name") or contact.get("name")) if contact else identifier
 
 	# Truncate body for notification
 	body = (content or "").strip()
