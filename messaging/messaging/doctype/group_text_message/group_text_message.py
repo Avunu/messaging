@@ -61,9 +61,10 @@ class GroupTextMessage(Document):
 			self.send_text_message()
 
 	def on_cancel(self):
-		# if the group text message is scheduled, set the status to draft
+		# a cancelled scheduled message goes back to Draft, so it no longer reads as pending.
+		# on_cancel runs after the cancel is saved, so the change needs db_set.
 		if self.schedule:
-			self.status = "Draft"
+			self.db_set("status", "Draft")
 
 	@frappe.whitelist(methods=["POST"])
 	def send_text_message(self):
