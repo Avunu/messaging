@@ -11,13 +11,6 @@
  * - VAPID public key retrieval from server
  */
 
-// Frappe global
-declare const frappe: {
-	call: <T>(options: { method: string; args?: Record<string, unknown> }) => Promise<{ message: T }>;
-	xcall: <T>(method: string, args?: Record<string, unknown>) => Promise<T>;
-	show_alert: (options: { message: string; indicator?: string }) => void;
-};
-
 const PUSH_API = "messaging.messaging.api.chat.push";
 
 // ---------------------------------------------------------------------------

@@ -125,16 +125,6 @@ import type {
 	CommunicationMedium,
 } from "./types";
 
-// Frappe globals
-declare const frappe: {
-	_: (text: string) => string;
-	set_route: (...args: string[]) => void;
-	show_alert: (options: { message: string; indicator?: string }) => void;
-	utils: {
-		escape_html: (text: string) => string;
-	};
-};
-
 declare const __: (text: string, args?: unknown[], context?: string) => string;
 
 export default defineComponent({

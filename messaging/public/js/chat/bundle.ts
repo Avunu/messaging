@@ -59,24 +59,6 @@ interface FrappePage {
 	custom_actions: JQueryElement;
 }
 
-interface FrappeContainer {
-	add_page(label: string): HTMLElement & { page: FrappePage };
-	change_to(label: string): void;
-}
-
-interface FrappeUI {
-	make_app_page(opts: { parent: HTMLElement; single_column?: boolean }): void;
-}
-
-interface FrappeModel {
-	with_doctype(doctype: string, callback: () => void): void;
-	can_read(doctype: string): boolean;
-}
-
-interface FrappeBreadcrumbs {
-	add(module: string, doctype?: string): void;
-}
-
 // ListViewSelect type
 interface ListViewSelectBase {
 	doctype: string;
@@ -87,13 +69,6 @@ interface ListViewSelectBase {
 }
 
 type ListViewSelectConstructor = new (opts: unknown) => ListViewSelectBase;
-
-interface FrappeViews {
-	ChatView?: new (opts: BaseListOptions) => ChatView;
-	ListViewSelect?: ListViewSelectConstructor;
-	CommunicationComposer?: new () => unknown;
-	[key: string]: unknown;
-}
 
 interface BaseListOptions {
 	doctype: string;
@@ -114,37 +89,6 @@ interface GenerateRouteItem {
 	route?: string;
 	route_options?: Record<string, string>;
 }
-
-declare const frappe: {
-	provide(namespace: string): void;
-	views: FrappeViews;
-	model: FrappeModel;
-	container: FrappeContainer;
-	ui: FrappeUI;
-	breadcrumbs: FrappeBreadcrumbs;
-	get_route(): string[];
-	get_route_str(): string;
-	router: {
-		slug(doctype: string): string;
-		factory_views: string[];
-		list_views: string[];
-		list_views_route: Record<string, string>;
-		route?: () => Promise<void>;
-		on?: (event: string, callback: () => void) => void;
-	};
-	utils: {
-		generate_route(item: GenerateRouteItem): string;
-	};
-	set_route(...args: (string | string[])[]): void;
-	show_alert(opts: { message: string; indicator: string }): void;
-	boot: {
-		user: {
-			can_read: string[];
-		};
-	};
-	route_options?: Record<string, unknown> | null;
-	get_meta(doctype: string): { module: string } | null;
-};
 
 declare const locals: {
 	DocType: Record<string, { module: string }>;

@@ -26,15 +26,6 @@ import {
 	uploadFile,
 } from "./api";
 
-// Frappe global
-declare const frappe: {
-	show_alert: (options: { message: string; indicator?: string }) => void;
-	realtime: {
-		on: (event: string, callback: (data: unknown) => void) => void;
-		off: (event: string, callback?: (data: unknown) => void) => void;
-	};
-};
-
 export interface UseChatReturn {
 	// State
 	currentUser: Ref<CurrentUser | null>;

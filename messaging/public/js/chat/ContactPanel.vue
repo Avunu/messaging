@@ -306,19 +306,6 @@
 import { computed, ref, watch } from "vue";
 import type { Room } from "./types";
 
-// Frappe globals
-declare const frappe: {
-	_: (text: string) => string;
-	set_route: (...args: string[]) => void;
-	new_doc: (doctype: string, options?: Record<string, unknown>) => void;
-	call: <T>(options: {
-		method: string;
-		args?: Record<string, unknown>;
-		async?: boolean;
-		freeze?: boolean;
-	}) => Promise<{ message: T }>;
-};
-
 const __ = frappe._;
 
 interface LinkedDoc {

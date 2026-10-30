@@ -17,34 +17,6 @@ import type {
 	MessageFile,
 } from "./types";
 
-// Frappe global type declaration
-declare const frappe: {
-	call: <T>(options: {
-		method: string;
-		args?: Record<string, unknown>;
-		async?: boolean;
-		freeze?: boolean;
-		freeze_message?: string;
-		callback?: (response: { message: T }) => void;
-		error?: (error: Error) => void;
-	}) => Promise<{ message: T }>;
-	xcall: <T>(method: string, args?: Record<string, unknown>) => Promise<T>;
-	throw: (message: string) => never;
-	show_alert: (options: { message: string; indicator?: string }) => void;
-	msgprint: (message: string) => void;
-	session: {
-		user: string;
-	};
-	boot: {
-		user: {
-			name: string;
-			full_name: string;
-			user_image: string | null;
-			email: string;
-		};
-	};
-};
-
 const API_BASE = "messaging.messaging.api.chat.api";
 
 /**

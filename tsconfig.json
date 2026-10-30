@@ -15,13 +15,17 @@
 		"noUnusedLocals": false,
 		"noUnusedParameters": false,
 		"noFallthroughCasesInSwitch": true,
-		"types": ["vite/client", "node"],
+		"types": ["vite/client", "node", "frappe-types/global"],
 		"baseUrl": ".",
 		"paths": {
 			"@/*": ["messaging/public/js/*"],
-			"@vendor-chat/*": ["vendor/vue-advanced-chat/src/*"]
+			"@vendor-chat/*": ["vendor/vue-advanced-chat/src/*"],
+			"frappe-ui": ["messaging/public/js/chat/types/frappe-ui.d.ts"]
 		}
 	},
 	"include": ["messaging/public/js/**/*.ts", "messaging/public/js/**/*.vue", "vite.config.ts"],
-	"exclude": ["node_modules"]
+	// Temporary, removed in PR B: bundle.ts still types frappe's desk API by hand (frappe.container,
+	// frappe.breadcrumbs, a "Chat" list view) and overrides ListViewSelect.setup_views, which frappe 16
+	// no longer has. It is the bundle's entry, and index.ts, which re-exports it, is imported by nothing.
+	"exclude": ["node_modules", "messaging/public/js/chat/bundle.ts", "messaging/public/js/chat/index.ts"]
 }
