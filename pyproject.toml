@@ -47,6 +47,39 @@ include = ["messaging/public/js/chat/**"]
 tsconfig = "tsconfig.json"
 check = "node scripts/vue-tsc.cjs --noEmit -p tsconfig.json"
 
+# Temporary, until the chat code is typed against frappe-types: the managed oxlint rules the
+# desk code doesn't meet yet, each per file. Turning off no-explicit-any needs locked-rules = false.
+[tool.frappe-nix.js]
+locked-rules = false
+
+# `(window as any).frappe?.csrf_token` in two fetch calls, and two `catch (error)` that shadow
+# useChat's `error` ref.
+[[tool.frappe-nix.js.oxlint.overrides]]
+files = ["messaging/public/js/chat/ChatView.vue"]
+rules = { "typescript/no-explicit-any" = "off", "no-shadow" = "off" }
+
+# Stylesheet imports are side-effect imports by nature: Vite pulls frappe-ui's CSS into the
+# bundle in import order. And frappe's CommunicationComposer opens its dialog from its constructor.
+[[tool.frappe-nix.js.oxlint.overrides]]
+files = ["messaging/public/js/chat/bundle.ts"]
+rules = { "import/no-unassigned-import" = "off", "no-new" = "off" }
+
+# FileReader's `onload` in the attachment preview.
+[[tool.frappe-nix.js.oxlint.overrides]]
+files = ["messaging/public/js/chat/ChatFooter.vue"]
+rules = { "unicorn/prefer-add-event-listener" = "off" }
+
+# A false positive: the service worker calls Client.postMessage(), which has no targetOrigin
+# argument (that is Window.postMessage()).
+[[tool.frappe-nix.js.oxlint.overrides]]
+files = ["messaging/public/js/chat/sw-messaging.js"]
+rules = { "unicorn/require-post-message-target-origin" = "off" }
+
+# Frappe's doctype boilerplate, all comments.
+[[tool.frappe-nix.js.oxlint.overrides]]
+files = ["messaging/messaging/doctype/messaging_group/messaging_group.js"]
+rules = { "unicorn/no-empty-file" = "off" }
+
 # These dependencies are only installed when developer mode is enabled
 [tool.bench.dev-dependencies]
 # package_name = "~=1.1.0"
@@ -63,6 +96,10 @@ ignore = [
 	"W191", # indentation contains tabs
 ]
 typing-modules = ["frappe.types.DF"]
+
+# Temporary: the maintenance helpers report progress with print() under `bench execute`.
+[tool.ruff.lint.per-file-ignores]
+"messaging/maintenance.py" = ["T201"]
 
 [tool.ruff.format]
 quote-style = "double"
