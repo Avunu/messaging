@@ -1,23 +1,51 @@
 [project]
 name = "messaging"
-authors = [
-    { name = "Avunu LLC", email = "mail@avu.nu"}
-]
+authors = [{ name = "Avunu LLC", email = "mail@avu.nu" }]
 description = "Messaging functionality for Frappe Sites"
-requires-python = ">=3.10"
+requires-python = ">=3.14"
 readme = "README.md"
 license = { text = "MIT" }
 classifiers = ["License :: OSI Approved :: MIT License"]
 dynamic = ["version"]
-dependencies = [
-    "phonenumbers",
-    "pywebpush",
-    "twilio",
-]
+dependencies = ["phonenumbers", "pywebpush", "twilio"]
 
 [build-system]
 requires = ["flit_core >=3.4,<4"]
 build-backend = "flit_core.buildapi"
+
+[tool.bench.frappe-dependencies]
+frappe = ">=16.0.0,<17.0.0"
+newsletter = ">=0.0.1,<1.0.0"
+
+[tool.frappe-nix]
+schema = 1
+profile = "github:Avunu/frappe-standards-profile/main"
+frappe-major = 16
+siblings = ["newsletter"]
+integration-branch = "main"
+# vue-advanced-chat's source, committed unchanged from upstream (see its README.md): kept out of
+# formatting and linting so it stays byte-identical to the release it was copied from.
+generated = ["vendor/**"]
+
+# required_apps names frappe/newsletter by its bare app name. Its version-16 branch is versioned
+# 0.0.x, not with the Frappe major, so the generic rule's range would not match it.
+[tool.frappe-nix.known-apps.newsletter]
+repo = "frappe/newsletter"
+branch = "version-{n}"
+range = ">=0.0.1,<1.0.0"
+
+# docs.yml calls Avunu/site-docs' shared check. Its pin gets its own needs-review Dependabot
+# group (a person reads every bump) and skips the cooldown.
+[tool.frappe-nix.docs-site]
+enable = true
+action-patterns = ["Avunu/site-docs*"]
+cooldown-exclude-actions = ["Avunu/site-docs"]
+
+[[tool.frappe-nix.typescript.spa]]
+root = "."
+include = ["messaging/public/js/chat/**"]
+tsconfig = "tsconfig.json"
+check = "node scripts/vue-tsc.cjs --noEmit -p tsconfig.json"
 
 # These dependencies are only installed when developer mode is enabled
 [tool.bench.dev-dependencies]
@@ -26,21 +54,13 @@ build-backend = "flit_core.buildapi"
 
 [tool.ruff]
 line-length = 110
-target-version = "py310"
+target-version = "py314"
 
 [tool.ruff.lint]
-select = [
-    "F",
-    "E",
-    "W",
-    "I",
-    "UP",
-    "B",
-    "RUF",
-]
+select = ["F", "E", "W", "I", "UP", "B", "RUF", "SIM", "C4", "PIE", "PERF", "T20"]
 ignore = [
-    "E501", # line too long
-    "W191", # indentation contains tabs
+	"E501", # line too long
+	"W191", # indentation contains tabs
 ]
 typing-modules = ["frappe.types.DF"]
 
@@ -48,3 +68,28 @@ typing-modules = ["frappe.types.DF"]
 quote-style = "double"
 indent-style = "tab"
 docstring-code-format = true
+
+[tool.ty.environment]
+python-version = "3.14"
+
+[tool.ty.src]
+include = ["messaging"]
+
+[tool.ty.terminal]
+error-on-warning = true
+
+[tool.coverage.run]
+omit = ["*/tests/*", "*/test_*.py", "*/patches/*"]
+
+[tool.coverage.report]
+show_missing = true
+skip_covered = true
+precision = 1
+exclude_also = ["if TYPE_CHECKING:", "raise NotImplementedError", "@(abc\\.)?abstractmethod"]
+fail_under = 0
+
+[tool.vulture]
+exclude = [".venv/", "node_modules/", ".frappe-nix/", ".dev-dist/", ".devenv/", ".direnv/"]
+
+[tool.test_utils.static-analysis]
+whitelist = ["frappe.*", "newsletter.*"]
