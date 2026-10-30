@@ -25,7 +25,7 @@ def clean_number(number: str | None) -> str | None:
 	# Remove spaces, dashes, and parentheses
 	number = "".join(c for c in number if c.isdigit())
 	# remove any 1 at the beginning
-	if number[0] == "1":
+	if number.startswith("1"):
 		number = number[1:]
 	return number
 
@@ -112,7 +112,7 @@ def consolidate_duplicate_contacts() -> None:
 		)
 
 		if contacts and len(contacts) > 1:
-			first_contact = contacts[0].parent
+			first_contact = contacts[0]
 			consolidate_contact_data(first_contact, contacts[1:])
 
 	ContactEmail = DocType("Contact Email")
@@ -136,7 +136,7 @@ def consolidate_duplicate_contacts() -> None:
 		)
 
 		if contacts and len(contacts) > 1:
-			first_contact = contacts[0].parent
+			first_contact = contacts[0]
 			consolidate_contact_data(first_contact, contacts[1:])
 
 
