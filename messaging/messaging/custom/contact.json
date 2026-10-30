@@ -20,8 +20,6 @@
 			"name": "contact_links_messaging_group_member",
 			"parent": "Contact",
 			"parent_doctype": "Messaging Group",
-			"parentfield": "links",
-			"parenttype": "Customize Form",
 			"table_fieldname": "members"
 		}
 	],
