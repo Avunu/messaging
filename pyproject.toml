@@ -101,20 +101,6 @@ reason = "jQuery-style .done on frappe.call and an implicit-any callback; typed 
 path = "messaging/public/js/contact_list.js"
 reason = "implicit-any listview and menu callbacks and an untyped r.message; typed in PR B"
 
-# Temporary, removed in PR B: the profile's test_utils hooks minus validate_customizations. It
-# fails on the 13 property setters the custom JSON ships with is_system_generated = 1, and
-# clearing that flag would let Customize Form's "Reset to defaults" delete them.
-[tool.frappe-nix.test-utils]
-hooks = [
-	"validate_frappe_project",
-	"validate_patches",
-	"static_analysis",
-	"validate_doctype_python_types",
-	"validate_copyright",
-	"clean_customized_doctypes",
-	"check_code_duplication",
-]
-
 # Temporary, removed in PR B: the whitelisted methods and hooks the test map finds untested.
 [[tool.frappe-nix.untested]]
 target = "messaging.messaging.api.chat.api.get_current_user"
