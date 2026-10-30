@@ -9,7 +9,8 @@ class ContactPhone(BaseContactPhone):
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 
-	from typing import TYPE_CHECKING
+	# Temporary, removed in PR B: the generated block re-imports TYPE_CHECKING inside the class.
+	from typing import TYPE_CHECKING  # ty: ignore[override-of-final-variable]
 
 	if TYPE_CHECKING:
 		# Custom fields

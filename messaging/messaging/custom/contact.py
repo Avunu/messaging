@@ -117,7 +117,8 @@ class Contact(BaseContact):
 
 	if TYPE_CHECKING:
 		consent_sms: DF.Check
-		phone_nos: DF.Table[ContactPhone]
+		# Temporary, removed in PR B: ty sees frappe's ContactPhone and this app's subclass as two types.
+		phone_nos: DF.Table[ContactPhone]  # ty: ignore[invalid-attribute-override]
 
 	# core frappe hooks
 
