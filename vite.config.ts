@@ -58,7 +58,7 @@ export default defineConfig({
 		extensions: [".mjs", ".js", ".mts", ".ts", ".jsx", ".tsx", ".json", ".vue"],
 		alias: {
 			"@": path.resolve(__dirname, "messaging/public/js"),
-			// Import vue-advanced-chat sub-components directly from vendor submodule source
+			// Import vue-advanced-chat sub-components directly from its vendored source (vendor/vue-advanced-chat)
 			"@vendor-chat": path.resolve(__dirname, "vendor/vue-advanced-chat/src"),
 			vue: "vue/dist/vue.esm-bundler.js",
 		},
