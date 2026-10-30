@@ -1,10 +1,17 @@
 // Copyright (c) 2025, Avunu LLC
 // License: MIT. See license.txt
 
+import { createRequire } from "node:module";
 import { defineConfig } from "vite";
 import vue from "@vitejs/plugin-vue";
+import { registerTS } from "vue/compiler-sfc";
 import path from "path";
 import Icons from "unplugin-icons/vite";
+
+// compiler-sfc resolves types that `defineProps<T>()` imports (frappe-ui's components do) with
+// TypeScript's JS API. The app's `typescript` is the native 7 build, which has none, so point it
+// at the TypeScript 5 alias, as scripts/vue-tsc.cjs does.
+registerTS(() => createRequire(import.meta.url)("typescript5"));
 
 export default defineConfig({
 	plugins: [
