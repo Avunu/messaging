@@ -150,7 +150,8 @@ def mark_messages_seen(room_id: str) -> MarkSeenResponse:
 	Returns:
 		MarkSeenResponse with success status and count of updated messages
 	"""
-	_require("write")
+	# Seeing a message is part of reading it, as when frappe marks one seen for its reader.
+	_require("read")
 	return _mark_messages_seen(room_id=room_id)
 
 

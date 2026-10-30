@@ -57,8 +57,9 @@ The chat shows every Communication on the site, so it is for users whose role ca
 them, not only their own:
 
 - **System Manager** can do everything.
-- **Inbox User** can read conversations, send messages and delete conversations, but not
-  archive them (archiving changes a message, which needs write permission on Communication).
+- **Inbox User** can read conversations (which marks them seen), send messages and delete
+  conversations, but not archive them: archiving changes the messages, which needs write
+  permission on Communication.
 - Other users, Website Users among them, are refused. New-message notifications, live and
   push, reach only the users who can read the conversations.
 

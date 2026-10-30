@@ -351,6 +351,7 @@ class TestPermissions(ChatTestCase):
 		user = make_user(roles=("Inbox User",))
 		with as_user(user):
 			self.assertIn(self.room, [r["roomId"] for r in api.get_rooms(search=self.phone)["rooms"]])
+			self.assertEqual(api.mark_messages_seen(room_id=self.room)["count"], 1)
 			with self.assertRaises(frappe.PermissionError):
 				api.archive_room(room_id=self.room)
 
