@@ -112,13 +112,25 @@ def validate_number(e164_number: str, client: Client) -> tuple[bool, str]:
 	return is_valid, carrier_type
 
 
+# Module-level functions for bulk operations and validation
+
+
+def _group_to_change(group_name: str) -> MessagingGroup:
+	"""The Messaging Group a caller asked to change, once they may write it.
+
+	MessagingGroup.add_contact and remove_contact save with ignore_permissions, so the
+	whitelisted entry points check write permission on the group first.
+	"""
+	group = cast("MessagingGroup", frappe.get_doc("Messaging Group", group_name))
+	group.check_permission("write")
+	return group
+
+
 class Contact(BaseContact):
 	"""Extended Contact class with messaging group and phone validation functionality."""
 
 	if TYPE_CHECKING:
 		consent_sms: DF.Check
-		# Temporary, removed in PR B: ty sees frappe's ContactPhone and this app's subclass as two types.
-		phone_nos: DF.Table[ContactPhone]  # ty: ignore[invalid-attribute-override]
 
 	# core frappe hooks
 
@@ -196,9 +208,17 @@ class Contact(BaseContact):
 		for i in reversed(to_remove):
 			self.phone_nos.pop(i)
 
+	def phones(self) -> list[ContactPhone]:
+		"""The phone_nos rows as this app's ContactPhone, which extend_doctype_class makes them.
+
+		Contact declares phone_nos as frappe's ContactPhone; redeclaring the field with the
+		subclass would narrow an inherited attribute, which ty rejects.
+		"""
+		return cast("list[ContactPhone]", self.phone_nos)
+
 	def validate_phone_numbers(self, client: Client) -> None:
 		"""Validate phone numbers using Twilio Lookup API."""
-		for phone_entry in self.phone_nos:
+		for phone_entry in self.phones():
 			# Only validate if number changed or not yet validated
 			if not phone_entry.validated_number or phone_entry.validated_number != phone_entry.phone:
 				phone_entry.is_valid, phone_entry.carrier_type = validate_number(phone_entry.phone, client)
@@ -212,29 +232,28 @@ class Contact(BaseContact):
 
 	def set_primary_numbers(self) -> None:
 		"""Set primary phone and mobile numbers from valid numbers."""
-		valid_numbers: list[ContactPhone] = [p for p in self.phone_nos if p.is_valid]
+		phones = self.phones()
+		valid_numbers: list[ContactPhone] = [p for p in phones if p.is_valid]
 		if not valid_numbers:
 			return
 
 		# Handle primary phone
-		current_primary: ContactPhone | None = next((p for p in self.phone_nos if p.is_primary_phone), None)
+		current_primary: ContactPhone | None = next((p for p in phones if p.is_primary_phone), None)
 		if not current_primary or not current_primary.is_valid:
 			# Reset all primary phone flags
-			for phone in self.phone_nos:
+			for phone in phones:
 				phone.is_primary_phone = 0
 			# Set first valid number as primary
 			valid_numbers[0].is_primary_phone = 1
 
 		# Handle primary mobile
-		current_mobile: ContactPhone | None = next(
-			(p for p in self.phone_nos if p.is_primary_mobile_no), None
-		)
+		current_mobile: ContactPhone | None = next((p for p in phones if p.is_primary_mobile_no), None)
 		valid_mobiles: list[ContactPhone] = [p for p in valid_numbers if p.carrier_type == "mobile"]
 
 		if current_mobile:
 			if not current_mobile.is_valid or current_mobile.carrier_type != "mobile":
 				# Reset mobile flags if current primary is invalid/not mobile
-				for phone in self.phone_nos:
+				for phone in phones:
 					phone.is_primary_mobile_no = 0
 				# Set first valid mobile as primary if available
 				if valid_mobiles:
@@ -271,20 +290,6 @@ class Contact(BaseContact):
 			group_name: The name of the messaging group to remove this contact from.
 		"""
 		_group_to_change(group_name).remove_contact(self.name)
-
-
-# Module-level functions for bulk operations and validation
-
-
-def _group_to_change(group_name: str) -> MessagingGroup:
-	"""The Messaging Group a caller asked to change, once they may write it.
-
-	MessagingGroup.add_contact and remove_contact save with ignore_permissions, so the
-	whitelisted entry points check write permission on the group first.
-	"""
-	group = cast("MessagingGroup", frappe.get_doc("Messaging Group", group_name))
-	group.check_permission("write")
-	return group
 
 
 @frappe.whitelist(methods=["POST"])
