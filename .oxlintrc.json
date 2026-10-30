@@ -57,7 +57,6 @@
 		{
 			"files": [
 				"messaging/messaging/doctype/group_text_message/group_text_message.js",
-				"messaging/messaging/doctype/messaging_group/messaging_group.js",
 				"messaging/messaging/doctype/messaging_settings/messaging_settings.js",
 				"messaging/public/js/communication.js",
 				"messaging/public/js/contact.js",
@@ -75,35 +74,15 @@
 			}
 		},
 		{
-			"files": ["messaging/public/js/chat/ChatView.vue"],
-			"rules": {
-				"typescript/no-explicit-any": "off",
-				"no-shadow": "off"
-			}
-		},
-		{
 			"files": ["messaging/public/js/chat/bundle.ts"],
 			"rules": {
-				"import/no-unassigned-import": "off",
-				"no-new": "off"
-			}
-		},
-		{
-			"files": ["messaging/public/js/chat/ChatFooter.vue"],
-			"rules": {
-				"unicorn/prefer-add-event-listener": "off"
+				"import/no-unassigned-import": "off"
 			}
 		},
 		{
 			"files": ["messaging/public/js/chat/sw-messaging.js"],
 			"rules": {
 				"unicorn/require-post-message-target-origin": "off"
-			}
-		},
-		{
-			"files": ["messaging/messaging/doctype/messaging_group/messaging_group.js"],
-			"rules": {
-				"unicorn/no-empty-file": "off"
 			}
 		}
 	]

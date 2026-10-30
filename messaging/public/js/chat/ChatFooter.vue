@@ -251,11 +251,11 @@ export default defineComponent({
 				// Create preview for images
 				if (file.type.startsWith("image/")) {
 					const reader = new FileReader();
-					reader.onload = (e) => {
+					reader.addEventListener("load", (e) => {
 						filePreview.preview = e.target?.result as string;
 						// Trigger reactivity
 						files.value = [...files.value];
-					};
+					});
 					reader.readAsDataURL(file);
 				}
 

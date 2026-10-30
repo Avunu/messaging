@@ -360,7 +360,7 @@ export default defineComponent({
 					method: "POST",
 					headers: {
 						"Content-Type": "application/json",
-						"X-Frappe-CSRF-Token": (window as any).frappe?.csrf_token || "",
+						"X-Frappe-CSRF-Token": frappe.csrf_token || "",
 					},
 					body: JSON.stringify({ room_id: roomId }),
 				});
@@ -381,7 +381,7 @@ export default defineComponent({
 						indicator: "red",
 					});
 				}
-			} catch (error) {
+			} catch {
 				frappe.show_alert({
 					message: __("Failed to archive conversation"),
 					indicator: "red",
@@ -400,7 +400,7 @@ export default defineComponent({
 					method: "POST",
 					headers: {
 						"Content-Type": "application/json",
-						"X-Frappe-CSRF-Token": (window as any).frappe?.csrf_token || "",
+						"X-Frappe-CSRF-Token": frappe.csrf_token || "",
 					},
 					body: JSON.stringify({ room_id: roomId }),
 				});
@@ -421,7 +421,7 @@ export default defineComponent({
 						indicator: "red",
 					});
 				}
-			} catch (error) {
+			} catch {
 				frappe.show_alert({
 					message: __("Failed to delete conversation"),
 					indicator: "red",

@@ -54,52 +54,18 @@ include = ["messaging/public/js/chat/**"]
 tsconfig = "tsconfig.json"
 check = "node scripts/vue-tsc.cjs --noEmit -p tsconfig.json"
 
-# Temporary, until the chat code is typed against frappe-types: the managed oxlint rules the
-# desk code doesn't meet yet, each per file. Turning off no-explicit-any needs locked-rules = false.
-[tool.frappe-nix.js]
-locked-rules = false
-
-# `(window as any).frappe?.csrf_token` in two fetch calls, and two `catch (error)` that shadow
-# useChat's `error` ref.
-[[tool.frappe-nix.js.oxlint.overrides]]
-files = ["messaging/public/js/chat/ChatView.vue"]
-rules = { "typescript/no-explicit-any" = "off", "no-shadow" = "off" }
-
 # Stylesheet imports are side-effect imports by nature: Vite pulls frappe-ui's CSS into the
-# bundle in import order. And frappe's CommunicationComposer opens its dialog from its constructor.
+# bundle in import order. Exempt exactly the module that imports a stylesheet from
+# import/no-unassigned-import.
 [[tool.frappe-nix.js.oxlint.overrides]]
 files = ["messaging/public/js/chat/bundle.ts"]
-rules = { "import/no-unassigned-import" = "off", "no-new" = "off" }
-
-# FileReader's `onload` in the attachment preview.
-[[tool.frappe-nix.js.oxlint.overrides]]
-files = ["messaging/public/js/chat/ChatFooter.vue"]
-rules = { "unicorn/prefer-add-event-listener" = "off" }
+rules = { "import/no-unassigned-import" = "off" }
 
 # A false positive: the service worker calls Client.postMessage(), which has no targetOrigin
 # argument (that is Window.postMessage()).
 [[tool.frappe-nix.js.oxlint.overrides]]
 files = ["messaging/public/js/chat/sw-messaging.js"]
 rules = { "unicorn/require-post-message-target-origin" = "off" }
-
-# Frappe's doctype boilerplate, all comments.
-[[tool.frappe-nix.js.oxlint.overrides]]
-files = ["messaging/messaging/doctype/messaging_group/messaging_group.js"]
-rules = { "unicorn/no-empty-file" = "off" }
-
-# Temporary, removed in PR B: the desk scripts that don't pass strict checkJs yet (implicit
-# any parameters, untyped r.message, jQuery's .done on frappe.call, frm.savesubmit).
-[[tool.frappe-nix.unchecked-js]]
-path = "messaging/messaging/doctype/group_text_message/group_text_message.js"
-reason = "frm.savesubmit is not in frappe-types' Form; typed in PR B"
-
-[[tool.frappe-nix.unchecked-js]]
-path = "messaging/public/js/contact.js"
-reason = "jQuery-style .done on frappe.call and an implicit-any callback; typed in PR B"
-
-[[tool.frappe-nix.unchecked-js]]
-path = "messaging/public/js/contact_list.js"
-reason = "implicit-any listview and menu callbacks and an untyped r.message; typed in PR B"
 
 # Temporary, removed in PR B: the whitelisted methods and hooks the test map finds untested.
 [[tool.frappe-nix.untested]]

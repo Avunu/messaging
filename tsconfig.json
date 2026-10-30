@@ -23,9 +23,11 @@
 			"frappe-ui": ["messaging/public/js/chat/types/frappe-ui.d.ts"]
 		}
 	},
-	"include": ["messaging/public/js/**/*.ts", "messaging/public/js/**/*.vue", "vite.config.ts"],
-	// Temporary, removed in PR B: bundle.ts still types frappe's desk API by hand (frappe.container,
-	// frappe.breadcrumbs, a "Chat" list view) and overrides ListViewSelect.setup_views, which frappe 16
-	// no longer has. It is the bundle's entry, and index.ts, which re-exports it, is imported by nothing.
-	"exclude": ["node_modules", "messaging/public/js/chat/bundle.ts", "messaging/public/js/chat/index.ts"]
+	"include": [
+		"messaging/public/js/**/*.ts",
+		"messaging/public/js/**/*.vue",
+		"types/*.d.ts",
+		"vite.config.ts"
+	],
+	"exclude": ["node_modules"]
 }
