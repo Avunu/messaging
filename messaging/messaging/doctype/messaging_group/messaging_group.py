@@ -94,11 +94,12 @@ class MessagingGroup(Document):
 
 		# check if the messaging group has a linked email group
 		if self.email_group:
-			# get the email group members
+			# get the email group members; the sync only adds to them: an Email Group can hold
+			# subscribers of its own, so a member who is not in this group is left in place
 			email_group_members = frappe.get_all(
 				"Email Group Member",
 				filters={"email_group": self.email_group},
-				fields=["name", "email"],
+				fields=["email"],
 			)
 
 			# get the contact for each messaging group member
@@ -111,17 +112,6 @@ class MessagingGroup(Document):
 				for messaging_group_member in self.members
 			]
 
-			# compare the email group members to the messaging group members
-			for email_group_member in email_group_members:
-				# if the email group member is not in the messaging group, delete it
-				if email_group_member.email not in [
-					messaging_group_member.email_id for messaging_group_member in members_contacts
-				]:
-					frappe.delete_doc(
-						"Email Group Member",
-						email_group_member.name,
-						ignore_permissions=True,
-					)
 			# if the messaging group member is not in the email group, add it
 			for contact in members_contacts:
 				if contact.email_id and str(contact.email_id).strip().lower() not in [

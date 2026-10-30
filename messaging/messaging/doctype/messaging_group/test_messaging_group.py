@@ -67,7 +67,7 @@ class TestMessagingGroup(IntegrationTestCase):
 
 		self.assertEqual([m.contact for m in self.group.members], [kept.name])
 
-	def test_the_email_group_mirrors_the_members(self) -> None:
+	def test_the_email_group_gains_the_members_and_keeps_its_own(self) -> None:
 		email_group = frappe.get_doc(
 			{"doctype": "Email Group", "title": f"Mirror {frappe.generate_hash(length=6)}"}
 		).insert(ignore_permissions=True)
@@ -83,8 +83,13 @@ class TestMessagingGroup(IntegrationTestCase):
 		emails = frappe.get_all(
 			"Email Group Member", filters={"email_group": email_group.name}, pluck="email"
 		)
-		self.assertEqual(emails, [member.email_id])
-		self.assertFalse(frappe.db.exists("Email Group Member", stale.name))
+		self.assertEqual(sorted(emails), sorted([str(member.email_id), "left@example.com"]))
+		# a subscriber the Email Group has of its own is never removed by the sync
+		self.assertTrue(frappe.db.exists("Email Group Member", stale.name))
+
+		# saving again adds nobody twice
+		self.group.save()
+		self.assertEqual(frappe.db.count("Email Group Member", {"email_group": email_group.name}), 2)
 
 	def test_deleting_the_group_unlinks_its_contacts(self) -> None:
 		member: Any = make_contact()
