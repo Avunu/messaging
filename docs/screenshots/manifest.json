@@ -1,0 +1,82 @@
+[
+	{
+		"name": "chat",
+		"theme": "dark",
+		"alt": "The chat view: SMS and e-mail threads with unread counts on the left, and an SMS conversation with its reply box on the right",
+		"featured": true,
+		"readme": "hero",
+		"width": 2880,
+		"height": 1800,
+		"sha256": "1f3cdd64b41b036ff38089bbcc9e0dfc9287529ae792a650bb0fc34741ce38f3"
+	},
+	{
+		"name": "chat",
+		"theme": "light",
+		"alt": "The chat view: SMS and e-mail threads with unread counts on the left, and an SMS conversation with its reply box on the right",
+		"featured": true,
+		"readme": "hero",
+		"width": 2880,
+		"height": 1800,
+		"sha256": "dc71813bfe53097d88d17f9f03dd2e679f5f33d21425acd8b8fd6ee00b378ead"
+	},
+	{
+		"name": "contact-panel",
+		"theme": "dark",
+		"alt": "The contact panel beside an e-mail thread, with the contact's e-mail address, mobile number and linked documents",
+		"featured": true,
+		"readme": "feature",
+		"width": 2880,
+		"height": 1800,
+		"sha256": "315d3d9c3b4405675a29fb2fff659164de0667f8975d202e0bf958530fdf824f"
+	},
+	{
+		"name": "contact-panel",
+		"theme": "light",
+		"alt": "The contact panel beside an e-mail thread, with the contact's e-mail address, mobile number and linked documents",
+		"featured": true,
+		"readme": "feature",
+		"width": 2880,
+		"height": 1800,
+		"sha256": "906cd5a37af1bf1004df95f3790e11d0928f7b1eb6a3e35e2d1ea6104ac74f8d"
+	},
+	{
+		"name": "group-text",
+		"theme": "dark",
+		"alt": "A sent Group Text Message to the Volunteers group, with the comment that lists who received it",
+		"featured": true,
+		"readme": "feature",
+		"width": 2880,
+		"height": 1800,
+		"sha256": "976b495302d71c50875005d4dc99e6763a7fa20f025e456b1700decc4d0aa76c"
+	},
+	{
+		"name": "group-text",
+		"theme": "light",
+		"alt": "A sent Group Text Message to the Volunteers group, with the comment that lists who received it",
+		"featured": true,
+		"readme": "feature",
+		"width": 2880,
+		"height": 1800,
+		"sha256": "6da1e51fef5319982c6f125a138a45019fb3752a889fd50469de99b46d7abe80"
+	},
+	{
+		"name": "messaging-group",
+		"theme": "dark",
+		"alt": "The Volunteers Messaging Group with its member contacts",
+		"featured": false,
+		"readme": "feature",
+		"width": 2880,
+		"height": 1800,
+		"sha256": "80d4e20030175162c43fe8e0d71cb37890c4030da0c96a0d458d22980113d806"
+	},
+	{
+		"name": "messaging-group",
+		"theme": "light",
+		"alt": "The Volunteers Messaging Group with its member contacts",
+		"featured": false,
+		"readme": "feature",
+		"width": 2880,
+		"height": 1800,
+		"sha256": "42793166530923e861332e0f650d17b6741f2663d3886884b5385638e43dde49"
+	}
+]
