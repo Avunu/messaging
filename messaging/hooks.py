@@ -1,9 +1,9 @@
 # Copyright (c) 2026, Avunu LLC and contributors
 # For license information, please see license.txt
 
-app_description = "Additional messaging functionality for Frappe Sites"
+app_description = "Chat inbox for email and SMS, Twilio group texts and newsletter merge tags"
 app_email = "mail@avu.nu"
-app_license = "mit"
+app_license = "MIT"
 app_name = "messaging"
 app_publisher = "Avunu LLC"
 app_title = "Messaging"

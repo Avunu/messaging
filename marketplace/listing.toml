@@ -1,0 +1,10 @@
+# The app's registry listing (docs/app-standards/marketplace.md); frappe-listing check validates it.
+schema = 1
+title = "Messaging"
+tagline = "Chat inbox for email and SMS, Twilio group texts and newsletter merge tags"
+type = "extension"
+category = "Extensions"
+categories = ["Communication", "Marketing"]
+website = "https://avunu.net/open-source/messaging/"
+documentation = "https://docs.avunu.net/messaging/"
+apps_screen = false

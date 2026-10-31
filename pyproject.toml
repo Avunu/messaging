@@ -1,7 +1,7 @@
 [project]
 name = "messaging"
 authors = [{ name = "Avunu LLC", email = "mail@avu.nu" }]
-description = "Messaging functionality for Frappe Sites"
+description = "Chat inbox for email and SMS, Twilio group texts and newsletter merge tags"
 requires-python = ">=3.14"
 readme = "README.md"
 license = { text = "MIT" }
