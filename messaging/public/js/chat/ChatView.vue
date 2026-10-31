@@ -613,9 +613,10 @@ export default defineComponent({
 </script>
 
 <style>
+/* Fills #chat-view-container, which bundle.ts sizes to the viewport below the page header. */
 .chat-container {
 	width: 100%;
-	height: calc(100vh - 46px);
+	height: 100%;
 	display: flex;
 	flex-direction: column;
 	background: var(--bg-color);

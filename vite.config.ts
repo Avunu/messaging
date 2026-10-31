@@ -36,10 +36,11 @@ export default defineConfig({
 				// Use hash in filename for cache busting (mimics esbuild's [name].[hash] pattern)
 				entryFileNames: "js/chat.bundle.[hash].js",
 				assetFileNames: "css/chat.bundle.[hash].[ext]",
+				// A plain IIFE: the bundle registers itself on `frappe` and exports nothing. With
+				// `exports: "named"`, rolldown (Vite 8) writes a reference to an undefined `exports`
+				// at the top of the IIFE, which throws in the browser before the view registers.
 				format: "iife",
-				name: "MessagingChat",
 				inlineDynamicImports: true,
-				exports: "named",
 			},
 		},
 		// Output to dist folder (similar to frappe_editor)
