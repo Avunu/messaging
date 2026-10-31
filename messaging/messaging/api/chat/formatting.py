@@ -6,6 +6,7 @@ Content formatting utilities for the Chat API.
 Functions for parsing and formatting email/message content for display.
 """
 
+import html
 import re
 
 from email_reply_parser import EmailReplyParser
@@ -129,6 +130,24 @@ def html_to_plain_text(html_content: str) -> str:
 	# Clean up multiple consecutive newlines
 	text = re.sub(r"\n{3,}", "\n\n", text)
 	return text.strip()
+
+
+def sms_text(content: str) -> str:
+	"""
+	The text an SMS carries for chat content.
+
+	The chat's reply box writes HTML (`<p>On our way</p>`); an SMS is plain text, so tags
+	become line breaks and entities their characters. Content with no tags is sent as it is.
+
+	Args:
+		content: The message as the chat sent it
+
+	Returns:
+		Plain text for the SMS body
+	"""
+	if not re.search(r"<[a-zA-Z/][^>]*>", content or ""):
+		return content
+	return html.unescape(html_to_plain_text(content))
 
 
 def plain_text_to_html(text: str) -> str:

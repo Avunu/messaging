@@ -81,6 +81,15 @@ class TestFormatting(IntegrationTestCase):
 		self.assertEqual(formatting.plain_text_to_html("a\nb"), "a<br>\nb")
 		self.assertEqual(formatting.plain_text_to_html(""), "")
 
+	def test_sms_text_turns_the_reply_box_html_into_plain_text(self) -> None:
+		self.assertEqual(
+			formatting.sms_text("<p>On our way &amp; parking</p><p>See you <strong>soon</strong></p><p></p>"),
+			"On our way & parking\nSee you soon",
+		)
+		# Plain text, a "<" in it included, is sent as it is.
+		self.assertEqual(formatting.sms_text("1 < 2 and 3 > 2"), "1 < 2 and 3 > 2")
+		self.assertEqual(formatting.sms_text(""), "")
+
 	def test_a_quoted_reply_block(self) -> None:
 		quoted = formatting.build_quoted_reply("Yes", "<p>Can we?</p><p>Thanks</p>", "Jo", "May 1")
 		self.assertEqual(quoted, "Yes\n\nOn May 1, Jo wrote:\n> Can we?\n> Thanks")

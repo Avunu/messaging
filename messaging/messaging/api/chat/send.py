@@ -19,6 +19,7 @@ from messaging.messaging.api.chat.formatting import (
 	build_quoted_reply,
 	html_to_plain_text,
 	plain_text_to_html,
+	sms_text,
 )
 from messaging.messaging.api.chat.helpers import get_user_avatar, parse_room_id
 from messaging.messaging.api.chat.types import (
@@ -356,7 +357,7 @@ def send_message(
 
 		# Create and send based on medium
 		if medium == "SMS":
-			comm_doc = _send_sms(content, identifier, subject, ref_dt, ref_name, reply_message_id)
+			comm_doc = _send_sms(sms_text(content), identifier, subject, ref_dt, ref_name, reply_message_id)
 		else:
 			# Get user's email signature
 			email_signature = get_user_email_signature(str(current_user_id))

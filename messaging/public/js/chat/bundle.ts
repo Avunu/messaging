@@ -50,6 +50,9 @@ interface BaseListOptions {
  */
 const CHAT_VIEW = "Chat" as FrappeViewName;
 
+/** The space the chat leaves below itself, in pixels, for the page's bottom padding. */
+const CHAT_BOTTOM_GAP = 16;
+
 /** generate_route's item, with the Chat view a workspace shortcut can name. */
 type ChatRouteItem = Omit<FrappeGenerateRouteItem, "doc_view"> & {
 	doc_view?: FrappeGenerateRouteItem["doc_view"] | "Chat";
@@ -243,14 +246,17 @@ class ChatView {
 
 		// Insert before the page main content
 		$(this.parent).find(".page-body").get(0)?.prepend(banner);
+		this.fit_height();
 
 		banner.querySelector(".push-banner-enable")?.addEventListener("click", () => {
 			banner.remove();
+			this.fit_height();
 			this.enable_push();
 		});
 
 		banner.querySelector(".push-banner-dismiss")?.addEventListener("click", () => {
 			banner.remove();
+			this.fit_height();
 			localStorage.setItem(this.BANNER_DISMISSED_KEY, "1");
 		});
 	}
@@ -301,9 +307,9 @@ class ChatView {
 		this.container = document.createElement("div");
 		this.container.id = "chat-view-container";
 		this.container.classList.add("messaging-chat-root");
-		this.container.style.height = "calc(100vh - 46px)";
 		this.container.style.minHeight = "500px";
 		this.body.append(this.container);
+		this.fit_height();
 
 		// Mount Vue chat application
 		this.vueApp = createApp({
@@ -313,6 +319,16 @@ class ChatView {
 		this.vueApp.mount(this.container);
 	}
 
+	/**
+	 * Size the chat to the viewport below its own top edge, so the reply box at its foot stays on
+	 * screen whatever the desk's header and the push banner above it take.
+	 */
+	fit_height(): void {
+		if (!this.container) return;
+		const top = this.container.getBoundingClientRect().top + window.scrollY;
+		this.container.style.height = `calc(100vh - ${Math.round(top) + CHAT_BOTTOM_GAP}px)`;
+	}
+
 	refresh(): void {
 		this.render();
 	}
@@ -320,6 +336,7 @@ class ChatView {
 	show(): void {
 		// Switch to our page
 		frappe.container.change_to(this.page_name);
+		this.fit_height();
 	}
 
 	hide(): void {
