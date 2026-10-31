@@ -21,9 +21,9 @@ import type {
 import { createApp, h, type Component, type App } from "vue";
 import ChatViewComponent from "./ChatView.vue";
 
-// frappe-ui Tailwind styles (processed by PostCSS/Tailwind pipeline, scoped under .messaging-chat-root)
+// frappe-ui Tailwind styles (processed by PostCSS/Tailwind pipeline, scoped under .messaging-chat-root).
+// The editor's own styles come with `frappe-ui/editor`, which ChatFooter imports.
 import "frappe-ui/style.css";
-import "frappe-ui/editor-style.css";
 import {
 	isPushSupported,
 	getPermissionState,

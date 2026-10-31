@@ -93,7 +93,7 @@
 					</template>
 				</room>
 
-				<!-- Our custom footer with frappe-ui TextEditor -->
+				<!-- Our custom footer with the frappe-ui editor -->
 				<ChatFooter
 					v-if="room.roomId"
 					:room-id="room.roomId"
@@ -128,7 +128,7 @@
  *
  *   1. Template wraps <room> + <ChatFooter> in a flex column
  *   2. Room's built-in footer is hidden (:show-footer="false")
- *   3. Our ChatFooter (frappe-ui TextEditor) is placed below the messages
+ *   3. Our ChatFooter (the frappe-ui editor) is placed below the messages
  *   4. MediaPreview is kept for free from upstream
  *
  * This avoids duplicating ~400 lines of orchestration logic.

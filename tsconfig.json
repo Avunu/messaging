@@ -20,7 +20,7 @@
 		"paths": {
 			"@/*": ["messaging/public/js/*"],
 			"@vendor-chat/*": ["vendor/vue-advanced-chat/src/*"],
-			"frappe-ui": ["messaging/public/js/chat/types/frappe-ui.d.ts"]
+			"frappe-ui/editor": ["messaging/public/js/chat/types/frappe-ui-editor.d.ts"]
 		}
 	},
 	"include": [

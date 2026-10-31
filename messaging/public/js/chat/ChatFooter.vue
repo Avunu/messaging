@@ -30,18 +30,15 @@
 		<!-- Editor + actions row -->
 		<div class="chat-footer-input">
 			<div class="editor-container" @keydown="handleKeydown">
-				<TextEditor
+				<Editor
 					ref="editorRef"
-					:content="editorContent"
-					:editable="true"
+					v-model="editorContent"
+					:extensions="extensions"
 					:placeholder="placeholder"
-					:bubble-menu="false"
-					:fixed-menu="true"
-					:floating-menu="false"
-					editor-class="chat-editor-content max-w-none"
-					:starterkit-options="starterkitOptions"
 					@change="onEditorChange"
-				/>
+				>
+					<EditorContent class="chat-editor-content" />
+				</Editor>
 			</div>
 			<div class="chat-footer-actions">
 				<button class="footer-action-btn attach-btn" @click="triggerFileUpload" :title="__('Attach file')">
@@ -89,7 +86,7 @@
 
 <script lang="ts">
 import { defineComponent, ref, computed, watch, nextTick } from "vue";
-import { TextEditor } from "frappe-ui";
+import { Editor, EditorContent, Link, Placeholder, StarterKit } from "frappe-ui/editor";
 import type { ReplyMessage, MessageFile } from "./types";
 
 declare const __: (text: string, args?: unknown[], context?: string) => string;
@@ -111,7 +108,8 @@ interface FileWithPreview {
 export default defineComponent({
 	name: "ChatFooter",
 	components: {
-		TextEditor,
+		Editor,
+		EditorContent,
 	},
 
 	props: {
@@ -140,17 +138,15 @@ export default defineComponent({
 	emits: ["send-message", "clear-reply", "typing"],
 
 	setup(props, { emit }) {
-		const editorRef = ref<InstanceType<typeof TextEditor> | null>(null);
+		const editorRef = ref<InstanceType<typeof Editor> | null>(null);
 		const fileInputRef = ref<HTMLInputElement | null>(null);
 		const editorContent = ref("");
 		const currentHtml = ref("");
 		const files = ref<FileWithPreview[]>([]);
 
-		// StarterKit options: disable heading (not useful in chat)
-		const starterkitOptions = {
-			heading: false,
-			codeBlock: false,
-		};
+		// Bold, italic, lists, quotes and links: no headings (not useful in chat). frappe-ui's
+		// StarterKit has no code blocks, and its editor shows no toolbar unless asked to.
+		const extensions = [StarterKit.configure({ heading: false }), Placeholder, Link];
 
 		// Check if the editor is empty (only whitespace or empty HTML tags)
 		const isEmpty = computed(() => {
@@ -171,9 +167,9 @@ export default defineComponent({
 			return tmp.textContent || tmp.innerText || "";
 		}
 
-		function onEditorChange(html: string): void {
-			currentHtml.value = html;
-			emit("typing", stripHtml(html).trim());
+		function onEditorChange(html: string | null): void {
+			currentHtml.value = html ?? "";
+			emit("typing", stripHtml(currentHtml.value).trim());
 		}
 
 		function handleKeydown(e: KeyboardEvent): void {
@@ -181,15 +177,9 @@ export default defineComponent({
 			if (e.key === "Enter" && !e.shiftKey && !e.ctrlKey && !e.metaKey) {
 				// Don't intercept if an autocomplete/suggestion popup is open
 				// (TipTap slash commands, mentions, etc.)
-				const editor = editorRef.value?.editor;
-				if (editor) {
-					// Check if any suggestion/autocomplete plugin is active
-					// by looking for the suggestion-active class or tippy popups
-					const rootEl = editorRef.value?.rootRef;
-					if (rootEl) {
-						const popup = document.querySelector(".tippy-box, .suggestion-list, .slash-commands-list");
-						if (popup) return; // Let the suggestion handle Enter
-					}
+				if (editorRef.value?.editor) {
+					const popup = document.querySelector(".tippy-box, .suggestion-list, .slash-commands-list");
+					if (popup) return; // Let the suggestion handle Enter
 				}
 
 				e.preventDefault();
@@ -303,7 +293,7 @@ export default defineComponent({
 			files,
 			isEmpty,
 			truncatedReplyContent,
-			starterkitOptions,
+			extensions,
 			onEditorChange,
 			handleKeydown,
 			sendMessage,
@@ -465,7 +455,7 @@ export default defineComponent({
 	background: var(--chat-input-bg);
 }
 
-/* TextEditor overrides for chat context */
+/* Editor overrides for chat context */
 .editor-container .chat-editor-content {
 	border: none !important;
 	outline: none !important;
@@ -529,12 +519,6 @@ export default defineComponent({
 .send-btn.send-disabled {
 	opacity: 0.4;
 	cursor: not-allowed;
-}
-
-/* Hide TextEditor bubble menu border/fixed menu if accidentally rendered */
-.editor-container .text-editor-fixed-menu,
-.editor-container [class*="TextEditorFixedMenu"] {
-	display: none !important;
 }
 
 /* Responsive */
