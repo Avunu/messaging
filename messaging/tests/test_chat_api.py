@@ -165,6 +165,13 @@ class TestChanges(ChatTestCase):
 		self.assertEqual(comm.in_reply_to, received.name)
 		self.assertEqual(frappe.db.get_value("Communication", received.name, "status"), "Replied")
 
+	def test_send_message_sends_the_reply_box_html_as_plain_text_sms(self) -> None:
+		with patch(TWILIO_SEND, return_value={"success": [self.phone], "errors": []}) as send:
+			result = api.send_message(room_id=self.room, content="<p>On our way &amp; parking</p><p></p>")
+
+		self.assertTrue(result["success"], result["error"])
+		send.assert_called_once_with([self.phone], "On our way & parking", success_msg=False)
+
 	def test_send_message_records_an_sms_twilio_refused(self) -> None:
 		failed = {"success": [], "errors": [{"status": "error", "number": self.phone, "code": 21610}]}
 		with patch(TWILIO_SEND, return_value=failed):
