@@ -22,7 +22,7 @@
 		"check": "yarn -s format:check && yarn -s lint && yarn -s typecheck"
 	},
 	"dependencies": {
-		"frappe-ui": "^0.1.262",
+		"frappe-ui": "^1.0.2",
 		"vue": "^3.5.44",
 		"vue-advanced-chat": "^2.1.2"
 	},
