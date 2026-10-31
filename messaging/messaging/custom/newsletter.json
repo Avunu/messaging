@@ -24,19 +24,7 @@
             "module": "Messaging"
         }
     ],
-    "property_setters": [
-        {
-            "doc_type": "Communication",
-            "doctype_or_field": "DocField",
-            "field_name": "newsletter_content",
-            "is_system_generated": 1,
-            "module": "Messaging",
-            "name": "Newsletter-newsletter_content-hide_border",
-            "property": "hide_border",
-            "property_type": "Check",
-            "value": "1"
-        }
-    ],
+    "property_setters": [],
     "sync_on_migrate": 1,
     "doctype": "Newsletter"
 }

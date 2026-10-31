@@ -51,6 +51,10 @@ def get_linked_documents(doctype: str, docname: str) -> dict[str, list[dict[str,
 	if not frappe.db.exists(doctype, docname):
 		return {}
 
+	# The caller must be able to read the document, and sees only the linked documents
+	# they can read: the query builder below applies no permissions.
+	frappe.has_permission(doctype, "read", docname, throw=True)
+
 	# Get all DocType Links for this doctype
 	DocTypeLink = DocType("DocType Link")
 	links = (
@@ -103,7 +107,11 @@ def get_linked_documents(doctype: str, docname: str) -> dict[str, list[dict[str,
 
 				for child in child_results:
 					parent_name = child.get("parent")
-					if parent_name and frappe.db.exists(parent_doctype, parent_name):
+					if (
+						parent_name
+						and frappe.db.exists(parent_doctype, parent_name)
+						and frappe.has_permission(parent_doctype, "read", parent_name)
+					):
 						# Get title field for display
 						title = get_document_title(parent_doctype, parent_name)
 						linked_docs.append(
@@ -131,7 +139,7 @@ def get_linked_documents(doctype: str, docname: str) -> dict[str, list[dict[str,
 
 				for row in results:
 					doc_name = row.get("name")
-					if doc_name:
+					if doc_name and frappe.has_permission(link_doctype, "read", doc_name):
 						title = get_document_title(link_doctype, doc_name)
 						linked_docs.append(
 							{

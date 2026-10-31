@@ -9,7 +9,7 @@ frappe.ui.form.on("Contact", {
 				frappe.prompt(
 					{
 						fieldname: "group_name",
-						label: "Messaging Group",
+						label: __("Messaging Group"),
 						fieldtype: "Link",
 						options: "Messaging Group",
 						reqd: 1,
@@ -24,13 +24,7 @@ frappe.ui.form.on("Contact", {
 								},
 								freeze: true,
 							})
-							.done((_r) => {
-								frm.reload_doc();
-								// frappe.show_alert(r.message).then(() => {
-								//     frm.reload_doc();
-								// }
-								// );
-							});
+							.then(() => frm.reload_doc());
 					},
 				);
 			});

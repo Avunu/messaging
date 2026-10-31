@@ -38,7 +38,9 @@ def _handle_subscription_keywords(body: str, contact_name: str) -> None:
 		)
 
 
-@frappe.whitelist(allow_guest=True)
+# Twilio calls this without a session, so it must be open to Guest. It accepts only a POST that
+# carries a valid X-Twilio-Signature for the configured auth token; test_twilio_webhook checks it.
+@frappe.whitelist(allow_guest=True, methods=["POST"])  # nosemgrep: guest-whitelisted-method
 def sms():
 	"""Handle incoming SMS webhook from Twilio"""
 	if frappe.request.method != "POST":
