@@ -55,6 +55,12 @@
 			}
 		},
 		{
+			"files": ["vite.config.ts"],
+			"rules": {
+				"import/no-unassigned-import": "off"
+			}
+		},
+		{
 			"files": [
 				"messaging/messaging/doctype/group_text_message/group_text_message.js",
 				"messaging/messaging/doctype/messaging_group/messaging_group.js",
