@@ -16,7 +16,7 @@
 			</div>
 		</div>
 
-		<!-- Main chat layout: composes upstream RoomsList + Room with our custom TextEditor footer -->
+		<!-- Main chat layout: composes upstream RoomsList + Room with our custom editor footer -->
 		<ChatWindow
 			class="chat-window"
 			:current-user-id="currentUserId"

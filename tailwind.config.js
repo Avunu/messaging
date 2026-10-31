@@ -11,8 +11,8 @@ export default {
 	content: [
 		// Our own components that may use Tailwind classes
 		"./messaging/public/js/**/*.{vue,js,ts,jsx,tsx}",
-		// frappe-ui source components (TextEditor, etc.) — ensures their utility classes are generated
-		"./node_modules/frappe-ui/src/components/**/*.{vue,js,ts,jsx,tsx}",
+		// frappe-ui's editor (the chat footer's), so the utility classes its sources use are generated
+		"./node_modules/frappe-ui/src/molecules/editor/**/*.{vue,js,ts,jsx,tsx}",
 		// TipTap extensions that may reference Tailwind classes
 		"./node_modules/@tiptap/**/*.{vue,js,ts,jsx,tsx}",
 	],
