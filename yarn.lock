@@ -209,10 +209,10 @@
     "@floating-ui/dom" "^1.8.0"
     "@floating-ui/utils" "^0.2.12"
 
-"@iconify-json/lucide@^1.2.147":
-  version "1.2.147"
-  resolved "https://registry.yarnpkg.com/@iconify-json/lucide/-/lucide-1.2.147.tgz#8ed8b556388f4c6ddfbee81e75d749a67ce8ff70"
-  integrity sha512-7Qqa/joSBeUxihWsQJx5nKcqMWtV3YrH90Jldxcx4J9ciTLavRUlpexQwRTcx9dcb7CJpISfjZTj42zD/30sqA==
+"@iconify-json/lucide@^1.2.149":
+  version "1.2.149"
+  resolved "https://registry.yarnpkg.com/@iconify-json/lucide/-/lucide-1.2.149.tgz#192cf06fa2bb2ebdebb79a1eec7f521b29dd1f87"
+  integrity sha512-5NG9YdbtRS03hG1A+EIE6nLhhdAYsf0mKu1ZRi6kLMlCG8DxmDsRM6DAhwlNMLiSiQKFbHpKTJ2VddZdwUkUyw==
   dependencies:
     "@iconify/types" "*"
 
@@ -1700,10 +1700,10 @@ frappe-types@^16.5.0:
   dependencies:
     "@types/jquery" "^3.5"
 
-frappe-ui@^1.0.2:
-  version "1.0.2"
-  resolved "https://registry.yarnpkg.com/frappe-ui/-/frappe-ui-1.0.2.tgz#58acd15eb9abfb5cc0f9eb829a95bd12cb40c893"
-  integrity sha512-ntMLpDpeeigtvb1G/W3osJnYVh6HXHJpqrJLz3lC7WKqBfcAnc4R274j606n7m+3gFvnOWCVnK5t9rsSbQHyKA==
+frappe-ui@^1.1.0:
+  version "1.1.0"
+  resolved "https://registry.yarnpkg.com/frappe-ui/-/frappe-ui-1.1.0.tgz#984fab29c0045f343d210779eda13555b913f07e"
+  integrity sha512-O01jFVGcl3CW606f1QfcUQKPidsCVkXVtgbQG54REdvXAvgSY41ifEz1fnyjZRaBJAJ7e+0cfOROGjituF4+wQ==
   dependencies:
     "@codemirror/autocomplete" "^6.0.0"
     "@codemirror/commands" "^6.0.0"
@@ -2801,10 +2801,10 @@ sade@^1.7.3:
   dependencies:
     mri "^1.1.0"
 
-sass@^1.106.1:
-  version "1.106.1"
-  resolved "https://registry.yarnpkg.com/sass/-/sass-1.106.1.tgz#53b3df8ebfe0e5e0bc111afe54bd2f6fda089f9c"
-  integrity sha512-kD+Gi66vycZcbJt+42NC4z4PXNMcCajVrJPhqoKKXy5cOBMmJQt052CxIBcRjwYXeImHYOpu/ydWWGZQIenl7A==
+sass@^1.107.1:
+  version "1.107.1"
+  resolved "https://registry.yarnpkg.com/sass/-/sass-1.107.1.tgz#a8a461744666e31f8973041a6b9ae7fcb265befd"
+  integrity sha512-aJ1/LvxOOb04YhmiBjzZn3jVwdHKol+OVhoMV6fFl02fF9T3i+5Mg9l/CnzqtM+NX5Jn5o3lAbs/ZJivTCLHfQ==
   dependencies:
     chokidar "^5.0.0"
     immutable "^5.1.5"
