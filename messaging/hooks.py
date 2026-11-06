@@ -8,6 +8,18 @@ app_name = "messaging"
 app_publisher = "Avunu LLC"
 app_title = "Messaging"
 
+# Frappe's About dialog takes the logo from here. not_listed keeps the app off the apps screen.
+# app_logo_url would change the site's own logo.
+add_to_apps_screen = [
+	{
+		"name": "messaging",
+		"logo": "/assets/messaging/images/messaging-logo.svg",
+		"title": "Messaging",
+		"route": "/desk",
+		"has_permission": "messaging.apps_screen.not_listed",
+	}
+]
+
 # App includes - Vite-built assets (like frappe_editor pattern)
 # Direct /assets/ path bypasses assets.json lookup, cache-busting via build_version query param
 app_include_js = [
