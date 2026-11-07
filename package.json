@@ -1,6 +1,6 @@
 {
 	"name": "messaging",
-	"version": "16.0.0",
+	"version": "16.1.0",
 	"private": true,
 	"description": "Messaging app for Frappe with chat-like interface for Communications",
 	"license": "MIT",

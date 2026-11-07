@@ -1,5 +1,12 @@
 # Changelog
 
+## [16.1.0](https://github.com/Avunu/messaging/compare/v16.0.0...v16.1.0) (2026-11-07)
+
+
+### Features
+
+* show the app's logo in the About dialog, on frappe-nix 2.4.0 ([#39](https://github.com/Avunu/messaging/issues/39)) ([46bde28](https://github.com/Avunu/messaging/commit/46bde2857df70c145b1c89004634d29dd7f9e067))
+
 ## [16.0.0](https://github.com/Avunu/messaging/compare/v0.0.1...v16.0.0) (2026-10-31)
 
 
