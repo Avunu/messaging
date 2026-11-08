@@ -303,6 +303,7 @@
 </template>
 
 <script setup lang="ts">
+import type { DocOf } from "frappe-types";
 import { computed, ref, watch } from "vue";
 import type { Room } from "./types";
 
@@ -312,33 +313,6 @@ interface LinkedDoc {
 	doctype: string;
 	name: string;
 	title: string;
-}
-
-interface ContactEmail {
-	email_id: string;
-	is_primary: 0 | 1;
-}
-
-interface ContactPhone {
-	phone: string;
-	is_primary_phone: 0 | 1;
-	is_primary_mobile_no: 0 | 1;
-}
-
-interface ContactDetails {
-	name: string;
-	full_name: string;
-	first_name: string;
-	last_name: string;
-	email_id: string;
-	phone: string;
-	mobile_no: string;
-	email_ids: ContactEmail[];
-	phone_nos: ContactPhone[];
-	company_name: string;
-	designation: string;
-	address: string;
-	image: string;
 }
 
 type LinkedDocuments = Record<string, LinkedDoc[]>;
@@ -357,7 +331,7 @@ const linkedDocuments = ref<LinkedDocuments>({});
 const loadingLinked = ref(false);
 
 // Contact details state
-const contactDetails = ref<ContactDetails | null>(null);
+const contactDetails = ref<DocOf<"Contact"> | null>(null);
 const loadingContact = ref(false);
 
 // Watch for room changes to fetch contact details and linked documents
@@ -380,7 +354,7 @@ watch(
 					docname: contactName,
 				},
 			}),
-			frappe.call<ContactDetails>({
+			frappe.call<DocOf<"Contact">>({
 				method: "frappe.client.get",
 				args: {
 					doctype: "Contact",
@@ -409,7 +383,7 @@ watch(
 // Computed properties for contact info
 const allEmails = computed(() => {
 	if (!contactDetails.value) return [];
-	const emails: { email: string; isPrimary: boolean }[] = [];
+	const emails: { email: string | null | undefined; isPrimary: boolean }[] = [];
 
 	// Add emails from email_ids child table
 	if (contactDetails.value.email_ids?.length) {
@@ -424,7 +398,7 @@ const allEmails = computed(() => {
 
 const allPhones = computed(() => {
 	if (!contactDetails.value) return [];
-	const phones: { phone: string; isPrimary: boolean; isMobile: boolean }[] = [];
+	const phones: { phone: string | null | undefined; isPrimary: boolean; isMobile: boolean }[] = [];
 
 	// Add phones from phone_nos child table
 	if (contactDetails.value.phone_nos?.length) {
