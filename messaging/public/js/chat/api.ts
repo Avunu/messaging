@@ -24,7 +24,15 @@ const API_BASE = "messaging.messaging.api.chat.api";
  */
 async function apiCall<T>(method: string, args: Record<string, unknown> = {}): Promise<T> {
 	try {
-		return await frappe.xcall<T>(`${API_BASE}.${method}`, args);
+		const response = await frappe.call<T>({
+			method: `${API_BASE}.${method}`,
+			args,
+		});
+		// Every chat endpoint returns a value, so a missing message is a server fault.
+		if (response.message === undefined) {
+			throw new Error(`${method} returned no message`);
+		}
+		return response.message;
 	} catch (error) {
 		console.error(`API call failed: ${method}`, error);
 		throw error;
