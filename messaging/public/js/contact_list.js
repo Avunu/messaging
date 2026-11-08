@@ -9,7 +9,6 @@
 
 /** @type {frappe.views.ListViewSettings<"Contact">} */
 frappe.listview_settings["Contact"] = {
-	/** @param {import("frappe-types").ListView} listview frappe passes the list view itself */
 	onload: function (listview) {
 		listview.page.add_action_item(__("Add to Group"), function () {
 			var docnames = listview.get_checked_items();

@@ -5,7 +5,7 @@ const DELETE_GROUPS = "messaging.messaging.doctype.messaging_group.messaging_gro
 
 /**
  * Ask whether to delete the checked groups' linked Email Groups too, then delete.
- * @param {import("frappe-types").ListView} listview
+ * @param {import("frappe-types").ListView | import("frappe-types").ReportView} listview the list or report view the action is on
  */
 function confirm_delete(listview) {
 	const docs = listview.get_checked_items();
@@ -44,7 +44,6 @@ function confirm_delete(listview) {
 /** @type {frappe.views.ListViewSettings<"Messaging Group">} */
 frappe.listview_settings["Messaging Group"] = {
 	add_fields: ["email_group"],
-	/** @param {import("frappe-types").ListView} listview frappe passes the list view itself */
 	onload(listview) {
 		// The list's own Delete action calls frappe's bulk delete, which takes no options, so it is
 		// replaced by one that asks about the linked Email Groups and calls delete_messaging_groups.
