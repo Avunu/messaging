@@ -35,8 +35,9 @@ frappe.listview_settings["Contact"] = {
 							doc_names: names,
 							group_name: data.group_name,
 						},
-						callback: function (r) {
-							const result = /** @type {GroupResult} */ (r.message);
+						callback: function (/** @type {import("frappe-types").FrappeResponse<GroupResult>} */ r) {
+							const result = r.message;
+							if (!result) return;
 							if (result.status === "Success") {
 								frappe.show_alert({
 									message: result.message,
