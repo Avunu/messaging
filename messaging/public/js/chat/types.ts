@@ -188,6 +188,13 @@ export interface MarkSeenResponse {
 	count: number;
 }
 
+/** What archive_room and delete_room return. */
+export interface RoomActionResponse {
+	success: boolean;
+	count: number;
+	error: string | null;
+}
+
 // ====================
 // vue-advanced-chat Event Types
 // ====================
@@ -294,41 +301,6 @@ export interface AutoScroll {
 		new?: boolean;
 		newAfterScrollUp?: boolean;
 	};
-}
-
-// ====================
-// Frappe Integration Types
-// ====================
-
-/**
- * Frappe call response wrapper.
- */
-export interface FrappeCallResponse<T> {
-	message: T;
-	exc?: string;
-	exc_type?: string;
-	_server_messages?: string;
-}
-
-/**
- * Frappe session user info.
- */
-export interface FrappeUser {
-	name: string;
-	full_name: string;
-	user_image: string | null;
-	email: string;
-	language: string;
-	time_zone: string;
-}
-
-/**
- * Frappe form document.
- */
-export interface FrappeDoc {
-	doctype: string;
-	name: string;
-	[key: string]: unknown;
 }
 
 // ====================

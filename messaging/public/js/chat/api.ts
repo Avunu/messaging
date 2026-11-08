@@ -24,11 +24,7 @@ const API_BASE = "messaging.messaging.api.chat.api";
  */
 async function apiCall<T>(method: string, args: Record<string, unknown> = {}): Promise<T> {
 	try {
-		const response = await frappe.call<T>({
-			method: `${API_BASE}.${method}`,
-			args,
-		});
-		return response.message;
+		return await frappe.xcall<T>(`${API_BASE}.${method}`, args);
 	} catch (error) {
 		console.error(`API call failed: ${method}`, error);
 		throw error;

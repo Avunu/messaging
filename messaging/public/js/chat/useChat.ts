@@ -381,19 +381,17 @@ export function useChat(): UseChatReturn {
 		frappe.realtime.on("new_communication", handleNewCommunication);
 	}
 
-	function handleNewCommunication(data: unknown): void {
+	/** The new_communication payload notify_new_communication (api/chat/api.py) publishes. */
+	function handleNewCommunication(commData: {
+		name?: string;
+		phone_no?: string;
+		sender?: string;
+		recipients?: string;
+		communication_medium?: string;
+		sent_or_received?: string;
+	}): void {
 		// Update unread count
 		refreshUnreadCount();
-
-		// Parse the incoming communication data
-		const commData = data as {
-			name?: string;
-			phone_no?: string;
-			sender?: string;
-			recipients?: string;
-			communication_medium?: string;
-			sent_or_received?: string;
-		};
 
 		// Determine the room identifier for this communication
 		const medium = commData.communication_medium || "Email";
