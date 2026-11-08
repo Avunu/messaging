@@ -89,8 +89,6 @@ import { defineComponent, ref, computed, watch, nextTick } from "vue";
 import { Editor, EditorContent, Link, Placeholder, StarterKit } from "frappe-ui/editor";
 import type { ReplyMessage, MessageFile } from "./types";
 
-declare const __: (text: string, args?: unknown[], context?: string) => string;
-
 /** Extended reply message with optional username for display */
 interface ReplyMessageWithUsername extends ReplyMessage {
 	username?: string;

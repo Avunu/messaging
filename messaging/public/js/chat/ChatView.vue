@@ -109,6 +109,7 @@
 </template>
 
 <script lang="ts">
+import type { FrappeResponse } from "frappe-types";
 import { defineComponent, ref, computed, onMounted } from "vue";
 import { useChat } from "./useChat";
 import ContactPanel from "./ContactPanel.vue";
@@ -123,9 +124,8 @@ import type {
 	CustomAction,
 	MessageAction,
 	CommunicationMedium,
+	RoomActionResponse,
 } from "./types";
-
-declare const __: (text: string, args?: unknown[], context?: string) => string;
 
 export default defineComponent({
 	name: "ChatView",
@@ -360,12 +360,12 @@ export default defineComponent({
 					method: "POST",
 					headers: {
 						"Content-Type": "application/json",
-						"X-Frappe-CSRF-Token": frappe.csrf_token || "",
+						"X-Frappe-CSRF-Token": frappe.csrf_token,
 					},
 					body: JSON.stringify({ room_id: roomId }),
 				});
 
-				const result = await response.json();
+				const result: FrappeResponse<RoomActionResponse> = await response.json();
 
 				if (result.message?.success) {
 					frappe.show_alert({
@@ -400,12 +400,12 @@ export default defineComponent({
 					method: "POST",
 					headers: {
 						"Content-Type": "application/json",
-						"X-Frappe-CSRF-Token": frappe.csrf_token || "",
+						"X-Frappe-CSRF-Token": frappe.csrf_token,
 					},
 					body: JSON.stringify({ room_id: roomId }),
 				});
 
-				const result = await response.json();
+				const result: FrappeResponse<RoomActionResponse> = await response.json();
 
 				if (result.message?.success) {
 					frappe.show_alert({

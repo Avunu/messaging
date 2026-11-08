@@ -36,7 +36,7 @@
 		"@vue/compiler-sfc": "^3.5.27",
 		"autoprefixer": "^10",
 		"cssnano": "^9",
-		"frappe-types": "^16.5.0",
+		"frappe-types": "^16.6.0",
 		"oxfmt": "^0.76.0",
 		"oxlint": "^1.91.0",
 		"postcss": "^8",

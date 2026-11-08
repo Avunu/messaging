@@ -28,6 +28,10 @@ async function apiCall<T>(method: string, args: Record<string, unknown> = {}): P
 			method: `${API_BASE}.${method}`,
 			args,
 		});
+		// Every chat endpoint returns a value, so a missing message is a server fault.
+		if (response.message === undefined) {
+			throw new Error(`${method} returned no message`);
+		}
 		return response.message;
 	} catch (error) {
 		console.error(`API call failed: ${method}`, error);
@@ -133,7 +137,7 @@ export async function uploadFile(file: File, doctype?: string, docname?: string)
 			method: "POST",
 			body: formData,
 			headers: {
-				"X-Frappe-CSRF-Token": (window as unknown as { csrf_token: string }).csrf_token,
+				"X-Frappe-CSRF-Token": frappe.csrf_token,
 			},
 		})
 			.then((response) => response.json())

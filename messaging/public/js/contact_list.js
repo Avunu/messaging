@@ -9,7 +9,6 @@
 
 /** @type {frappe.views.ListViewSettings<"Contact">} */
 frappe.listview_settings["Contact"] = {
-	/** @param {import("frappe-types").ListView} listview frappe passes the list view itself */
 	onload: function (listview) {
 		listview.page.add_action_item(__("Add to Group"), function () {
 			var docnames = listview.get_checked_items();
@@ -36,8 +35,9 @@ frappe.listview_settings["Contact"] = {
 							doc_names: names,
 							group_name: data.group_name,
 						},
-						callback: function (r) {
-							const result = /** @type {GroupResult} */ (r.message);
+						callback: function (/** @type {import("frappe-types").FrappeResponse<GroupResult>} */ r) {
+							const result = r.message;
+							if (!result) return;
 							if (result.status === "Success") {
 								frappe.show_alert({
 									message: result.message,
