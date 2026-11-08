@@ -129,7 +129,7 @@ export async function uploadFile(file: File, doctype?: string, docname?: string)
 			method: "POST",
 			body: formData,
 			headers: {
-				"X-Frappe-CSRF-Token": (window as unknown as { csrf_token: string }).csrf_token,
+				"X-Frappe-CSRF-Token": frappe.csrf_token,
 			},
 		})
 			.then((response) => response.json())
