@@ -11,8 +11,10 @@
  */
 
 import type {
+	CommunicationComposer,
 	FrappeGenerateRouteItem,
 	FrappeViewName,
+	ListFactoryViewOptions,
 	ListViewSelect as FrappeListViewSelect,
 	ListViewSelectView,
 	Page,
@@ -37,27 +39,15 @@ import {
 // Type Declarations
 // ============================================================================
 
-/** What frappe's ListFactory passes a list view's constructor. */
-interface BaseListOptions {
-	doctype: string;
-	parent: HTMLElement;
-}
-
 /**
  * The "Chat" view mode: routed as `/desk/communication/view/chat` (registered with the router
- * below) and offered by the view switcher on Communication. frappe-types closes
- * `FrappeViewName` over frappe's own views, so the app's view is cast into it once, here.
+ * below) and offered by the view switcher on Communication. It is registered in
+ * `FrappeViewModes` (types/messaging.augment.d.ts).
  */
-const CHAT_VIEW = "Chat" as FrappeViewName;
+const CHAT_VIEW: FrappeViewName = "Chat";
 
 /** The space the chat leaves below itself, in pixels, for the page's bottom padding. */
 const CHAT_BOTTOM_GAP = 16;
-
-/** generate_route's item, with the Chat view a workspace shortcut can name. */
-type ChatRouteItem = Omit<FrappeGenerateRouteItem, "doc_view"> & {
-	doc_view?: FrappeGenerateRouteItem["doc_view"] | "Chat";
-	route_options?: Record<string, string>;
-};
 
 // ============================================================================
 // Namespaces
@@ -84,7 +74,7 @@ class ChatView {
 	page!: Page;
 	body!: JQuery<HTMLElement>;
 	/** The composer the "New Email" menu item opened last. */
-	composer: unknown = null;
+	composer: CommunicationComposer | null = null;
 	vueApp: App | null = null;
 	container: HTMLElement | null = null;
 	menu_items: Array<{ label: string; action: () => void; standard?: boolean }> = [];
@@ -94,7 +84,7 @@ class ChatView {
 	method = "";
 	data: Record<string, unknown> = {};
 
-	constructor(opts: BaseListOptions) {
+	constructor(opts: ListFactoryViewOptions) {
 		this.doctype = opts.doctype;
 		this.page_name = frappe.get_route_str();
 
@@ -113,8 +103,11 @@ class ChatView {
 	 * This follows the TreeView pattern for a clean, sidebar-free layout.
 	 */
 	make_page(): void {
-		// Create a new page in the container (like TreeView does)
-		this.parent = frappe.container.add_page(this.page_name);
+		// Create a new page in the container (like TreeView does). The desk makes the container at
+		// startup (frappe desk.js), and a list view is only ever routed to inside it.
+		const container = frappe.container;
+		if (!container) throw new Error("ChatView needs the desk's page container");
+		this.parent = container.add_page(this.page_name);
 		$(this.parent).addClass("chat-view");
 
 		// Create app page with single_column layout
@@ -123,8 +116,8 @@ class ChatView {
 			single_column: true,
 		});
 
-		this.page = this.parent.page as Page;
-		frappe.container.change_to(this.page_name);
+		this.page = this.parent.page;
+		container.change_to(this.page_name);
 
 		// Set page title
 		this.page.set_title(__("Messages"));
@@ -153,7 +146,7 @@ class ChatView {
 
 		// New Email option if CommunicationComposer is available (frappe's composer opens its
 		// dialog from the constructor)
-		const Composer = frappe.views.CommunicationComposer as (new () => unknown) | undefined;
+		const Composer = frappe.views.CommunicationComposer;
 		if (Composer) {
 			this.page.add_menu_item(__("New Email"), () => {
 				this.composer = new Composer();
@@ -335,7 +328,7 @@ class ChatView {
 
 	show(): void {
 		// Switch to our page
-		frappe.container.change_to(this.page_name);
+		frappe.container?.change_to(this.page_name);
 		this.fit_height();
 	}
 
@@ -402,8 +395,7 @@ frappe.router.list_views_route["chat"] = "Chat";
  */
 const originalGenerateRoute = frappe.utils.generate_route;
 
-frappe.utils.generate_route = function (this: unknown, routeItem: FrappeGenerateRouteItem): string {
-	const item = routeItem as ChatRouteItem;
+frappe.utils.generate_route = function (this: unknown, item: FrappeGenerateRouteItem): string {
 	// Handle Chat doc_view for doctype items
 	if (item.type?.toLowerCase() === "doctype" && item.doc_view === "Chat") {
 		const doctype_slug = frappe.router.slug(item.doctype || item.name || "");
@@ -415,14 +407,14 @@ frappe.utils.generate_route = function (this: unknown, routeItem: FrappeGenerate
 			route +=
 				"?" +
 				Object.entries(item.route_options)
-					.map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(value)}`)
+					.map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(String(value))}`)
 					.join("&");
 		}
 		return `/desk/${route}`;
 	}
 
 	// Fall back to original implementation
-	return originalGenerateRoute.call(this, routeItem);
+	return originalGenerateRoute.call(this, item);
 };
 
 // ============================================================================
