@@ -144,12 +144,13 @@ export async function uploadFile(file: File, doctype?: string, docname?: string)
 		})
 			.then((response) => response.json() as Promise<FrappeResponse<FrappeFileDoc>>)
 			.then((data) => {
-				if (data.message) {
-					const fileData = data.message;
+				const fileData = data.message;
+				if (fileData?.file_url) {
+					const fileName = fileData.file_name ?? file.name;
 					resolve({
-						name: fileData.file_name,
+						name: fileName,
 						type: fileData.file_type || "application/octet-stream",
-						extension: fileData.file_name?.split(".").pop() || "",
+						extension: fileName.split(".").pop() || "",
 						url: fileData.file_url,
 						size: file.size,
 					});
