@@ -6,6 +6,8 @@
  * Provides typed wrappers around Frappe API calls.
  */
 
+import type { FrappeFileDoc, FrappeResponse } from "frappe-types";
+
 import type {
 	CurrentUser,
 	MarkSeenResponse,
@@ -140,7 +142,7 @@ export async function uploadFile(file: File, doctype?: string, docname?: string)
 				"X-Frappe-CSRF-Token": frappe.csrf_token,
 			},
 		})
-			.then((response) => response.json())
+			.then((response) => response.json() as Promise<FrappeResponse<FrappeFileDoc>>)
 			.then((data) => {
 				if (data.message) {
 					const fileData = data.message;
