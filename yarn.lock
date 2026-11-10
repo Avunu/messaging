@@ -209,10 +209,10 @@
     "@floating-ui/dom" "^1.8.0"
     "@floating-ui/utils" "^0.2.12"
 
-"@iconify-json/lucide@^1.2.151":
-  version "1.2.151"
-  resolved "https://registry.yarnpkg.com/@iconify-json/lucide/-/lucide-1.2.151.tgz#51e24d58657a836b2f6ee21f57bbd2c37d0678ee"
-  integrity sha512-OCp+cNzynOlOI7zHq8bFGhBBzmSSWFICvOSTxZrajhFJC4YizvlLiBJMbaLzzlpMaGRidmZmAA8GpovoDKiy/w==
+"@iconify-json/lucide@^1.2.152":
+  version "1.2.152"
+  resolved "https://registry.yarnpkg.com/@iconify-json/lucide/-/lucide-1.2.152.tgz#b7804fd344964dca15cf2349f3ee9ad164e61167"
+  integrity sha512-OQTsOaQ+kD8yhy5EATMD5QHe5O+XJVibExdaRCaXP3hvNPNkn6wVUcTrGA16yU2luqe0ImE4qP74WBK8JuwwNA==
   dependencies:
     "@iconify/types" "*"
 
@@ -2801,10 +2801,10 @@ sade@^1.7.3:
   dependencies:
     mri "^1.1.0"
 
-sass@^1.108.0:
-  version "1.108.0"
-  resolved "https://registry.yarnpkg.com/sass/-/sass-1.108.0.tgz#f459d748b3dc8885e15b9cb9304979efd68e70ab"
-  integrity sha512-9HwnefouIfwY+XuA1rS5xOhALH5vsoe3SzYICG3MEwpkMbE7tpuh5ytZFRXUKPYkxY7lKdIbqxl+DxQGo8jwQQ==
+sass@^1.108.1:
+  version "1.108.1"
+  resolved "https://registry.yarnpkg.com/sass/-/sass-1.108.1.tgz#169e456df9ad50bac4593435a207106a59b645a1"
+  integrity sha512-sIYgSvOPeD9wABwDS/ofNjHASSck+7h3jLkk7wG1NPFL3XeS6vOQjBlAFSmRV09kZr1yt/Tuayt6kKtBbLjHNQ==
   dependencies:
     chokidar "^5.0.0"
     immutable "^5.1.5"
