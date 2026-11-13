@@ -231,10 +231,10 @@
     "@floating-ui/dom" "^1.8.0"
     "@floating-ui/utils" "^0.2.12"
 
-"@iconify-json/lucide@^1.2.152":
-  version "1.2.152"
-  resolved "https://registry.yarnpkg.com/@iconify-json/lucide/-/lucide-1.2.152.tgz#b7804fd344964dca15cf2349f3ee9ad164e61167"
-  integrity sha512-OQTsOaQ+kD8yhy5EATMD5QHe5O+XJVibExdaRCaXP3hvNPNkn6wVUcTrGA16yU2luqe0ImE4qP74WBK8JuwwNA==
+"@iconify-json/lucide@^1.2.153":
+  version "1.2.153"
+  resolved "https://registry.yarnpkg.com/@iconify-json/lucide/-/lucide-1.2.153.tgz#a48f9fb2da076e1e85489f82f6770dc918f47102"
+  integrity sha512-fvb2SSbCxsj6CPUl2adKGWavwV90GvCd8zT/SnW0kd4Eg/Jc/ISQPbYuFjPFOiK7ohOgDWUMGeTIzxMDDMEoHQ==
   dependencies:
     "@iconify/types" "*"
 
@@ -3244,10 +3244,10 @@ vue-demi@>=0.13.0:
   resolved "https://registry.yarnpkg.com/vue-demi/-/vue-demi-0.14.10.tgz#afc78de3d6f9e11bf78c55e8510ee12814522f04"
   integrity sha512-nMZBOwuzabUO0nLgIcc6rycZEebF6eeUfaiQx9+WSk8e29IbLvPU9feI6tqW4kTo3hvoYAJkMh8n8D0fuISphg==
 
-vue-router@^5.4.0:
-  version "5.4.0"
-  resolved "https://registry.yarnpkg.com/vue-router/-/vue-router-5.4.0.tgz#77205289f898a8b2bae23b69d0a4c49aaecd1b83"
-  integrity sha512-pFvcYcxinDHjZUlf7AzFBrT8r8Xqvv4uMHoJnjc+EqPawXQvHTkF8S4tfSmQLpriVHUGfkaKlI7Et0KRjTMTdw==
+vue-router@^5.5.0:
+  version "5.5.0"
+  resolved "https://registry.yarnpkg.com/vue-router/-/vue-router-5.5.0.tgz#cdc39ab40904ebcbed1c2e31a98dfd32aedaa4e6"
+  integrity sha512-nYhG+YzLcrO5Z7KbH1H/xvBeBzhCWhQG0z5DYNLuaJULhavZBmEgoQ5xVHGxwe65c5hnJQHZpBxWdQhnOBzHmw==
   dependencies:
     "@vue-macros/common" "^3.1.3"
     "@vue/devtools-api" "^8.1.5"
