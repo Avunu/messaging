@@ -21,6 +21,6 @@ jobs:
   docs:
     permissions:
       contents: read # checkout
-    uses: Avunu/site-docs/.github/workflows/check-docs.yml@b5456555957d4d63a6452c521cc75fad87fcb059 # 2026-10-16
+    uses: Avunu/site-docs/.github/workflows/check-docs.yml@2aeda4140023146d26eb463480e826fa8f117702 # 2026-10-16
     with:
       path: messaging
