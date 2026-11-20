@@ -17,9 +17,11 @@ updates:
       prefix: chore
       include: scope
     labels: [dependencies]
-    # frappe-nix's reusable workflows move only through `frappe-nix repo rollout` and `frappe-init --sync`.
+    # frappe-nix pins move through the frappe-nix release rollout (`frappe-nix repo rollout`), not Dependabot.
+    # Dependabot names a reusable workflow by its path, hence the /* entry.
     ignore:
       - dependency-name: Avunu/frappe-nix
+      - dependency-name: Avunu/frappe-nix/*
     groups:
       # needs-review: a merge publishes the docs site with the new workflow code
       docs-actions:
