@@ -231,10 +231,10 @@
     "@floating-ui/dom" "^1.8.0"
     "@floating-ui/utils" "^0.2.12"
 
-"@iconify-json/lucide@^1.2.157":
-  version "1.2.157"
-  resolved "https://registry.yarnpkg.com/@iconify-json/lucide/-/lucide-1.2.157.tgz#380b41ff236c2ce19085e3557a7246f30b7838b4"
-  integrity sha512-hFOoLrhzbDkDfWdLhrEWHTyUXUkBxV5jrY00XgtI6zDKrwh5jANu0BLXb6xfCS/FeQ6A/9XDvEk4aJovNbOslg==
+"@iconify-json/lucide@^1.2.158":
+  version "1.2.158"
+  resolved "https://registry.yarnpkg.com/@iconify-json/lucide/-/lucide-1.2.158.tgz#bd10c080b462a7f92321234af60ef77d7b8504ec"
+  integrity sha512-odd13G5/Jv4W+yomId3BjCQ/a1k7QemC0mi+CBvvpl18JBO+sQajKl4F3WtPvFHMnkOQ4d3/BFKShTmBlbG0dg==
   dependencies:
     "@iconify/types" "*"
 
